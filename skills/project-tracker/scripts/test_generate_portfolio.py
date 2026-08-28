@@ -1,0 +1,297 @@
+#!/usr/bin/env python3
+"""Tests pour generate_portfolio.py — stdlib uniquement.
+Lancer avec: python3 -m unittest test_generate_portfolio -v
+(depuis le dossier scripts/)
+"""
+import sys
+import tempfile
+import unittest
+from datetime import date
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import generate_portfolio as gp
+
+
+class ParseFrontmatterTests(unittest.TestCase):
+    def test_parses_flat_fields_and_list(self):
+        text = (
+            "---\n"
+            "project: Example\n"
+            "status: active\n"
+            "stack: [Python, FastAPI]\n"
+            "last_updated: 2026-08-23\n"
+            "---\n"
+            "Corps du fichier.\n"
+        )
+        data = gp.parse_frontmatter(text)
+        self.assertEqual(data["project"], "Example")
+        self.assertEqual(data["status"], "active")
+        self.assertEqual(data["stack"], ["Python", "FastAPI"])
+        self.assertEqual(data["last_updated"], "2026-08-23")
+
+    def test_returns_none_without_frontmatter(self):
+        self.assertIsNone(gp.parse_frontmatter("Pas de frontmatter ici.\n"))
+
+
+class CollectProjectsTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+    def _write_status(self, rel_dir, content):
+        d = self.root / rel_dir / "docs" / "project-tracker"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "STATUS.md").write_text(content, encoding="utf-8")
+
+    def test_collects_valid_project(self):
+        self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual(len(projects), 1)
+        self.assertEqual(projects[0]["project"], "ProjA")
+        self.assertEqual(warnings, [])
+
+    def test_project_path_excludes_docs_project_tracker_suffix(self):
+        self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual(projects[0]["_path"], "ProjA")
+
+    def test_skips_malformed_frontmatter_with_warning(self):
+        self._write_status("ProjBad", "Pas de frontmatter.\n")
+        self._write_status("ProjGood", "---\nproject: Good\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual([p["project"] for p in projects], ["Good"])
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("ProjBad", warnings[0])
+
+    def test_skips_missing_required_fields_with_warning(self):
+        self._write_status("ProjIncomplete", "---\nproject: Incomplete\n---\nOk.\n")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual(projects, [])
+        self.assertEqual(len(warnings), 1)
+
+    def test_respects_trackignore(self):
+        self._write_status("Kept", "---\nproject: Kept\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        self._write_status("Skipped", "---\nproject: Skipped\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        (self.root / ".trackignore").write_text("Skipped\n", encoding="utf-8")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual([p["project"] for p in projects], ["Kept"])
+
+    def test_dedupes_nested_status_under_same_project(self):
+        self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        self._write_status("ProjA/backend", "---\nproject: ProjA-backend\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual(len(projects), 1)
+        self.assertEqual(projects[0]["project"], "ProjA")
+        self.assertEqual(warnings, [])
+
+    def test_flat_status_at_project_root_is_not_discovered(self):
+        d = self.root / "ProjFlat"
+        d.mkdir()
+        (d / "STATUS.md").write_text(
+            "---\nproject: ProjFlat\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n",
+            encoding="utf-8",
+        )
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual(projects, [])
+        self.assertEqual(warnings, [])
+
+    def test_prunes_git_and_node_modules_directories(self):
+        self._write_status(".git/some/nested/dir", "---\nproject: GitInternal\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        self._write_status("node_modules/some-pkg", "---\nproject: NpmPkg\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        self._write_status("ProjGood", "---\nproject: Good\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = gp.collect_projects(self.root)
+        self.assertEqual([p["project"] for p in projects], ["Good"])
+        self.assertEqual(warnings, [])
+
+
+class AggregateStackTests(unittest.TestCase):
+    def test_dedupes_exact_duplicates_and_sorts_case_insensitively(self):
+        projects = [
+            {"stack": ["Python", "FastAPI"]},
+            {"stack": ["Python", "React"]},
+        ]
+        self.assertEqual(gp.aggregate_stack(projects), ["FastAPI", "Python", "React"])
+
+    def test_ignores_projects_without_stack_field(self):
+        projects = [{"stack": ["Go"]}, {}]
+        self.assertEqual(gp.aggregate_stack(projects), ["Go"])
+
+    def test_empty_when_no_projects(self):
+        self.assertEqual(gp.aggregate_stack([]), [])
+
+
+class StatusCountsTests(unittest.TestCase):
+    def test_counts_by_status_in_stable_order(self):
+        projects = [
+            {"status": "active"}, {"status": "active"},
+            {"status": "paused"}, {"status": "archived"},
+        ]
+        self.assertEqual(
+            gp.status_counts(projects),
+            [("active", 2), ("paused", 1), ("archived", 1)],
+        )
+
+    def test_unknown_status_appended_after_known_ones(self):
+        projects = [{"status": "active"}, {"status": "weird"}]
+        self.assertEqual(gp.status_counts(projects), [("active", 1), ("weird", 1)])
+
+
+class RenderSectionsTests(unittest.TestCase):
+    def test_stats_section_empty_when_no_projects(self):
+        self.assertEqual(gp.render_stats_section([]), "")
+
+    def test_stats_section_shows_real_status_label(self):
+        html = gp.render_stats_section([{"status": "active"}, {"status": "active"}])
+        self.assertIn("2", html)
+        self.assertIn("Actif", html)
+
+    def test_stats_section_renders_as_filter_buttons(self):
+        html = gp.render_stats_section([{"status": "active"}])
+        self.assertIn('<button type="button" class="stat" data-status="active" aria-pressed="false">', html)
+
+    def test_stack_section_empty_when_no_stack_anywhere(self):
+        self.assertEqual(gp.render_stack_section([{"status": "active"}]), "")
+
+    def test_stack_section_lists_aggregated_chips_as_filter_buttons(self):
+        html = gp.render_stack_section([{"stack": ["Python", "Go"]}])
+        self.assertIn('<button type="button" class="chip" data-tech="go" aria-pressed="false">Go</button>', html)
+        self.assertIn(
+            '<button type="button" class="chip" data-tech="python" aria-pressed="false">Python</button>', html
+        )
+
+
+class RenderCardTests(unittest.TestCase):
+    def test_renders_link_for_http_repo(self):
+        p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p", "repo": "https://example.com/repo"}
+        html = gp.render_card(p)
+        self.assertIn('<a href="https://example.com/repo"', html)
+
+    def test_suppresses_non_http_repo_scheme(self):
+        p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p", "repo": "javascript:alert(1)"}
+        html = gp.render_card(p)
+        self.assertNotIn("<a href=", html)
+        self.assertNotIn("javascript:", html)
+
+    def test_absent_repo_renders_no_link(self):
+        p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p"}
+        html = gp.render_card(p)
+        self.assertNotIn("<a href=", html)
+
+    def test_data_stack_attribute_is_lowercased_for_matching(self):
+        p = {
+            "project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p",
+            "stack": ["Python", "FastAPI"],
+        }
+        html = gp.render_card(p)
+        self.assertIn('data-stack="python,fastapi"', html)
+
+    def test_data_stack_attribute_present_without_repo_too(self):
+        p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p", "stack": ["Go"]}
+        html = gp.render_card(p)
+        self.assertIn('<article class="card" data-stack="go" data-status="active">', html)
+
+    def test_data_status_attribute_lowercased(self):
+        p = {"project": "P", "status": "Paused", "last_updated": "2026-08-23", "_path": "p"}
+        html = gp.render_card(p)
+        self.assertIn('data-status="paused"', html)
+
+    def test_freshness_shown_for_recent_date(self):
+        p = {"project": "P", "status": "active", "last_updated": "2026-08-20", "_path": "p"}
+        html = gp.render_card(p, today=date(2026, 8, 23))
+        self.assertIn("il y a 3 jours", html)
+        self.assertNotIn("freshness-stale", html)
+
+    def test_freshness_flags_stale_projects(self):
+        p = {"project": "P", "status": "active", "last_updated": "2026-06-01", "_path": "p"}
+        html = gp.render_card(p, today=date(2026, 8, 23))
+        self.assertIn("freshness-stale", html)
+
+    def test_freshness_absent_for_unparseable_date(self):
+        p = {"project": "P", "status": "active", "last_updated": "n/a", "_path": "p"}
+        html = gp.render_card(p, today=date(2026, 8, 23))
+        self.assertNotIn("freshness", html)
+
+
+class RelativeFreshnessTests(unittest.TestCase):
+    def test_today_and_yesterday_have_dedicated_labels(self):
+        self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23)), ("aujourd'hui", False))
+        self.assertEqual(gp.relative_freshness("2026-08-22", date(2026, 8, 23)), ("hier", False))
+
+    def test_days_label_under_stale_threshold(self):
+        label, is_stale = gp.relative_freshness("2026-08-13", date(2026, 8, 23))
+        self.assertEqual(label, "il y a 10 jours")
+        self.assertFalse(is_stale)
+
+    def test_stale_after_30_days(self):
+        label, is_stale = gp.relative_freshness("2026-07-01", date(2026, 8, 23))
+        self.assertTrue(is_stale)
+        self.assertIn("mois", label)
+
+    def test_unparseable_date_returns_none(self):
+        self.assertEqual(gp.relative_freshness("pas une date", date(2026, 8, 23)), (None, False))
+
+    def test_future_date_returns_none(self):
+        self.assertEqual(gp.relative_freshness("2026-09-01", date(2026, 8, 23)), (None, False))
+
+
+class SortByRecencyTests(unittest.TestCase):
+    def test_most_recent_first(self):
+        projects = [
+            {"project": "Old", "last_updated": "2026-01-01"},
+            {"project": "New", "last_updated": "2026-08-20"},
+            {"project": "Mid", "last_updated": "2026-05-15"},
+        ]
+        result = gp.sort_by_recency(projects)
+        self.assertEqual([p["project"] for p in result], ["New", "Mid", "Old"])
+
+    def test_unparseable_dates_pushed_to_end_but_stable(self):
+        projects = [
+            {"project": "NoDate1", "last_updated": "n/a"},
+            {"project": "Real", "last_updated": "2026-01-01"},
+            {"project": "NoDate2", "last_updated": ""},
+        ]
+        result = gp.sort_by_recency(projects)
+        self.assertEqual([p["project"] for p in result], ["Real", "NoDate1", "NoDate2"])
+
+
+class MainTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+    def test_main_writes_portfolio_html(self):
+        d = self.root / "ProjA"
+        (d / "docs" / "project-tracker").mkdir(parents=True)
+        (d / "docs" / "project-tracker" / "STATUS.md").write_text(
+            "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n"
+            "stack: [Python]\nnext_milestone: \"Terminer X\"\n---\nOk.\n",
+            encoding="utf-8",
+        )
+        sys.argv = ["generate_portfolio.py", str(self.root)]
+        gp.main()
+        out = (self.root / "PORTFOLIO.html").read_text(encoding="utf-8")
+        self.assertIn("ProjA", out)
+        self.assertIn("Terminer X", out)
+        self.assertIn("Python", out)
+
+    def test_main_exits_cleanly_on_missing_scope_root(self):
+        missing = self.root / "does-not-exist"
+        sys.argv = ["generate_portfolio.py", str(missing)]
+        with self.assertRaises(SystemExit) as ctx:
+            gp.main()
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_main_exits_cleanly_when_scope_root_is_a_file(self):
+        f = self.root / "not-a-dir"
+        f.write_text("x", encoding="utf-8")
+        sys.argv = ["generate_portfolio.py", str(f)]
+        with self.assertRaises(SystemExit) as ctx:
+            gp.main()
+        self.assertEqual(ctx.exception.code, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
