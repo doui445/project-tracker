@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Regenere install-project-tracker.sh a partir des fichiers actuels du
-# skill (SKILL.md, references/, hooks/, scripts/), encodes en base64
-# (aucun risque de collision de delimiteur heredoc ni de caractere
-# special mal echappe). A relancer apres toute modification du skill,
-# puis committer le resultat pour garder l'installeur a jour.
+# Regenerates install-project-tracker.sh from the skill's current files
+# (SKILL.md, references/, hooks/, scripts/), base64-encoded (no risk of a
+# heredoc delimiter collision or a mis-escaped special character). Re-run
+# after any change to the skill, then commit the result to keep the
+# installer up to date.
 #
-# Usage : bash build_installer.sh
+# Usage: bash build_installer.sh
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -15,11 +15,11 @@ encode() { base64 < "$1" | tr -d '\n'; }
 
 cat > "$OUT" <<'HEADER'
 #!/usr/bin/env bash
-# Installeur autonome du skill project-tracker.
-# Genere automatiquement -- ne pas editer a la main, regenerer depuis la
-# machine source si le skill a change.
+# Standalone installer for the project-tracker skill.
+# Auto-generated -- do not edit by hand, regenerate from the source
+# machine if the skill has changed.
 #
-# Usage : bash install-project-tracker.sh
+# Usage: bash install-project-tracker.sh
 set -euo pipefail
 
 SKILL_DIR="$HOME/.claude/skills/project-tracker"
@@ -29,11 +29,11 @@ SKILLS_ROOT="$HOME/.claude/skills"
 SKILLS_EXISTED_BEFORE=0
 [ -d "$SKILLS_ROOT" ] && SKILLS_EXISTED_BEFORE=1
 
-echo "Installation de project-tracker dans $SKILL_DIR ..."
+echo "Installing project-tracker into $SKILL_DIR ..."
 mkdir -p "$SKILL_DIR/hooks" "$SKILL_DIR/scripts" "$SKILL_DIR/references" "$SCOPES_DIR"
 
 write_b64() {
-  # write_b64 <chemin_de_sortie>  (lit le base64 sur stdin)
+  # write_b64 <output_path>  (reads base64 on stdin)
   base64 -d > "$1"
 }
 HEADER
@@ -52,30 +52,30 @@ cat >> "$OUT" <<'FOOTER'
 chmod +x "$SKILL_DIR/hooks/session_start.sh" "$SKILL_DIR/hooks/test_session_start.sh" "$SKILL_DIR/hooks/reminders_sync_trigger.sh" "$SKILL_DIR/hooks/test_reminders_sync_trigger.sh" "$SKILL_DIR/scripts/generate_portfolio.py"
 
 if [ -f "$SCOPES_DIR/scopes.txt" ]; then
-  echo "scopes.txt existe deja -> non modifie ($SCOPES_DIR/scopes.txt)"
+  echo "scopes.txt already exists -> unchanged ($SCOPES_DIR/scopes.txt)"
 elif [ -t 0 ]; then
   echo
-  read -rp "Chemin absolu du dossier a surveiller automatiquement (ex: /Users/toi/Documents/Code) : " scope_path
+  read -rp "Absolute path of the folder to watch automatically (e.g. /Users/you/Documents/Code): " scope_path
   {
-    echo "# project-tracker scopes — un chemin absolu par ligne, commentaires avec #"
-    echo "# Tout ce qui est sous ces racines beneficie de la detection automatique."
+    echo "# project-tracker scopes — one absolute path per line, comments with #"
+    echo "# Everything under these roots gets automatic detection."
     [ -n "$scope_path" ] && echo "$scope_path"
   } > "$SCOPES_DIR/scopes.txt"
-  echo "scopes.txt cree : $SCOPES_DIR/scopes.txt"
+  echo "scopes.txt created: $SCOPES_DIR/scopes.txt"
 else
   {
-    echo "# project-tracker scopes — un chemin absolu par ligne, commentaires avec #"
-    echo "# Ajoute une racine a surveiller, ex: /Users/toi/Documents/Code"
+    echo "# project-tracker scopes — one absolute path per line, comments with #"
+    echo "# Add a root to watch, e.g. /Users/you/Documents/Code"
   } > "$SCOPES_DIR/scopes.txt"
-  echo ">> Aucun terminal interactif : edite $SCOPES_DIR/scopes.txt pour ajouter tes dossiers."
+  echo ">> No interactive terminal: edit $SCOPES_DIR/scopes.txt to add your folders."
 fi
 
 if [ ! -f "$SCOPES_DIR/trackignore.txt" ]; then
   {
-    echo "# project-tracker — chemins absolus a exclure de la detection, un par ligne."
-    echo "# Une entree egale a une racine de scopes.txt n'ignore que ce dossier exact."
+    echo "# project-tracker — absolute paths to exclude from detection, one per line."
+    echo "# An entry equal to a scopes.txt root ignores only that exact folder."
   } > "$SCOPES_DIR/trackignore.txt"
-  echo "trackignore.txt cree : $SCOPES_DIR/trackignore.txt"
+  echo "trackignore.txt created: $SCOPES_DIR/trackignore.txt"
 fi
 
 python3 - "$SETTINGS_FILE" "$SKILL_DIR/hooks/session_start.sh" "$SKILL_DIR/hooks/reminders_sync_trigger.sh" <<'PYEOF'
@@ -101,9 +101,9 @@ def register(event, matcher, command):
         settings["hooks"][event].append(
             {"matcher": matcher, "hooks": [{"type": "command", "command": command}]}
         )
-        print(f"hook {event} enregistre dans {settings_path}")
+        print(f"hook {event} registered in {settings_path}")
         return True
-    print(f"hook {event} deja present dans {settings_path} -> non modifie")
+    print(f"hook {event} already present in {settings_path} -> unchanged")
     return False
 
 changed = register("SessionStart", "", session_start_cmd)
@@ -116,25 +116,25 @@ if changed:
 PYEOF
 
 echo
-echo "Verification (tests) :"
+echo "Verification (tests):"
 bash "$SKILL_DIR/hooks/test_session_start.sh"
 bash "$SKILL_DIR/hooks/test_reminders_sync_trigger.sh"
 ( cd "$SKILL_DIR/scripts" && python3 -m unittest test_generate_portfolio -v )
 
 echo
 echo "=========================================="
-echo "Installation terminee : $SKILL_DIR"
+echo "Installation complete: $SKILL_DIR"
 if [ "$SKILLS_EXISTED_BEFORE" -eq 0 ]; then
-  echo "IMPORTANT : ~/.claude/skills/ n'existait pas avant -- redemarre Claude Code"
-  echo "une fois pour qu'il detecte le nouveau dossier de skills."
+  echo "IMPORTANT: ~/.claude/skills/ did not exist before -- restart Claude Code"
+  echo "once so it detects the new skills folder."
 fi
 if ! command -v gh >/dev/null 2>&1; then
-  echo "Note : la CLI 'gh' n'est pas installee -- necessaire seulement si tu veux"
-  echo "la creation automatique de depots GitHub depuis ce skill."
+  echo "Note: the 'gh' CLI is not installed -- only needed if you want"
+  echo "automatic GitHub repo creation from this skill."
 fi
-echo "Ouvre une session Claude Code dans un dossier de scopes.txt pour verifier le hook."
+echo "Open a Claude Code session in a scopes.txt folder to check the hook."
 echo "=========================================="
 FOOTER
 
 chmod +x "$OUT"
-echo "Installeur genere : $OUT ($(wc -l < "$OUT") lignes, $(du -h "$OUT" | cut -f1))"
+echo "Installer generated: $OUT ($(wc -l < "$OUT") lines, $(du -h "$OUT" | cut -f1))"
