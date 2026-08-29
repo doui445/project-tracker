@@ -1,33 +1,33 @@
 # Backlog / Roadmap / Phases
 
-Référencé depuis `SKILL.md` (`## Les fichiers standard`, `## Bootstrap d'un nouveau projet`, `## Détection de la racine d'un projet`, `## Rétrofit d'un projet existant`). S'applique à tout projet suivi — `BACKLOG.md` existe pour tous, même vide au départ, créé sans condition ni question par le bootstrap (`backlog_model: "adopté"` écrit automatiquement dans ce cas — voir `## Bootstrap d'un nouveau projet` dans `SKILL.md` ; le `"non"` décliné n'existe que via le chemin de rétrofit d'un projet qui préexistait à cette fonctionnalité, voir `## Rétrofit d'un projet existant`) ; le mécanisme de phases ci-dessous ne s'active que quand assez d'items s'accumulent.
+Referenced from `SKILL.md` (`## The standard files`, `## Bootstrapping a new project`, `## Detecting a project's root`, `## Retrofitting an existing project`). Applies to every tracked project — `BACKLOG.md` exists for all of them, even empty at the start, created unconditionally and without a question by the bootstrap (`backlog_model: "adopté"` written automatically in that case — see `## Bootstrapping a new project` in `SKILL.md`; the declined `"non"` only exists via the retrofit path of a project that predated this feature, see `## Retrofitting an existing project`); the phase mechanism below only kicks in once enough items accumulate.
 
-## `BACKLOG.md` — réservoir brut
+## `BACKLOG.md` — raw reservoir
 
-Toute idée/feature envisagée pour le projet, jamais purgée — seulement enrichie et archivée. Organisé par priorité (haute/moyenne/basse, ou "sans priorité définie"/"idées non priorisées" pour ce qui n'est même pas encore trié) plutôt que par ordre chronologique. Pour chaque item, autant que possible : effort estimé (S/M/L) et valeur perçue (⭐ à ⭐⭐⭐) — aide à choisir quoi grouper dans une phase. Statuts `[ ]` à faire / `[~]` en cours / `[x]` fait / `[-]` abandonné. Termine par une courte section "Comment utiliser ce backlog" rappelant le cycle : démarrer une phase (choisir des items cohérents, les grouper) → suivre l'avancement (`[~]`) → archiver à la clôture (`[x]` puis section "Complété" en bas du fichier).
+Every idea/feature envisaged for the project, never purged — only enriched and archived. Organised by priority (high/medium/low, or "no defined priority"/"unprioritised ideas" for what isn't even sorted yet) rather than chronologically. For each item, as far as possible: estimated effort (S/M/L) and perceived value (⭐ to ⭐⭐⭐) — helps decide what to group into a phase. Statuses `[ ]` to do / `[~]` in progress / `[x]` done / `[-]` abandoned. End with a short "How to use this backlog" section recalling the cycle: start a phase (pick coherent items, group them) → track progress (`[~]`) → archive on closure (`[x]` then a "Completed" section at the bottom of the file).
 
-## `ROADMAP.md` — synthèse dérivée
+## `ROADMAP.md` — derived synthesis
 
-Ne liste jamais le détail brut (effort/valeur, notes techniques) — pointeur vers `BACKLOG.md` pour ça. Structure :
-1. **Fait** — phases passées, une ligne chacune, pointeur vers `STATUS.md`/`CHANGELOG.md` pour le détail.
-2. **Phase N — 🎯 en cours** — la phase active en ce moment (voir "Mécanisme des phases" ci-dessous), avec le détail de son contenu.
-3. **Après Phase N** — phases suivantes déjà anticipées, groupées par priorité.
-4. **Idées non priorisées** — résumé très court (quelques mots par thème, pas la liste complète — celle-ci vit dans `BACKLOG.md`).
+Never lists the raw detail (effort/value, technical notes) — a pointer to `BACKLOG.md` for that. Structure:
+1. **Done** — past phases, one line each, a pointer to `STATUS.md`/`CHANGELOG.md` for the detail.
+2. **Phase N — 🎯 in progress** — the phase active right now (see "How phases work" below), with the detail of its content.
+3. **After Phase N** — following phases already anticipated, grouped by priority.
+4. **Unprioritised ideas** — a very short summary (a few words per theme, not the full list — that one lives in `BACKLOG.md`).
 
-Si un projet n'a pas encore assez de contenu pour justifier plusieurs phases : `ROADMAP.md` peut rester une simple liste priorisée sans la structure "Phase N" tant qu'aucune phase n'a démarré — la structure complète se met en place au moment de la première phase.
+If a project doesn't have enough content yet to justify several phases: `ROADMAP.md` can stay a simple prioritised list without the "Phase N" structure as long as no phase has started — the full structure is put in place when the first phase begins.
 
-## Mécanisme des phases
+## How phases work
 
-Quand assez d'items cohérents du backlog s'accumulent (jugement de Claude — pas de seuil chiffré fixe, cohérent avec "ne jamais deviner" : c'est une proposition, jamais une décision automatique), propose de démarrer une phase. Si accepté :
+When enough coherent backlog items accumulate (Claude's judgment — no fixed numeric threshold, consistent with "never guess": it's a proposal, never an automatic decision), propose starting a phase. If accepted:
 
-1. Détermine `phase_model` si pas encore fait pour ce projet (frontmatter `STATUS.md`, absent = jamais posé) :
-   - `claude plugin list` → si `superpowers` présent et activé : `phase_model: "superpowers"`, pas de question.
-   - Sinon (absent, ou présent mais désactivé) : propose l'installation/l'activation toi-même (`claude plugin marketplace list` → `claude plugin marketplace add anthropics/claude-plugins-official` si besoin → `claude plugin install superpowers@claude-plugins-official` → `claude plugin enable superpowers`), exécute-la toi-même si acceptée plutôt que d'expliquer comment faire, préviens qu'un redémarrage de session est nécessaire, puis `phase_model: "superpowers"`. Si déclinée : propose le format léger à la place plutôt que de bloquer la fonctionnalité, puis `phase_model: "leger"`.
-   - Une fois déterminé, jamais reposé pour ce projet — même si `superpowers` devient disponible plus tard sur la machine (cohérence entre toutes les phases d'un même projet). Un changement de format reste possible à la demande explicite de l'utilisateur, mais jamais reproposé automatiquement.
-2. Produit le document de la phase selon `phase_model` :
-   - `"superpowers"` : invoque le skill `writing-plans` pour produire un plan dans `docs/superpowers/plans/YYYY-MM-DD-<sujet>.md`, dans le dépôt du projet suivi (pas celui de `project-tracker`).
-   - `"leger"` : rédige toi-même `docs/project-tracker/phases/PHASE_N_SPEC.md` (objectif, périmètre, règles à respecter) — pas de cérémonie SDD, implémentation directe.
-3. `ROADMAP.md` gagne/actualise sa section "Phase N — 🎯 en cours" qui référence ce document.
-4. Les items concernés passent en `[~]` dans `BACKLOG.md`.
+1. Determine `phase_model` if not yet done for this project (`STATUS.md` frontmatter, absent = never set):
+   - `claude plugin list` → if `superpowers` is present and enabled: `phase_model: "superpowers"`, no question.
+   - Otherwise (absent, or present but disabled): propose the install/enable yourself (`claude plugin marketplace list` → `claude plugin marketplace add anthropics/claude-plugins-official` if needed → `claude plugin install superpowers@claude-plugins-official` → `claude plugin enable superpowers`), run it yourself if accepted rather than explaining how to do it, warn that a session restart is required, then `phase_model: "superpowers"`. If declined: propose the light format instead rather than blocking the feature, then `phase_model: "leger"`.
+   - Once determined, never asked again for this project — even if `superpowers` becomes available later on the machine (consistency across all phases of a single project). Changing the format stays possible on the user's explicit request, but is never re-proposed automatically.
+2. Produce the phase document according to `phase_model`:
+   - `"superpowers"`: invoke the `writing-plans` skill to produce a plan in `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, in the tracked project's repo (not `project-tracker`'s).
+   - `"leger"`: write `docs/project-tracker/phases/PHASE_N_SPEC.md` yourself (goal, scope, rules to follow) — no SDD ceremony, direct implementation.
+3. `ROADMAP.md` gains/updates its "Phase N — 🎯 in progress" section referencing that document.
+4. The items concerned move to `[~]` in `BACKLOG.md`.
 
-À la clôture d'une phase : items terminés → `[x]` puis archivés dans la section "Complété" de `BACKLOG.md` ; la section "Phase N — en cours" de `ROADMAP.md` bascule dans "Fait".
+On closing a phase: finished items → `[x]` then archived in the "Completed" section of `BACKLOG.md`; the "Phase N — in progress" section of `ROADMAP.md` moves into "Done".
