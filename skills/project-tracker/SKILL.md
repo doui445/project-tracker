@@ -1,157 +1,157 @@
 ---
 name: project-tracker
-description: Bootstrap et maintient à jour un jeu standard de fichiers markdown de suivi (README, ROADMAP, STATUS, JOURNAL, CHANGELOG, CLAUDE, DECISIONS, ERRORS, BACKLOG) pour les projets sous les périmètres définis dans ~/.claude/project-tracker/scopes.txt, gère la création de repos GitHub, et régénère PORTFOLIO.html. Utilise-le au début d'une session dans un projet de ces périmètres, après un changement significatif, ou explicitement à la demande.
+description: Bootstraps and keeps up to date a standard set of markdown tracking files (README, ROADMAP, STATUS, JOURNAL, CHANGELOG, CLAUDE, DECISIONS, ERRORS, BACKLOG) for projects under the scopes defined in ~/.claude/project-tracker/scopes.txt, manages GitHub repo creation, and regenerates PORTFOLIO.html. Use it at the start of a session in a project under those scopes, after a significant change, or explicitly on request.
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py *)
 ---
 
 # project-tracker
 
-## Principe transversal : ne jamais deviner
+## Overarching principle: never guess
 
-Chaque fois qu'une information nécessaire (objectif du projet, stack, rationale d'une décision, contenu d'une entrée JOURNAL...) manque ou est ambiguë : **pose la question à l'utilisateur**. N'infère jamais, n'invente jamais un contenu plausible. Une section sans réponse reste marquée "à compléter", jamais remplie par supposition.
+Whenever a needed piece of information (the project's goal, its stack, the rationale for a decision, the content of a JOURNAL entry...) is missing or ambiguous: **ask the user**. Never infer, never invent plausible-looking content. A section with no answer stays marked "to fill in", never filled in by assumption.
 
-## Périmètre
+## Scope
 
-Le fichier `~/.claude/project-tracker/scopes.txt` liste les racines couvertes. Le hook `SessionStart` ne s'active déjà que dans ce périmètre — mais si tu es invoqué explicitement par l'utilisateur dans un dossier hors périmètre :
-1. Avertis-le : "ce dossier n'est pas dans tes périmètres de suivi automatique (`<liste des entrées de scopes.txt>`)".
-2. Continue quand même normalement — n'agis jamais en refusant.
-3. Propose d'ajouter un chemin à `scopes.txt` pour l'avenir : *"Je l'ajoute à tes périmètres — ce dossier précisément, ou un chemin en amont que tu préfères préciser ?"*. Si accepté, ajoute la ligne exacte demandée à `~/.claude/project-tracker/scopes.txt`. Si décliné, n'ajoute rien et continue.
+The file `~/.claude/project-tracker/scopes.txt` lists the covered roots. The `SessionStart` hook already only fires within that scope — but if the user invokes you explicitly in a folder outside any scope:
+1. Warn them: "this folder is not in your automatic tracking scopes (`<list of scopes.txt entries>`)".
+2. Carry on normally anyway — never act by refusing.
+3. Offer to add a path to `scopes.txt` for the future: *"I'll add it to your scopes — this exact folder, or a parent path you'd rather specify?"*. If accepted, add the exact requested line to `~/.claude/project-tracker/scopes.txt`. If declined, add nothing and carry on.
 
-## Détection de la racine d'un projet
+## Detecting a project's root
 
-La racine candidate est le dossier où la session a été ouverte (`cwd`). Exception : si un ancêtre de `cwd`, jusqu'à la racine du périmètre, possède déjà un `docs/project-tracker/STATUS.md`, c'est lui la racine du projet suivi (évite un faux "nouveau projet" en ouvrant une session dans un sous-dossier profond d'un projet déjà suivi).
+The candidate root is the folder where the session was opened (`cwd`). Exception: if an ancestor of `cwd`, up to the scope root, already has a `docs/project-tracker/STATUS.md`, that ancestor is the tracked project's root (this avoids a false "new project" when a session is opened in a deep subfolder of an already-tracked project).
 
-Trois états possibles :
-- **Suivi** : `docs/project-tracker/STATUS.md` présent à la racine trouvée.
-  - Si son frontmatter n'a **pas du tout** la clé `reminders_list` (jamais posée — distinct d'une clé présente valant `"non"`, qui signifie déclinée) : pose la question de liaison Reminders tout de suite, avant toute autre chose, indépendamment de si un changement significatif a lieu dans cette session (voir `references/reminders-sync.md`) — cette question ne doit jamais attendre un déclenchement de "Mise à jour en continu".
-  - Si son frontmatter n'a pas du tout la clé `backlog_model` : vérifie d'abord si `ROADMAP.md` mentionne/référence explicitement un fichier nommé `BACKLOG.md` (à son emplacement standard `docs/project-tracker/BACKLOG.md`, ou à un chemin non standard ailleurs dans le projet — ex. imbriqué dans un sous-dossier ; ne pose pas comme condition qu'il soit à l'emplacement standard, cherche plutôt la mention explicite) — si oui, le projet a déjà adopté le modèle sans être passé par le bootstrap de `project-tracker` : écris `backlog_model: "adopté"` directement, sans poser la question ; pour savoir s'il faut consolider ce fichier dans `docs/project-tracker/` ou le laisser où il est, voir `## Rétrofit d'un projet existant` (deux cas selon qu'un `STATUS.md` propre existe à ce chemin ou non). Sinon, pose la question d'adoption du modèle Backlog/Roadmap (voir `references/backlog-phases.md`), une fois, jamais reposée ensuite.
-  - Si `backlog_model` vaut `"adopté"` (ou vient d'être auto-reconnu ci-dessus) et que le frontmatter n'a pas du tout la clé `phase_model` : vérifie si des fichiers au patron `PHASE_N_SPEC.md` existent déjà dans le projet — si oui, auto-reconnais `phase_model: "leger"` sans poser de question (même logique que ci-dessus). Sinon, ne pose **pas** de question ici : `phase_model` reste absent jusqu'à ce qu'une phase soit effectivement proposée (voir `references/backlog-phases.md`, "Mécanisme des phases").
-  - Ces vérifications sont indépendantes les unes des autres — pose-les l'une après l'autre plutôt que simultanément dans le même message.
-  - Puis va à "Mise à jour en continu".
-- **Exclu** : le chemin absolu figure dans `~/.claude/project-tracker/trackignore.txt` (une entrée égale à une racine de périmètre n'ignore que ce dossier exact, pas les projets à l'intérieur) → ne rien faire, sauf si l'utilisateur t'en parle explicitement.
-- **Nouveau/inconnu** : ni l'un ni l'autre → va à "Bootstrap d'un nouveau projet".
+Three possible states:
+- **Tracked**: `docs/project-tracker/STATUS.md` present at the root found.
+  - If its frontmatter has **no** `reminders_list` key at all (never asked — distinct from a key present with the value `"non"`, which means declined): ask the Reminders linking question right away, before anything else, regardless of whether a significant change happens in this session (see `references/reminders-sync.md`) — this question must never wait for a "Continuous updates" trigger.
+  - If its frontmatter has no `backlog_model` key at all: first check whether `ROADMAP.md` explicitly mentions/references a file named `BACKLOG.md` (at its standard location `docs/project-tracker/BACKLOG.md`, or at a non-standard path elsewhere in the project — e.g. nested in a subfolder; do not require it to be at the standard location, look instead for the explicit mention) — if so, the project has already adopted the model without going through the `project-tracker` bootstrap: write `backlog_model: "adopté"` directly, without asking; to decide whether to consolidate that file into `docs/project-tracker/` or leave it where it is, see `## Retrofitting an existing project` (two cases depending on whether a `STATUS.md` of its own exists at that path). Otherwise, ask the Backlog/Roadmap model adoption question (see `references/backlog-phases.md`), once, never asked again afterwards.
+  - If `backlog_model` is `"adopté"` (or was just auto-recognized above) and the frontmatter has no `phase_model` key at all: check whether files matching `PHASE_N_SPEC.md` already exist in the project — if so, auto-recognize `phase_model: "leger"` without asking (same logic as above). Otherwise, do **not** ask a question here: `phase_model` stays absent until a phase is actually proposed (see `references/backlog-phases.md`, "How phases work").
+  - These checks are independent of one another — ask them one after another rather than all at once in the same message.
+  - Then go to "Continuous updates".
+- **Excluded**: the absolute path appears in `~/.claude/project-tracker/trackignore.txt` (an entry equal to a scope root ignores only that exact folder, not the projects inside it) → do nothing, unless the user brings it up explicitly.
+- **New/unknown**: neither → go to "Bootstrapping a new project".
 
-Quand tu es invoqué via le rappel du hook `SessionStart`, il t'indique déjà lequel de ces trois états s'applique (avec le contenu de `STATUS.md` le cas échéant) — pas besoin de re-détecter toi-même dans ce cas.
+When you are invoked via the `SessionStart` hook reminder, it already tells you which of these three states applies (with the content of `STATUS.md` where relevant) — no need to re-detect it yourself in that case.
 
-## Bootstrap d'un nouveau projet
+## Bootstrapping a new project
 
-Séquence de questions, une à la fois, jamais de supposition :
+A sequence of questions, one at a time, never an assumption:
 
-1. *"Ce dossier n'est pas encore suivi — je mets en place le suivi ?"*
-   - Si non → ajoute le chemin absolu du dossier à `~/.claude/project-tracker/trackignore.txt` (crée le fichier s'il n'existe pas). Fin du flow, aucune justification demandée.
-2. *"Objectif du projet en quelques mots ?"* → alimentera l'intro du README et le premier STATUS.md.
-3. *"Stack technique ?"*
-4. *"Pour git, on fait comment ?"* — trois options à proposer :
-   - **Pas de suivi git** → saute toute la partie GitHub ci-dessous ; note ce choix dans `CLAUDE.md` (`uses_git: false`) pour ne plus jamais reposer la question ; la détection de staleness se basera sur les dates de modification de fichiers plutôt que `git log`.
-   - **Créer un nouveau repo GitHub** → demande *"Quel nom pour le repo ?"* (suggestion par défaut = nom du dossier, à valider ou changer). Puis :
+1. *"This folder isn't tracked yet — shall I set up tracking?"*
+   - If no → add the folder's absolute path to `~/.claude/project-tracker/trackignore.txt` (create the file if it doesn't exist). End of flow, no justification required.
+2. *"The project's goal in a few words?"* → will feed the README intro and the first STATUS.md.
+3. *"Tech stack?"*
+4. *"How do you want to handle git?"* — three options to offer:
+   - **No git tracking** → skip the whole GitHub part below; record this choice in `CLAUDE.md` (`uses_git: false`) so the question is never asked again; staleness detection will rely on file modification dates rather than `git log`.
+   - **Create a new GitHub repo** → ask *"What name for the repo?"* (default suggestion = folder name, to confirm or change). Then:
      ```bash
-     gh auth status   # vérifier avant toute chose
+     gh auth status   # check before anything else
      ```
-     Si `gh` absent ou non authentifié : signale-le clairement, saute la partie GitHub, continue le reste du bootstrap sans bloquer.
-     Si OK :
+     If `gh` is missing or not authenticated: say so clearly, skip the GitHub part, carry on with the rest of the bootstrap without blocking.
+     If OK:
      ```bash
-     cd <racine du projet>
-     git init   # si pas déjà un dépôt
-     gh repo create <nom> --private --source=. --remote=origin
+     cd <project root>
+     git init   # if not already a repo
+     gh repo create <name> --private --source=. --remote=origin
      ```
-     Committe les fichiers standard une fois créés (voir plus bas), puis demande *"je pousse ce premier commit ?"* avant tout `git push`.
-   - **Un repo existe déjà** → demande l'URL, puis :
+     Commit the standard files once created (see below), then ask *"shall I push this first commit?"* before any `git push`.
+   - **A repo already exists** → ask for the URL, then:
      ```bash
-     git init   # si pas déjà un dépôt
+     git init   # if not already a repo
      git remote add origin <url>
      git fetch origin
      ```
-     - Si le repo distant est vide → rien de plus, le premier commit/push suit le flow normal ci-dessus.
-     - Si le repo distant contient déjà des fichiers → tente une fusion (`git merge --allow-unrelated-histories origin/main` ou la branche par défaut). En cas de conflit de chemins entre contenu local et distant, ne tranche pas : montre le conflit à l'utilisateur et demande comment concilier (garder le local, garder le distant, fusionner à la main) avant de continuer.
-5. *"Tu veux lier ce projet à une liste Reminders, pour que je puisse aussi te proposer/suivre les tâches depuis l'app Rappels ?"* — optionnel.
-   - Si l'outil `reminders_lists` échoue faute de serveur MCP `apple-reminders` disponible sur cette machine : même traitement que "Outil MCP indisponible" dans `references/reminders-sync.md`, étape 0 (propose de l'installer toi-même, scope `user` impératif) — ne bloque pas le reste du bootstrap pour autant.
-   - Si oui et qu'une liste existante correspond déjà au projet (`reminders_lists` action `read`) : propose de la réutiliser plutôt que d'en créer une nouvelle.
-   - Si oui et qu'aucune liste existante ne convient : demande *"Quel nom pour la liste ?"* (suggestion par défaut = nom du projet, à valider ou changer — jamais créée sans confirmation du nom), puis crées-en une nouvelle à plat (`reminders_lists` action `create`) — l'outil ne peut pas la ranger automatiquement dans un dossier Reminders, l'utilisateur le fait lui-même s'il veut.
-   - Dans tous les cas (oui ou non), écris la réponse dans le frontmatter `reminders_list` (nom de la liste, ou `"non"` si décliné — jamais une chaîne vide, qui se confond trop facilement avec "pas encore rempli") — jamais reposée ensuite. Voir `references/reminders-sync.md` pour le fonctionnement une fois lié.
-6. *"Projet assez complexe pour mériter un `ARCHITECTURE.md` séparé, ou `CLAUDE.md` suffit ?"* et *"du jargon métier qui justifierait un `GLOSSARY.md` ?"* — optionnels, décidés au cas par cas ; crée-les seulement si la réponse est oui.
+     - If the remote repo is empty → nothing more, the first commit/push follows the normal flow above.
+     - If the remote repo already contains files → attempt a merge (`git merge --allow-unrelated-histories origin/main` or the default branch). If there is a path conflict between local and remote content, do not decide it yourself: show the conflict to the user and ask how to reconcile (keep local, keep remote, merge by hand) before carrying on.
+5. *"Do you want to link this project to a Reminders list, so I can also propose/track tasks from the Reminders app?"* — optional.
+   - If the `reminders_lists` tool fails because no `apple-reminders` MCP server is available on this machine: same handling as "MCP tool unavailable" in `references/reminders-sync.md`, step 0 (offer to install it yourself, `user` scope mandatory) — do not block the rest of the bootstrap over it.
+   - If yes and an existing list already matches the project (`reminders_lists` action `read`): offer to reuse it rather than create a new one.
+   - If yes and no existing list fits: ask *"What name for the list?"* (default suggestion = project name, to confirm or change — never created without the name being confirmed), then create a new one flat (`reminders_lists` action `create`) — the tool cannot file it into a Reminders folder automatically, the user does that themselves if they want.
+   - In every case (yes or no), write the answer to the `reminders_list` frontmatter (the list name, or `"non"` if declined — never an empty string, which is too easily confused with "not filled in yet") — never asked again. See `references/reminders-sync.md` for how it works once linked.
+6. *"Is the project complex enough to deserve a separate `ARCHITECTURE.md`, or is `CLAUDE.md` enough?"* and *"any domain jargon that would justify a `GLOSSARY.md`?"* — optional, decided case by case; create them only if the answer is yes.
 
-Crée d'abord `mkdir -p docs/project-tracker/` à la racine du projet, puis les fichiers standard (section suivante) remplis avec les réponses obtenues — jamais de contenu inventé pour ce qui n'a pas été répondu. `README.md` et `CLAUDE.md` vont à la racine du projet ; les 7 autres fichiers standard dans `docs/project-tracker/` (voir section suivante pour le détail par fichier). Le frontmatter du `STATUS.md` ainsi créé inclut immédiatement `backlog_model: "adopté"`, écrit automatiquement en même temps que les autres champs — jamais posé comme question à ce stade, puisque `BACKLOG.md` fait partie des fichiers standard créés sans condition (voir section suivante).
+First run `mkdir -p docs/project-tracker/` at the project root, then create the standard files (next section) filled in with the answers obtained — never invented content for anything that wasn't answered. `README.md` and `CLAUDE.md` go at the project root; the 7 other standard files in `docs/project-tracker/` (see the next section for the per-file detail). The frontmatter of the `STATUS.md` thus created immediately includes `backlog_model: "adopté"`, written automatically along with the other fields — never asked as a question at this stage, since `BACKLOG.md` is one of the standard files created unconditionally (see next section).
 
-## Les fichiers standard
+## The standard files
 
-Neuf fichiers pour chaque projet suivi. `README.md` et `CLAUDE.md` à la racine du projet (auto-découverte GitHub/Claude Code — voir le spec du 27/08) ; les 7 autres dans `docs/project-tracker/` :
+Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project root (GitHub/Claude Code auto-discovery); the 7 others in `docs/project-tracker/`:
 
-| Fichier | Contenu | Rythme |
+| File | Content | Cadence |
 |---|---|---|
-| `README.md` (racine) | Quoi, pourquoi, stack, installation/lancement, liens (repo, docs) | Rare |
-| `docs/project-tracker/ROADMAP.md` | Synthèse priorisée dérivée de `BACKLOG.md` : phases passées, phase en cours, phases anticipées — jamais le détail brut. Voir `references/backlog-phases.md` | Occasionnel |
-| `docs/project-tracker/STATUS.md` | Instantané de l'état actuel (ce qui marche/casse, 3 prochaines actions) + frontmatter machine-lisible (voir plus bas). **Se réécrit entièrement**, ne s'accumule pas | À chaque session/changement significatif |
-| `docs/project-tracker/JOURNAL.md` | Log chronologique daté des sessions : ce qui a été fait, pourquoi | **Append-only**, à chaque session significative |
-| `docs/project-tracker/CHANGELOG.md` | Format Keep a Changelog (Added/Changed/Fixed) par version | À chaque changement livrable |
-| `CLAUDE.md` (racine) | Instructions pour toi : conventions de code, commandes build/test, pièges connus, résumé d'archi, choix git/GitHub du projet | Quand les conventions évoluent |
-| `docs/project-tracker/DECISIONS.md` | Pourquoi tel choix technique plutôt qu'un autre, alternatives écartées | **Append-only**, une entrée par décision structurante |
-| `docs/project-tracker/ERRORS.md` | Bug rencontré → cause → fix, recherchable | **Append-only**, à chaque bug résolu significatif |
-| `docs/project-tracker/BACKLOG.md` | Réservoir brut et complet de toute idée/feature envisagée (effort, valeur perçue). Jamais purgé, enrichi et archivé. Voir `references/backlog-phases.md` | **Append-only** (archivage, jamais de purge) |
+| `README.md` (root) | What, why, stack, install/run, links (repo, docs) | Rare |
+| `docs/project-tracker/ROADMAP.md` | Prioritised synthesis derived from `BACKLOG.md`: past phases, current phase, anticipated phases — never the raw detail. See `references/backlog-phases.md` | Occasional |
+| `docs/project-tracker/STATUS.md` | Snapshot of the current state (what works/breaks, 3 next actions) + machine-readable frontmatter (see below). **Fully rewritten**, does not accumulate | Every session / significant change |
+| `docs/project-tracker/JOURNAL.md` | Dated chronological log of sessions: what was done, why | **Append-only**, every significant session |
+| `docs/project-tracker/CHANGELOG.md` | Keep a Changelog format (Added/Changed/Fixed) per version | Every shippable change |
+| `CLAUDE.md` (root) | Instructions for you: code conventions, build/test commands, known pitfalls, architecture summary, the project's git/GitHub choices | When conventions change |
+| `docs/project-tracker/DECISIONS.md` | Why one technical choice over another, alternatives rejected | **Append-only**, one entry per structural decision |
+| `docs/project-tracker/ERRORS.md` | Bug encountered → cause → fix, searchable | **Append-only**, every significant resolved bug |
+| `docs/project-tracker/BACKLOG.md` | Raw, complete reservoir of every envisaged idea/feature (effort, perceived value). Never purged, enriched and archived. See `references/backlog-phases.md` | **Append-only** (archiving, never purging) |
 
-Optionnels (créés seulement si demandé à l'étape 6 du bootstrap, dans `docs/project-tracker/`) : `ARCHITECTURE.md`, `GLOSSARY.md`.
+Optional (created only if requested at bootstrap step 6, in `docs/project-tracker/`): `ARCHITECTURE.md`, `GLOSSARY.md`.
 
-### Frontmatter de `STATUS.md`
+### `STATUS.md` frontmatter
 
 ```yaml
 ---
-project: <nom du projet>
+project: <project name>
 status: active            # active | paused | blocked | archived
-uses_git: true            # ou false selon le choix du bootstrap
-repo: https://github.com/<user>/<repo>   # vide si non applicable
+uses_git: true            # or false depending on the bootstrap choice
+repo: https://github.com/<user>/<repo>   # empty if not applicable
 stack: [Python, FastAPI, ...]
 last_updated: <YYYY-MM-DD>
-next_milestone: "<texte libre>"
-reminders_list: "<nom de la liste Reminders>"   # "non" si décliné, absent si jamais posée
-backlog_model: "adopté"   # automatique au bootstrap ; "non" seulement possible via rétrofit décliné ; absent seulement pour un projet suivi avant cette fonctionnalité et pas encore rétrofité
-phase_model: "superpowers"   # ou "leger" ; absent si aucune phase jamais proposée
+next_milestone: "<free text>"
+reminders_list: "<Reminders list name>"   # "non" if declined, absent if never asked
+backlog_model: "adopté"   # automatic at bootstrap; "non" only possible via a declined retrofit; absent only for a project tracked before this feature and not yet retrofitted
+phase_model: "superpowers"   # or "leger"; absent if no phase ever proposed
 ---
 ```
 
-C'est la seule partie strictement structurée de tous ces fichiers — le reste est narratif libre. Ce frontmatter est ce que `generate_portfolio.py` consomme pour le portfolio (voir plus bas) : `project`, `status` et `last_updated` sont obligatoires, sans eux le projet est simplement omis du portfolio.
+This is the only strictly structured part of any of these files — the rest is free narrative. This frontmatter is what `generate_portfolio.py` consumes for the portfolio (see below): `project`, `status` and `last_updated` are mandatory, without them the project is simply omitted from the portfolio.
 
-## Mise à jour en continu
+## Continuous updates
 
-Quand tu juges avoir fait un changement significatif dans une session (nouvelle feature, fix important, décision d'archi tranchée) :
-1. Relis `STATUS.md` à l'instant présent (jamais une version vue plus tôt dans la session), puis réécris-le (état + 3 prochaines actions, frontmatter à jour dont `last_updated`).
-2. Ajoute une entrée datée à `JOURNAL.md` (append réel — n'ouvre pas le fichier en entier pour le réécrire, ajoute juste la nouvelle entrée à la fin).
-3. Si pertinent : ajoute une entrée à `CHANGELOG.md` (changement livrable), `DECISIONS.md` (choix technique tranché), ou `ERRORS.md` (bug résolu) — toujours en append, jamais en réécrivant tout le fichier.
-4. Si `uses_git: true` et qu'il y a des changements non commités qui traînent, signale-le et propose un commit (message conventional commits) — jamais de commit/push sans confirmation explicite.
-5. La synchro Reminders elle-même n'est plus déclenchée ici (voir `references/reminders-sync.md` — un hook `PostToolUse` s'en charge au premier changement de `docs/project-tracker/STATUS.md`/`docs/project-tracker/ROADMAP.md` de chaque session (un rappel par session et par projet)) ; la question de liaison, pour un projet qui ne l'a jamais eue, se pose plus tôt — voir `## Détection de la racine d'un projet` — pas ici.
+When you judge that you have made a significant change in a session (new feature, important fix, an architecture decision settled):
+1. Re-read `STATUS.md` as it is right now (never a version seen earlier in the session), then rewrite it (state + 3 next actions, frontmatter up to date including `last_updated`).
+2. Add a dated entry to `JOURNAL.md` (a real append — do not open the whole file to rewrite it, just add the new entry at the end).
+3. Where relevant: add an entry to `CHANGELOG.md` (shippable change), `DECISIONS.md` (technical choice settled), or `ERRORS.md` (bug resolved) — always by appending, never by rewriting the whole file.
+4. If `uses_git: true` and there are uncommitted changes lying around, point it out and offer a commit (conventional commits message) — never commit/push without explicit confirmation.
+5. The Reminders sync itself is no longer triggered here (see `references/reminders-sync.md` — a `PostToolUse` hook handles it on the first change to `docs/project-tracker/STATUS.md`/`docs/project-tracker/ROADMAP.md` of each session (one reminder per session and per project)); the linking question, for a project that has never had it, is asked earlier — see `## Detecting a project's root` — not here.
 
-Ce déclenchement (juger qu'un changement est "significatif") est ton propre jugement, pas une règle mécanique. Filet de sécurité : l'utilisateur peut à tout moment te demander explicitement une mise à jour — dans ce cas, vérifie l'état réel avant d'écrire quoi que ce soit (ne réécris pas si rien n'a en fait changé depuis le dernier `last_updated`).
+This trigger (judging a change to be "significant") is your own judgment, not a mechanical rule. Safety net: the user can ask you for an update explicitly at any time — in that case, check the real state before writing anything (do not rewrite if nothing has actually changed since the last `last_updated`).
 
-### Collisions entre sessions concurrentes
+### Collisions between concurrent sessions
 
-L'utilisateur travaille souvent avec plusieurs sessions Claude Code ouvertes en parallèle sur le même projet. Avant de réécrire `STATUS.md` (ou tout fichier réécrit en entier plutôt qu'accumulé) :
-- Si `uses_git: true` : juste avant d'écrire, vérifie s'il y a un diff non commité sur ce fichier qui ne vient pas de cette session (`git diff -- docs/project-tracker/STATUS.md`). Si oui, n'écrase pas : montre le diff à l'utilisateur et demande comment fusionner les deux mises à jour plutôt que de trancher toi-même.
-- Sans git : compare la date de modification du fichier à celle vue lors de ta dernière lecture ; si elle a changé entre-temps, même traitement (montrer, demander).
+The user often works with several Claude Code sessions open in parallel on the same project. Before rewriting `STATUS.md` (or any file rewritten in full rather than accumulated):
+- If `uses_git: true`: just before writing, check whether there is an uncommitted diff on this file that does not come from this session (`git diff -- docs/project-tracker/STATUS.md`). If so, do not overwrite: show the diff to the user and ask how to merge the two updates rather than deciding it yourself.
+- Without git: compare the file's modification date with the one seen at your last read; if it has changed in the meantime, same handling (show, ask).
 
-Pour `JOURNAL.md`, `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md`, `BACKLOG.md` : l'écriture doit toujours être un véritable ajout en fin de fichier (ou une mise à jour ciblée d'un item existant, ex. cocher `[x]`) — jamais un cycle "relire tout / réécrire tout" — pour que deux sessions qui ajoutent chacune une entrée en parallèle ne s'écrasent pas l'une l'autre.
+For `JOURNAL.md`, `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md`, `BACKLOG.md`: the write must always be a genuine append at the end of the file (or a targeted update of an existing item, e.g. ticking `[x]`) — never a "re-read everything / rewrite everything" cycle — so that two sessions each appending an entry in parallel do not overwrite one another.
 
-## Sync Reminders
+## Reminders sync
 
-Si `reminders_list` (frontmatter `STATUS.md`) est lié (présent, différent de `"non"`) : voir `references/reminders-sync.md` pour le déclenchement (hook + diff complet + backfill), le tag `#tracker-sync`, le mapping de priorité, les sous-tâches, et le garde-fou de cohérence. La question de liaison elle-même se pose ailleurs — voir `## Bootstrap d'un nouveau projet` (étape 5) et `## Détection de la racine d'un projet`.
+If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, different from `"non"`): see `references/reminders-sync.md` for the trigger (hook + full diff + backfill), the `#tracker-sync` tag, the priority mapping, subtasks, and the consistency safeguard. The linking question itself is asked elsewhere — see `## Bootstrapping a new project` (step 5) and `## Detecting a project's root`.
 
 ## Portfolio
 
-Après toute écriture de `STATUS.md`, régénère le portfolio du périmètre concerné :
+After any write to `STATUS.md`, regenerate the portfolio for the scope concerned:
 
 ```bash
-${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py <racine du périmètre>
+${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py <scope root>
 ```
 
-Exemple : `${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py ~/Documents/Code`. Le script écrit `PORTFOLIO.html` à la racine du périmètre et affiche un résumé (nombre de projets, avertissements). Ne rédige jamais le HTML toi-même — le script garantit une présentation cohérente, ton rôle s'arrête à l'invoquer après une mise à jour de `STATUS.md`.
+Example: `${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py ~/Documents/Code`. The script writes `PORTFOLIO.html` at the scope root and prints a summary (number of projects, warnings). Never write the HTML yourself — the script guarantees a consistent presentation, your role stops at invoking it after a `STATUS.md` update.
 
-## Rétrofit d'un projet existant
+## Retrofitting an existing project
 
-Quand le projet a déjà des fichiers de suivi non standard (ex. des `.pages`, un `CLAUDE.md`/`JOURNAL.md` déjà présents) : traite-le comme un bootstrap, mais réutilise ce qui existe déjà plutôt que de reposer les questions depuis zéro. Si une doc source n'est pas lisible nativement (ex. fichiers `.pages` d'Apple, binaires zip) : dis-le clairement à l'utilisateur et propose soit qu'il l'exporte en texte/markdown/PDF, soit de repartir directement des questions du bootstrap.
+When the project already has non-standard tracking files (e.g. `.pages` files, a `CLAUDE.md`/`JOURNAL.md` already present): treat it as a bootstrap, but reuse what already exists rather than asking the questions from scratch. If a source doc is not natively readable (e.g. Apple `.pages` files, zip binaries): say so clearly to the user and offer either that they export it to text/markdown/PDF, or to start straight from the bootstrap questions.
 
-### Rétrofit du modèle Backlog/Roadmap/Phases
+### Retrofitting the Backlog/Roadmap/Phases model
 
-Un projet déjà suivi peut avoir son propre `BACKLOG.md` (et parfois des `PHASE_N_SPEC.md`) à un chemin non standard, mis en place avant l'existence de cette fonctionnalité dans `project-tracker`. Deux cas à distinguer par la présence ou non d'un `STATUS.md` propre à ce sous-dossier :
-- **Un `STATUS.md` propre existe à ce sous-dossier** : c'est un projet suivi séparément (sa propre racine, son propre `docs/project-tracker/`) — ne fusionne jamais son contenu dans le projet englobant.
-- **Aucun `STATUS.md` propre** : ce sont des fichiers de détail orphelins (pas une identité de suivi à part) — consolide-les dans `docs/project-tracker/` du projet englobant plutôt que de les laisser où ils sont.
+An already-tracked project may have its own `BACKLOG.md` (and sometimes `PHASE_N_SPEC.md` files) at a non-standard path, set up before this feature existed in `project-tracker`. Two cases to tell apart by whether or not a `STATUS.md` of its own exists in that subfolder:
+- **A `STATUS.md` of its own exists in that subfolder**: it is a separately tracked project (its own root, its own `docs/project-tracker/`) — never merge its content into the enclosing project.
+- **No `STATUS.md` of its own**: these are orphan detail files (not a tracking identity of their own) — consolidate them into the enclosing project's `docs/project-tracker/` rather than leaving them where they are.
 
-L'auto-reconnaissance (voir `## Détection de la racine d'un projet`) ne se déclenche que si `ROADMAP.md` référence explicitement ce `BACKLOG.md` (peu importe son chemin) — sinon, pose la question normalement, même si un `BACKLOG.md` existe quelque part dans le projet sans lien explicite depuis `ROADMAP.md` (ne devine pas qu'il joue ce rôle).
+The auto-recognition (see `## Detecting a project's root`) only fires if `ROADMAP.md` explicitly references that `BACKLOG.md` (whatever its path) — otherwise, ask the question normally, even if a `BACKLOG.md` exists somewhere in the project with no explicit link from `ROADMAP.md` (do not guess that it plays that role).
 
-Si la question est posée et acceptée pour un projet qui a déjà un `ROADMAP.md` et/ou un contenu de suivi existant (ex. un `docs/BACKLOG.md` maison, ou un `ROADMAP.md` qui liste déjà des idées en vrac) : ne crée pas de fichier vide à côté — discute avec l'utilisateur pour résumer/reformater ce qui existe déjà selon la structure de `references/backlog-phases.md`, au cas par cas, plutôt que d'appliquer un script générique.
+If the question is asked and accepted for a project that already has a `ROADMAP.md` and/or existing tracking content (e.g. a home-grown `docs/BACKLOG.md`, or a `ROADMAP.md` that already lists loose ideas): do not create an empty file alongside it — discuss with the user to summarize/reformat what already exists according to the structure in `references/backlog-phases.md`, case by case, rather than applying a generic script.
