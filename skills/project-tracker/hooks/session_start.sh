@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # project-tracker SessionStart hook.
-# Purement déterministe : lit scopes.txt, décide si cwd est dans le
-# périmètre, retrouve le projet suivi le plus proche (STATUS.md) ou
-# signale un nouveau dossier, et imprime du texte brut que Claude Code
-# injecte dans le contexte. Toute la logique métier vit dans le skill
-# project-tracker, pas ici. Compatible bash 3.2 (macOS par défaut).
+# Purely deterministic: reads scopes.txt, decides whether cwd is within
+# a scope, finds the nearest tracked project (STATUS.md) or flags a new
+# folder, and prints raw text that Claude Code injects into the context.
+# All the business logic lives in the project-tracker skill, not here.
+# Bash 3.2 compatible (macOS default).
 set -euo pipefail
 
 INPUT="$(cat)"
@@ -68,14 +68,14 @@ while :; do
 done
 
 if [ -n "$STATUS_FILE" ]; then
-  echo "[project-tracker] Session ouverte dans un projet suivi ($ROOT)."
-  echo "Invoque le skill project-tracker : compare last_updated (frontmatter ci-dessous) a la derniere activite reelle (dernier commit git si uses_git=true, sinon date de modification des fichiers) et propose une mise a jour si necessaire. Ne rien ecrire sans verifier l'etat actuel des fichiers d'abord."
-  echo "--- frontmatter de STATUS.md ---"
+  echo "[project-tracker] Session opened in a tracked project ($ROOT)."
+  echo "Invoke the project-tracker skill: compare last_updated (frontmatter below) with the last real activity (latest git commit if uses_git=true, otherwise file modification dates) and propose an update if needed. Do not write anything without checking the current state of the files first."
+  echo "--- STATUS.md frontmatter ---"
   awk '/^---$/{count++} {print} count==2{exit}' "$STATUS_FILE" 2>/dev/null | head -c 4000 || true
   echo
   exit 0
 fi
 
-echo "[project-tracker] Aucun suivi detecte dans ce dossier ($CWD), perimetre $SCOPE_ROOT."
-echo "Invoque le skill project-tracker et lance le bootstrap : demande d'abord si ce dossier doit etre suivi (sinon ajouter son chemin absolu a $IGNORE_FILE), puis pose les questions du bootstrap avant de creer les fichiers standard."
+echo "[project-tracker] No tracking detected in this folder ($CWD), scope $SCOPE_ROOT."
+echo "Invoke the project-tracker skill and start the bootstrap: first ask whether this folder should be tracked (otherwise add its absolute path to $IGNORE_FILE), then ask the bootstrap questions before creating the standard files."
 exit 0

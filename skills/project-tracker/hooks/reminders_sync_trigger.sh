@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 # project-tracker PostToolUse hook — reminders_sync_trigger.sh
 #
-# Se declenche sur Edit/Write touchant STATUS.md ou ROADMAP.md d'un projet
-# suivi et lie a une liste Reminders : injecte dans le contexte de Claude
-# un rappel de verifier la sync Reminders (diff complet, voir
-# references/reminders-sync.md) avant la fin du tour. Purement
-# deterministe -- toute la logique metier vit dans le skill, pas ici.
-# Parsing JSON via python3, jamais jq (pas garanti installe) -- meme
-# convention que hooks/session_start.sh. Compatible bash 3.2 (macOS
-# par defaut).
+# Fires on Edit/Write touching STATUS.md or ROADMAP.md of a tracked
+# project linked to a Reminders list: injects into Claude's context a
+# reminder to check the Reminders sync (full diff, see
+# references/reminders-sync.md) before the end of the turn. Purely
+# deterministic -- all the business logic lives in the skill, not here.
+# JSON parsing via python3, never jq (not guaranteed installed) -- same
+# convention as hooks/session_start.sh. Bash 3.2 compatible (macOS
+# default).
 #
-# Contrat PostToolUse (verifie contre la doc officielle Claude Code) :
-# stdout brut sur exit 0 n'est PAS vu par Claude (contrairement a
-# SessionStart) -- il faut imprimer du JSON avec
-# hookSpecificOutput.additionalContext pour injecter du contexte.
-# Silence total (aucun stdout) = passage silencieux, rien affiche,
-# rien bloque.
+# PostToolUse contract (checked against the official Claude Code docs):
+# raw stdout on exit 0 is NOT seen by Claude (unlike SessionStart) --
+# you must print JSON with hookSpecificOutput.additionalContext to
+# inject context. Total silence (no stdout) = silent pass, nothing
+# shown, nothing blocked.
 set -euo pipefail
 
 INPUT="$(cat)"
@@ -117,11 +116,11 @@ import json, os
 name = os.environ.get("CTX_PROJECT_NAME", "")
 home = os.environ.get("HOME", "")
 ref_path = home + "/.claude/skills/project-tracker/references/reminders-sync.md"
-msg = ("STATUS.md/ROADMAP.md de " + name +
-       " vient d'\''etre modifie - invoque le skill project-tracker "
-       "(si pas deja fait dans cette session) puis verifie la sync "
-       "Reminders (diff complet, voir " + ref_path + ") avant de "
-       "terminer ce tour.")
+msg = ("STATUS.md/ROADMAP.md for " + name +
+       " was just modified - invoke the project-tracker skill "
+       "(if not already done this session) then check the Reminders "
+       "sync (full diff, see " + ref_path + ") before ending this "
+       "turn.")
 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": msg}}))
 '
 exit 0
