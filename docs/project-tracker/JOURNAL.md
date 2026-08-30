@@ -22,3 +22,6 @@ Dated chronological log. Append-only.
   Added a backlog item to make `SKILL.md` say so explicitly.
 - Created three Reminders in "Project tracker" from the `STATUS.md` next
   actions (backfill at linking).
+- README gap fixed: `superpowers` was an undocumented optional dependency
+  (phase plans via `writing-plans`). Added it to Requirements and a
+  "Backlog & phases" bullet to "What it does".

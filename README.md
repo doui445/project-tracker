@@ -23,6 +23,11 @@ when you open a Claude Code session in a tracked folder, and on demand.
   first time `STATUS.md` / `ROADMAP.md` changes each session.
 - **Portfolio**: regenerates a single unified `PORTFOLIO.html` (all scopes,
   grouped by category) at the folder you configure in `portfolio.txt`.
+- **Backlog & phases**: `BACKLOG.md` is a raw reservoir of every idea;
+  coherent items get grouped into `ROADMAP.md` phases (always proposed, never
+  automatic). Phase plans are written with the `superpowers` `writing-plans`
+  skill when that plugin is available, otherwise as a lightweight
+  `PHASE_N_SPEC.md`.
 
 ## The nine standard files
 
@@ -45,6 +50,9 @@ when you open a Claude Code session in a tracked folder, and on demand.
 - **macOS + the `apple-reminders` MCP server** — only for the optional Reminders
   sync
 - **The `gh` CLI** — only for the optional GitHub repo automation
+- **The `superpowers` plugin** — only if you want phase plans written via its
+  `writing-plans` skill; without it, phases fall back to a lightweight
+  `PHASE_N_SPEC.md` format
 
 ## Install
 
