@@ -62,3 +62,11 @@ Dated chronological log. Append-only.
   in `CLAUDE.md` § Releasing. `writing-tracking-files.md` now points future
   projects to those two homes. Sits in `CHANGELOG [Unreleased]` — rides the
   next real release rather than triggering a 0.3.2 for two lines.
+- Dogfooding review. The machinery worked; the frictions were doc gaps, and
+  all the ones that were fixable are now fixed this session: `build_installer.sh`
+  hardcoded list, the `title:` line missing from SKILL.md § Portfolio, the
+  step 6→7 cross-reference, the silence on committing tracking files, the
+  README drifting into spec. Two remaining threads logged to `BACKLOG.md`:
+  `GLOSSARY.md` lazy creation + enrichment loop (medium), and offering to
+  un-exclude a `trackignore.txt` folder when the user asks to track it (low).
+  Hook chattiness noted as low / maybe-accept.

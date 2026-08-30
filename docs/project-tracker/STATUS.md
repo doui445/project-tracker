@@ -54,7 +54,8 @@ build workstreams are done:
    where the setting lives (machine-global file vs. per-project frontmatter),
    how the skill and `generate_portfolio.py` consume it, default behaviour.
    See `BACKLOG.md`.
-2. Cut the next release when `[Unreleased]` has accumulated enough (currently:
-   the versioning-policy write-up) — follow `CLAUDE.md` § Releasing.
-3. Dogfood — keep capturing friction from self-tracking in
-   `JOURNAL.md` / `ERRORS.md` as it comes up.
+2. `GLOSSARY.md` lazy creation + enrichment loop — create it on first
+   real entry (not at bootstrap), and add the "user asks about a project
+   term → propose adding it" trigger. See `BACKLOG.md` (Medium).
+3. Cut the next release when `[Unreleased]` has accumulated enough — follow
+   `CLAUDE.md` § Releasing.

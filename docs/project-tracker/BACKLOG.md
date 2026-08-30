@@ -28,9 +28,38 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     the *shipped skill* English; a French *tracking output* is a separate axis
     and must not trip it.
 
+## Medium priority
+
+- [ ] **`GLOSSARY.md`: lazy creation + enrichment loop** — effort M,
+  value ⭐⭐
+  Today `GLOSSARY.md` is created only if the user opts in at bootstrap step 7.
+  Change to: not in the unconditional nine, but **created the first time an
+  entry earns it** — same "materialise on need" logic as `phase_model` /
+  phases. Triggers:
+  - the user asks Claude what a *project-specific* term means (jargon, coined
+    term, overloaded common word — not general industry vocabulary) → Claude
+    answers, then proposes adding it, with the project meaning + where it
+    shows up + a usage example;
+  - Claude notices recurring undefined jargon while working.
+  Not two mandatory parts — a single list, thematic grouping only if it grows
+  (guidance already says this). Touches `SKILL.md` (§ Detecting a project's
+  root and bootstrap step 7), `references/writing-tracking-files.md`, and the
+  "nine standard files" framing in `README.md` / `SKILL.md`.
+
 ## Low priority
 
-_(nothing open)_
+- [ ] **Excluded project: offer to un-exclude when the user asks to track it**
+  — effort S, value ⭐
+  A folder in `trackignore.txt` currently gets "do nothing unless the user
+  brings it up". When the user *does* bring it up ("track this"), the skill
+  should offer to remove the `trackignore.txt` line and run the bootstrap,
+  rather than leaving the user to edit the file by hand (dogfooding friction,
+  2026-08-30).
+
+- [ ] **Hook chattiness in heavy dev sessions** — effort S, value ⭐
+  Every `STATUS.md` write fires `portfolio_regen.sh`; a session that rewrites
+  `STATUS.md` several times regenerates the portfolio each time. By design and
+  cheap, but noisy. Consider a short debounce, or accept as-is and document.
 
 ## Completed
 
