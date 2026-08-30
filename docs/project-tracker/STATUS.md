@@ -5,18 +5,19 @@ uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
 last_updated: 2026-08-30
-next_milestone: "User-selectable output language (English / French) for tracking files and portfolio"
+next_milestone: "GLOSSARY.md lazy creation + enrichment loop"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
 phase_model: "superpowers"
+language: en
 ---
 
 # STATUS — project-tracker
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.3.1**. The four
+`project-tracker` is a published Claude Code plugin at **v0.4.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -43,20 +44,21 @@ build workstreams are done:
 - `/project-tracker:config` command (plugin install only).
 - `references/writing-tracking-files.md` gives per-file writing guidance for
   every standard file; `SKILL.md` points to it.
+- Output language (EN/FR) selectable via `language.txt` + `language:` overrides;
+  portfolio + tracking files localized.
 - `test_plugin_manifest.py` + the hook/portfolio test suites pass.
 
 ### Known gaps
 
-- Output language is effectively fixed to English — the user cannot choose.
+- None currently tracked.
 
 ## Next 3 actions
 
-1. Output language feature (English / French): design spec written at
-   `_dev-history/specs/2026-08-30-output-language-design.md` (gitignored).
-   Next: user reviews the spec → `writing-plans` → implement. Targets v0.4.0.
-2. `GLOSSARY.md` lazy creation + enrichment loop — create it on first
+1. `GLOSSARY.md` lazy creation + enrichment loop — create it on first
    real entry (not at bootstrap), and add the "user asks about a project
    term → propose adding it" trigger. See `BACKLOG.md` (Medium).
-3. "Fresh eyes" readability pass (subagent, advisory) after a substantial
+2. "Fresh eyes" readability pass (subagent, advisory) after a substantial
    rewrite of README / ARCHITECTURE / GLOSSARY / CLAUDE. See `BACKLOG.md`
    (Medium).
+3. Post-release: fresh-eyes review of the shipped output-language feature
+   against the design spec, then merge/tag/push v0.4.0.

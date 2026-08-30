@@ -97,3 +97,11 @@ Dated chronological log. Append-only.
 - Set `phase_model: "superpowers"` (records the de-facto workflow; specs/plans
   stay in `_dev-history/`, no migration). Targets v0.4.0.
 - Next: user reviews the spec, then `writing-plans`.
+
+## 2026-08-30 — Output-language feature shipped (v0.4.0)
+
+- Implemented per `_dev-history/plans/2026-08-30-output-language.md`:
+  `language.txt` + `language:` overrides, `references/i18n/{en,fr}.md`
+  catalogue, localized `generate_portfolio.py`, retranslation + subagent
+  review loop, `/project-tracker:config` language action.
+- `phase_model: "superpowers"` recorded; specs/plans stay in `_dev-history/`.

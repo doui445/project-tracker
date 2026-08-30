@@ -12,7 +12,20 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-08-30
+
 ### Added
+- **User-selectable output language (English / French).**
+  `~/.claude/project-tracker/language.txt` sets the machine default for the
+  tracking files, the portfolio and the reminders; `language:` in a
+  `STATUS.md` frontmatter overrides it for that project's files; a `language:`
+  line in `portfolio.txt` overrides it for the portfolio. Per-language string
+  catalogue `references/i18n/{en,fr}.md`; `generate_portfolio.py` renders its
+  chrome (status labels, freshness, empty state, search, `<html lang>`) in the
+  resolved language. Changing a project's language proposes a full
+  retranslation (past append-only entries included, dates preserved) with an
+  autonomous subagent review loop. Asked once at first bootstrap. `/project-tracker:config`
+  gains a "Change the language" action. Default and fallback: `en`.
 - Versioning policy written down: the scheme in this file's header, the
   release routine in `CLAUDE.md` § Releasing. `writing-tracking-files.md`
   points future projects to the same two homes (no dedicated file).

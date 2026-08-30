@@ -1,7 +1,7 @@
 {
   "name": "project-tracker",
   "description": "Bootstraps and keeps up to date a standard set of markdown tracking files (README, ROADMAP, STATUS, JOURNAL, CHANGELOG, CLAUDE, DECISIONS, ERRORS, BACKLOG) for projects under the scopes defined in ~/.claude/project-tracker/scopes.txt, manages GitHub repo creation, and regenerates PORTFOLIO.html.",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "author": { "name": "doui445" },
   "license": "MIT",
   "homepage": "https://github.com/doui445/project-tracker"
