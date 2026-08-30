@@ -81,3 +81,19 @@ Dated chronological log. Append-only.
   subagent (fallback inline) reviews it against the reader definition and
   `writing-tracking-files.md`, advisory only. Prompted by this session's
   three README passes.
+
+## 2026-08-30 — Output-language feature: design
+
+- Brainstormed the user-selectable output language (EN/FR) and wrote the
+  design spec at `_dev-history/specs/2026-08-30-output-language-design.md`
+  (gitignored, French, per the project's `_dev-history/` convention).
+- Key decisions: `language.txt` global default + `language:` overrides in
+  `STATUS.md` frontmatter (per project) and `portfolio.txt` (portfolio only);
+  reminders always follow the global; chat follows the conversation. Full
+  localisation of the tracking files via a per-language catalogue
+  `references/i18n/{en,fr}.md`; `generate_portfolio.py` gets its own `STRINGS`
+  table. Language change → proposed full retranslation (append-only entries
+  included, dates preserved) with an autonomous subagent review loop.
+- Set `phase_model: "superpowers"` (records the de-facto workflow; specs/plans
+  stay in `_dev-history/`, no migration). Targets v0.4.0.
+- Next: user reviews the spec, then `writing-plans`.

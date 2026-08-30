@@ -9,6 +9,7 @@ next_milestone: "User-selectable output language (English / French) for tracking
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
+phase_model: "superpowers"
 ---
 
 # STATUS — project-tracker
@@ -50,10 +51,9 @@ build workstreams are done:
 
 ## Next 3 actions
 
-1. Design the user-selectable output language feature (English / French):
-   where the setting lives (machine-global file vs. per-project frontmatter),
-   how the skill and `generate_portfolio.py` consume it, default behaviour.
-   See `BACKLOG.md`.
+1. Output language feature (English / French): design spec written at
+   `_dev-history/specs/2026-08-30-output-language-design.md` (gitignored).
+   Next: user reviews the spec → `writing-plans` → implement. Targets v0.4.0.
 2. `GLOSSARY.md` lazy creation + enrichment loop — create it on first
    real entry (not at bootstrap), and add the "user asks about a project
    term → propose adding it" trigger. See `BACKLOG.md` (Medium).
