@@ -38,7 +38,7 @@ write_b64() {
 }
 HEADER
 
-for f in SKILL.md references/reminders-sync.md references/backlog-phases.md hooks/session_start.sh hooks/test_session_start.sh hooks/reminders_sync_trigger.sh hooks/test_reminders_sync_trigger.sh scripts/generate_portfolio.py scripts/test_generate_portfolio.py; do
+for f in SKILL.md references/reminders-sync.md references/backlog-phases.md hooks/session_start.sh hooks/test_session_start.sh hooks/reminders_sync_trigger.sh hooks/test_reminders_sync_trigger.sh hooks/portfolio_regen.sh hooks/test_portfolio_regen.sh scripts/generate_portfolio.py scripts/test_generate_portfolio.py; do
   varname=$(echo "$f" | tr '/.' '__')
   {
     echo "cat <<'B64_$varname' | write_b64 \"\$SKILL_DIR/$f\""
@@ -49,7 +49,7 @@ for f in SKILL.md references/reminders-sync.md references/backlog-phases.md hook
 done
 
 cat >> "$OUT" <<'FOOTER'
-chmod +x "$SKILL_DIR/hooks/session_start.sh" "$SKILL_DIR/hooks/test_session_start.sh" "$SKILL_DIR/hooks/reminders_sync_trigger.sh" "$SKILL_DIR/hooks/test_reminders_sync_trigger.sh" "$SKILL_DIR/scripts/generate_portfolio.py"
+chmod +x "$SKILL_DIR/hooks/session_start.sh" "$SKILL_DIR/hooks/test_session_start.sh" "$SKILL_DIR/hooks/reminders_sync_trigger.sh" "$SKILL_DIR/hooks/test_reminders_sync_trigger.sh" "$SKILL_DIR/hooks/portfolio_regen.sh" "$SKILL_DIR/hooks/test_portfolio_regen.sh" "$SKILL_DIR/scripts/generate_portfolio.py"
 
 if [ -f "$SCOPES_DIR/scopes.txt" ]; then
   echo "scopes.txt already exists -> unchanged ($SCOPES_DIR/scopes.txt)"
@@ -78,10 +78,10 @@ if [ ! -f "$SCOPES_DIR/trackignore.txt" ]; then
   echo "trackignore.txt created: $SCOPES_DIR/trackignore.txt"
 fi
 
-python3 - "$SETTINGS_FILE" "$SKILL_DIR/hooks/session_start.sh" "$SKILL_DIR/hooks/reminders_sync_trigger.sh" <<'PYEOF'
+python3 - "$SETTINGS_FILE" "$SKILL_DIR/hooks/session_start.sh" "$SKILL_DIR/hooks/reminders_sync_trigger.sh" "$SKILL_DIR/hooks/portfolio_regen.sh" <<'PYEOF'
 import json, sys, os
 
-settings_path, session_start_cmd, post_tool_use_cmd = sys.argv[1], sys.argv[2], sys.argv[3]
+settings_path, session_start_cmd, post_tool_use_cmd, portfolio_cmd = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 if os.path.exists(settings_path):
     with open(settings_path) as f:
         settings = json.load(f)
@@ -108,6 +108,7 @@ def register(event, matcher, command):
 
 changed = register("SessionStart", "", session_start_cmd)
 changed = register("PostToolUse", "Edit|Write", post_tool_use_cmd) or changed
+changed = register("PostToolUse", "Edit|Write", portfolio_cmd) or changed
 
 if changed:
     with open(settings_path, "w") as f:
@@ -119,6 +120,7 @@ echo
 echo "Verification (tests):"
 bash "$SKILL_DIR/hooks/test_session_start.sh"
 bash "$SKILL_DIR/hooks/test_reminders_sync_trigger.sh"
+bash "$SKILL_DIR/hooks/test_portfolio_regen.sh"
 ( cd "$SKILL_DIR/scripts" && python3 -m unittest test_generate_portfolio -v )
 
 echo
