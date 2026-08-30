@@ -12,6 +12,8 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-08-30
+
 ### Changed
 - `generate_portfolio.py` HTML escaping goes through `_attr()` / `_txt()`
   helpers chosen by context (attribute vs element text), so a future
