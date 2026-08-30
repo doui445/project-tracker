@@ -347,9 +347,9 @@ class BuildPageTests(unittest.TestCase):
     def test_build_page_uses_given_title(self):
         html = gp.build_page(
             [{"project": "Z", "status": "active", "last_updated": "2026-08-23", "_path": "~/x/Z"}],
-            generated_at="2026-08-30 12:00", title="Zébulon <x>",
+            generated_at="2026-08-30 12:00", title="Stuff <x> & things",
         )
-        self.assertIn("Zébulon &lt;x&gt;", html)
+        self.assertIn("Stuff &lt;x&gt; &amp; things", html)
 
     def test_build_page_default_title_and_no_section_title(self):
         html = gp.build_page(
