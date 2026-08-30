@@ -12,6 +12,8 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.7.1] — 2026-08-31
+
 ### Fixed
 - `docs/project-tracker/JOURNAL.md` carried an absolute home path in the
   first bootstrap entry — genericised.

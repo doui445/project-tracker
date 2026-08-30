@@ -210,3 +210,9 @@ Dated chronological log. Append-only.
 - Version consistency verified: `plugin.json` == `marketplace.json` == tag
   `v0.7.0` == `CHANGELOG` top == `STATUS`. Installer regeneration produces no
   diff. All suites green (8 + 89 + 3 hooks).
+
+## 2026-08-31 — v0.7.1 released
+
+- The repo-audit fixes from `[Unreleased]` shipped as a patch: `JOURNAL.md`
+  home-path genericised, `ROADMAP.md` / `CLAUDE.md` unstaled, `README.md`
+  tidied. No behaviour change. `v0.7.1` tagged and pushed.

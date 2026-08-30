@@ -4,7 +4,7 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-08-30
+last_updated: 2026-08-31
 next_milestone: "Backlog empty — next themes from real use / dogfooding"
 reminders_list: "Project tracker"
 category: "Skill Claude"
@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.7.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.7.1**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -61,11 +61,11 @@ build workstreams are done:
 ## Next 3 actions
 
 The `BACKLOG.md` reservoir is empty — every planned item has shipped
-(v0.4.0 → v0.7.0). No queued work.
+(v0.4.0 → v0.7.1). No queued work.
 
 1. Let the next themes surface from real use / dogfooding, and add them to
    `BACKLOG.md` as they come up.
-2. Consider a "fresh eyes" pass on `README.md` — it grew across the
-   v0.4.x–v0.7.0 releases and hasn't been reviewed as a whole since the
-   v0.3.x restructure.
+2. Install the plugin somewhere and use it on a fresh project — the
+   proactive glossary check, the fresh-eyes pass and the EN/FR flow have
+   only been exercised on this repo.
 3. Cut the next release once `[Unreleased]` has accumulated something.

@@ -36,16 +36,16 @@ Features (v0.4.0 – v0.7.0):
   reader definition. Advisory.
 - **v0.7.0 — Un-exclude on request**: an excluded folder the user asks to
   track is offered an un-exclude + bootstrap.
+- **v0.7.1**: repo audit — genericised a home path in `JOURNAL.md`, unstaled
+  `ROADMAP.md` / `CLAUDE.md`, tidied `README.md`.
 
 Detail for each: [`CHANGELOG.md`](CHANGELOG.md), [`DECISIONS.md`](DECISIONS.md).
 
 ## Current focus
 
 No phase started. The `BACKLOG.md` reservoir is empty — every planned item has
-shipped. The next themes will come from real use and dogfooding.
-
-One soft item, not yet in the backlog: a full "fresh eyes" pass on
-`README.md`, which grew across the v0.4.x–v0.7.0 releases.
+shipped. The next themes will come from real use and dogfooding: the plugin
+has so far only been exercised on this repo.
 
 ## Unprioritised ideas
 
