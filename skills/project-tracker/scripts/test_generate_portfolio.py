@@ -311,42 +311,70 @@ class SortByRecencyTests(unittest.TestCase):
         self.assertEqual([p["project"] for p in result], ["Real", "NoDate1", "NoDate2"])
 
 
+class BuildPageTests(unittest.TestCase):
+    def test_build_page_contains_projects_and_generated_at(self):
+        projects = [{"project": "Z", "status": "active", "last_updated": "2026-08-23", "_path": "~/x/Z"}]
+        html = gp.build_page(projects, generated_at="2026-08-30 12:00")
+        self.assertIn("Z", html)
+        self.assertIn("2026-08-30 12:00", html)
+        self.assertIn('<html lang="en">', html)
+
+    def test_build_page_empty_state_when_no_projects(self):
+        html = gp.build_page([], generated_at="2026-08-30 12:00")
+        self.assertIn("No tracked projects yet.", html)
+
+
 class MainTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
+        self.home = Path(self.tmp.name)
+        self.cfg = self.home / ".claude" / "project-tracker"
+        self.cfg.mkdir(parents=True)
+        self._env = unittest.mock.patch.dict("os.environ", {"HOME": str(self.home)})
+        self._env.start()
+        self.addCleanup(self._env.stop)
+        self.scopeA = self.home / "scopeA"
+        self.scopeB = self.home / "scopeB"
 
-    @unittest.skip("rewritten in Task 2 (config-driven main)")
-    def test_main_writes_portfolio_html(self):
-        d = self.root / "ProjA"
-        (d / "docs" / "project-tracker").mkdir(parents=True)
-        (d / "docs" / "project-tracker" / "STATUS.md").write_text(
-            "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n"
-            "stack: [Python]\nnext_milestone: \"Finish X\"\n---\nOk.\n",
+    def _status(self, scope, rel, name):
+        d = scope / rel / "docs" / "project-tracker"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "STATUS.md").write_text(
+            f"---\nproject: {name}\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n",
             encoding="utf-8",
         )
-        sys.argv = ["generate_portfolio.py", str(self.root)]
-        gp.main()
-        out = (self.root / "PORTFOLIO.html").read_text(encoding="utf-8")
-        self.assertIn("ProjA", out)
-        self.assertIn("Finish X", out)
-        self.assertIn("Python", out)
 
-    def test_main_exits_cleanly_on_missing_scope_root(self):
-        missing = self.root / "does-not-exist"
-        sys.argv = ["generate_portfolio.py", str(missing)]
-        with self.assertRaises(SystemExit) as ctx:
-            gp.main()
-        self.assertEqual(ctx.exception.code, 1)
+    def test_no_portfolio_config_is_noop(self):
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n", encoding="utf-8")
+        self._status(self.scopeA, "P1", "P1")
+        gp.main([])  # must not raise, must not write
+        self.assertEqual(list(self.home.rglob("PORTFOLIO.html")), [])
 
-    def test_main_exits_cleanly_when_scope_root_is_a_file(self):
-        f = self.root / "not-a-dir"
-        f.write_text("x", encoding="utf-8")
-        sys.argv = ["generate_portfolio.py", str(f)]
-        with self.assertRaises(SystemExit) as ctx:
-            gp.main()
-        self.assertEqual(ctx.exception.code, 1)
+    def test_comments_only_portfolio_config_is_noop(self):
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text("# not set\n", encoding="utf-8")
+        self._status(self.scopeA, "P1", "P1")
+        gp.main([])
+        self.assertEqual(list(self.home.rglob("PORTFOLIO.html")), [])
+
+    def test_aggregates_all_scopes_to_configured_folder(self):
+        out_dir = self.home / "out"
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n{self.scopeB}\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text(f"{out_dir}\n", encoding="utf-8")
+        self._status(self.scopeA, "Alpha", "Alpha")
+        self._status(self.scopeB, "Beta", "Beta")
+        gp.main([])
+        html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
+        self.assertIn("Alpha", html)
+        self.assertIn("Beta", html)
+
+    def test_explicit_out_mode(self):
+        out_dir = self.home / "explicit"
+        self._status(self.scopeA, "Gamma", "Gamma")
+        gp.main(["--out", str(out_dir), str(self.scopeA)])
+        html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
+        self.assertIn("Gamma", html)
 
 
 if __name__ == "__main__":

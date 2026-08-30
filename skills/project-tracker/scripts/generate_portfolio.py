@@ -710,31 +710,62 @@ PAGE_TEMPLATE = """<!doctype html>
 """
 
 
-def main():
-    if len(sys.argv) != 2:
-        print("usage: generate_portfolio.py <scope_root>", file=sys.stderr)
-        sys.exit(1)
-    scope_root = Path(sys.argv[1]).resolve()
-    if not scope_root.is_dir():
-        print(f"error: {scope_root} does not exist or is not a directory", file=sys.stderr)
-        sys.exit(1)
-    projects, warnings = collect_projects(scope_root)
-    for w in warnings:
-        print(f"WARNING: {w}", file=sys.stderr)
-    projects = sort_by_recency(projects)
-    today = date.today()
-    cards = "\n".join(render_card(p, today=today) for p in projects) if projects else EMPTY_STATE
-    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
-    html = PAGE_TEMPLATE.format(
+def build_page(projects, generated_at):
+    cards = "\n".join(render_card(p) for p in projects) if projects else EMPTY_STATE
+    return PAGE_TEMPLATE.format(
         cards=cards,
         count=len(projects),
         generated_at=generated_at,
         stats_section=render_stats_section(projects),
         stack_section=render_stack_section(projects),
     )
-    out_path = scope_root / "PORTFOLIO.html"
-    out_path.write_text(html, encoding="utf-8")
-    print(f"PORTFOLIO.html regenerated: {len(projects)} project(s), {len(warnings)} warning(s)")
+
+
+def _write_portfolio(target, projects, warnings):
+    for w in warnings:
+        print(f"WARNING: {w}", file=sys.stderr)
+    projects = sort_by_recency(projects)
+    html = build_page(projects, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"))
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(html, encoding="utf-8")
+    print(f"PORTFOLIO.html regenerated: {len(projects)} project(s), {len(warnings)} warning(s) -> {target}")
+
+
+def _resolve_out_arg(raw):
+    p = Path(os.path.abspath(os.path.expandvars(os.path.expanduser(raw))))
+    return p if p.suffix == ".html" else p / "PORTFOLIO.html"
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "--out":
+        if len(argv) < 3:
+            print("usage: generate_portfolio.py --out <dir|file> <scope_root> [<scope_root>...]", file=sys.stderr)
+            sys.exit(1)
+        target = _resolve_out_arg(argv[1])
+        scopes = [Path(s) for s in argv[2:]]
+        ignore_entries = load_global_trackignore()
+        scope_roots = [str(s) for s in scopes]
+    elif argv:
+        print("usage: generate_portfolio.py [--out <dir|file> <scope_root>...]", file=sys.stderr)
+        sys.exit(1)
+    else:
+        target = load_portfolio_target()
+        if target is None:
+            return  # not configured / off -> silent no-op
+        scopes = load_scopes()
+        ignore_entries = load_global_trackignore()
+        scope_roots = [str(s) for s in scopes]
+
+    projects, warnings = [], []
+    for scope in scopes:
+        if not Path(scope).is_dir():
+            warnings.append(f"{scope}: scope root not found, skipped")
+            continue
+        ps, ws = collect_projects(scope, ignore_entries, scope_roots)
+        projects += ps
+        warnings += ws
+    _write_portfolio(target, projects, warnings)
 
 
 if __name__ == "__main__":
