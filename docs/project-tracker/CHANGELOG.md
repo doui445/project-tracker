@@ -12,6 +12,19 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-08-30
+
+### Changed
+- `GLOSSARY.md` is no longer asked at bootstrap. It is created on first
+  need: a proactive check on the first session (Claude glances at the code
+  / `README`, proposes the file with the terms it spotted if the project
+  has a real vocabulary), plus in-session triggers — the user asks what a
+  project-specific term means, or a term keeps coming up undefined. A
+  single term is added and announced without a question; the proactive
+  batch is proposed. New `glossary` frontmatter key (`"non"` = proactive
+  scan declined; absent = not yet checked). `ARCHITECTURE.md` is still
+  offered at bootstrap.
+
 ## [0.4.1] — 2026-08-30
 
 ### Changed

@@ -114,3 +114,28 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
   Python table) rather than one source; the retranslation of append-only
   files is a sanctioned exception to "never rewrite an append-only file".
 - Spec: `_dev-history/specs/2026-08-30-output-language-design.md` (D1–D15).
+
+## 2026-08-30 — `GLOSSARY.md` is lazily created, not asked at bootstrap
+
+- **Context**: bootstrap step 7 asked, for every new project, "any domain
+  jargon that would justify a `GLOSSARY.md`?" — a question most projects
+  answer "no" to, and one the user can't really judge before the project has
+  content.
+- **Chosen**: drop the question. `GLOSSARY.md` materialises on first need —
+  same "on demand" logic as `phase_model` / phases:
+  - a one-time proactive check (Claude reads the code / `README`, proposes
+    the file with the terms it spotted);
+  - in-session triggers: the user asks what a project-specific term means, or
+    a term recurs undefined.
+  A single term → created and announced, no question. The proactive batch →
+  proposed. `glossary: "non"` records a declined proactive scan; the file's
+  existence is the positive signal.
+- **Rejected**: keeping the bootstrap question (noise for the common case;
+  premature); a mandatory glossary for every project (a `GLOSSARY.md` with
+  two entries is clutter — the same complaint that drove the `docs/` folder
+  decision); asking before creating a single term (friction for something
+  the user just asked about).
+- **Accepted downside**: one more frontmatter key; the proactive check adds a
+  small first-session cost on projects that turn out to have no jargon.
+- `ARCHITECTURE.md` keeps its bootstrap question — complexity is a judgment
+  better made up front.

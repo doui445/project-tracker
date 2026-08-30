@@ -128,8 +128,10 @@ in plain language.
 - **Concurrent sessions.** Before rewriting `STATUS.md`, it checks for an
   out-of-session change (via `git`, or the file's mtime) and asks rather than
   overwriting. The append-only files are only ever appended to.
-- **Optional files.** `ARCHITECTURE.md` and `GLOSSARY.md` are created only if
-  you ask for them at setup.
+- **Optional files.** `ARCHITECTURE.md` is offered at setup for a complex
+  project. `GLOSSARY.md` is created later, the first time the project's own
+  jargon calls for it — Claude proposes it when it spots a domain vocabulary,
+  or adds a term when you ask what one means.
 - **`STATUS.md` frontmatter.** The one structured part — what the portfolio
   reads:
 

@@ -150,3 +150,17 @@ Dated chronological log. Append-only.
   (escaping helpers, French-repo heuristic, `en.md` source of truth,
   `_normalise_lang` spec alignment). No behaviour change. `v0.4.1` tagged
   and pushed; 89 portfolio + 8 manifest + hook suites green.
+
+## 2026-08-30 — v0.5.0: GLOSSARY.md lazy creation
+
+- `GLOSSARY.md` no longer asked at bootstrap. Created on first need:
+  proactive first-session check (Claude glances at code/README, proposes it
+  with spotted terms) + in-session triggers (user asks a term's meaning, or
+  a term recurs undefined). Single term → created + announced, no question;
+  proactive batch → proposed. New `glossary` frontmatter key
+  (`"non"` = scan declined, absent = not checked, unset once the file
+  exists). `ARCHITECTURE.md` keeps its bootstrap question.
+- Touched `SKILL.md` (detection bullet, bootstrap step 7, frontmatter,
+  Continuous updates), `writing-tracking-files.md`, `references/i18n/{en,fr}.md`
+  (glossary.title/intro), `README.md`. `DECISIONS.md` entry added.
+- 89 portfolio + 8 manifest + hook suites green; installer regenerated.

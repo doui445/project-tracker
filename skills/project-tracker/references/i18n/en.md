@@ -85,6 +85,14 @@ is running, `in_progress` and `after` replace it.
 - backlog.heading.how_to_use: How to use this backlog
 - backlog.none_open: (nothing open)
 
+## GLOSSARY.md
+
+Optional, created on first need (no fixed headings — a flat list or grouped
+by theme).
+
+- glossary.title: GLOSSARY — {project}
+- glossary.intro: Terms specific to this project, and what they mean here.
+
 ## Shared
 
 - shared.to_fill_in: to fill in

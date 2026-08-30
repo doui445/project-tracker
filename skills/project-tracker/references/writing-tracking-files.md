@@ -221,6 +221,17 @@ context wins):
 **Reader:** a newcomer (human or Claude) trying to read the code and docs
 without guessing at the jargon. A real project dictionary.
 
+**Created on first need, not at bootstrap.** Three triggers (see `SKILL.md`
+`## Detecting a project's root` and `## Continuous updates`):
+1. the proactive check on first session — Claude glances at the code / README
+   and, if the project has a clear vocabulary of its own, proposes starting
+   the file with the terms it spotted;
+2. the user asks Claude what a project-specific term means — Claude answers,
+   then adds it (and creates the file if it's the first entry);
+3. a project-specific term keeps coming up undefined while Claude works.
+A single term is added and announced, no question; the proactive batch (1) is
+proposed first.
+
 - **Each entry:** the term → what it means *in this project* → where it shows
   up (a file, a module, a workflow) → a short example sentence or usage
   context.

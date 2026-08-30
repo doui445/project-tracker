@@ -78,6 +78,14 @@ phase tourne, `in_progress` et `after` la remplacent.
 - backlog.heading.how_to_use: Comment utiliser ce backlog
 - backlog.none_open: (rien en cours)
 
+## GLOSSARY.md
+
+Optionnel, créé au premier besoin (pas de titres fixes — liste plate ou
+groupée par thème).
+
+- glossary.title: GLOSSARY — {project}
+- glossary.intro: Termes propres à ce projet, et ce qu'ils signifient ici.
+
 ## Shared
 
 - shared.to_fill_in: à compléter

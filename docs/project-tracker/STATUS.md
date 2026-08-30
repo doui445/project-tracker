@@ -5,7 +5,7 @@ uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
 last_updated: 2026-08-30
-next_milestone: "GLOSSARY.md lazy creation + enrichment loop"
+next_milestone: "Fresh-eyes readability pass on onboarding files"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.4.1**. The four
+`project-tracker` is a published Claude Code plugin at **v0.5.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -46,22 +46,21 @@ build workstreams are done:
   every standard file; `SKILL.md` points to it.
 - Output language (EN/FR) selectable via `language.txt` + `language:` overrides;
   portfolio + tracking files localized.
+- `GLOSSARY.md` created on first need (proactive check + in-session triggers),
+  not asked at bootstrap.
 - `test_plugin_manifest.py` + the hook/portfolio test suites pass.
 
 ### Known gaps
 
-- None tracked. The v0.4.0 final-review residuals (context-picked HTML
-  escaping, the vestigial French-repo heuristic, off-spec language aliases,
-  `en.md` written in isolation) were all cleared in v0.4.1.
+- None tracked.
 
 ## Next 3 actions
 
-1. `GLOSSARY.md` lazy creation + enrichment loop — create it on first
-   real entry (not at bootstrap), and add the "user asks about a project
-   term → propose adding it" trigger. See `BACKLOG.md` (Medium).
-2. "Fresh eyes" readability pass (subagent, advisory) after a substantial
+1. "Fresh eyes" readability pass (subagent, advisory) after a substantial
    rewrite of README / ARCHITECTURE / GLOSSARY / CLAUDE. See `BACKLOG.md`
    (Medium).
-3. When the user asks to track a folder listed in `trackignore.txt`, offer
+2. When the user asks to track a folder listed in `trackignore.txt`, offer
    to un-exclude it + bootstrap rather than leaving a manual edit. See
    `BACKLOG.md` (Low).
+3. Cut the next release once `[Unreleased]` has accumulated something —
+   follow `CLAUDE.md` § Releasing. (Nothing queued right now.)

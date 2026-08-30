@@ -6,26 +6,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Medium priority
 
-- [ ] **`GLOSSARY.md`: lazy creation + enrichment loop** — effort M,
-  value ⭐⭐
-  Today `GLOSSARY.md` is created only if the user opts in at bootstrap step 7.
-  Change to: not in the unconditional nine, but **created the first time an
-  entry earns it** — same "materialise on need" logic as `phase_model` /
-  phases. Triggers (any of):
-  - the user asks Claude what a *project-specific* term means (jargon, coined
-    term, overloaded common word — not general industry vocabulary) → Claude
-    answers, then proposes adding it, with the project meaning + where it
-    shows up + a usage example;
-  - Claude, reading the code or docs (at bootstrap/retrofit or later on),
-    sees the project carries a domain vocabulary of its own → proposes
-    starting the glossary then, with the terms it already spotted;
-  - Claude hits a recurring undefined term while working.
-  Replaces the bootstrap step 7 question ("any domain jargon…?") with
-  Claude's own judgment + a proposal. Single list, thematic grouping only if
-  it grows (guidance already says this). Touches `SKILL.md` (§ Detecting a
-  project's root, bootstrap step 7), `references/writing-tracking-files.md`,
-  and the "nine standard files" framing in `README.md` / `SKILL.md`.
-
 - [ ] **"Fresh eyes" readability pass on onboarding files after a substantial
   rewrite** — effort M, value ⭐⭐
   After Claude substantially rewrites `README.md` (or `ARCHITECTURE.md` /
@@ -60,6 +40,11 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Completed
 
+- [x] **`GLOSSARY.md`: lazy creation + enrichment loop** (0.5.0) — dropped
+  the bootstrap question; the file is created on first need via a proactive
+  first-session check plus in-session triggers (user asks a term's meaning,
+  or a term recurs undefined). New `glossary` frontmatter key. See
+  `DECISIONS.md` (2026-08-30 — GLOSSARY.md lazily created).
 - [x] **User-selectable output language (English / French)** (0.4.0) —
   `~/.claude/project-tracker/language.txt` (machine default) + `language:`
   overrides in `STATUS.md` frontmatter (per project) and `portfolio.txt`

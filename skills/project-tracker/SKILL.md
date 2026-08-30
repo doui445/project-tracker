@@ -26,6 +26,7 @@ Three possible states:
   - If its frontmatter has no `backlog_model` key at all: first check whether `ROADMAP.md` explicitly mentions/references a file named `BACKLOG.md` (at its standard location `docs/project-tracker/BACKLOG.md`, or at a non-standard path elsewhere in the project — e.g. nested in a subfolder; do not require it to be at the standard location, look instead for the explicit mention) — if so, the project has already adopted the model without going through the `project-tracker` bootstrap: write `backlog_model: "adopté"` directly, without asking; to decide whether to consolidate that file into `docs/project-tracker/` or leave it where it is, see `## Retrofitting an existing project` (two cases depending on whether a `STATUS.md` of its own exists at that path). Otherwise, ask the Backlog/Roadmap model adoption question (see `references/backlog-phases.md`), once, never asked again afterwards.
   - If `backlog_model` is `"adopté"` (or was just auto-recognized above) and the frontmatter has no `phase_model` key at all: check whether files matching `PHASE_N_SPEC.md` already exist in the project — if so, auto-recognize `phase_model: "leger"` without asking (same logic as above). Otherwise, do **not** ask a question here: `phase_model` stays absent until a phase is actually proposed (see `references/backlog-phases.md`, "How phases work").
   - If its frontmatter has **no** `category` key at all: propose a category (offering the values already used by other tracked projects, for reuse), then write it to the `category` frontmatter (the label, or `"non"` if the user declines). Once the key is written, never asked again.
+  - If `docs/project-tracker/GLOSSARY.md` does **not** exist and the frontmatter has no `glossary` key: glance at the code and `README.md`; if the project carries a clear domain vocabulary of its own (coined terms, business jargon, common words used with a specific local meaning — not standard industry terms), propose starting `docs/project-tracker/GLOSSARY.md` with the terms you spotted. If accepted, create it (leave `glossary` absent — the file's existence is the signal). If declined, write `glossary: "non"`. Once `GLOSSARY.md` exists **or** `glossary` is `"non"`, this proactive check never runs again — but the in-session triggers (`## Continuous updates`) still add terms, creating the file if needed.
   - If `~/.claude/project-tracker/portfolio.txt` does not exist: ask the user where the unified portfolio should go — offer `~/Desktop`, `~/Documents`, or another folder — and write the chosen **folder** path to `portfolio.txt`. If the user genuinely wants no portfolio, write a comments-only `portfolio.txt` (the hook then stays silent). Once the file exists (path or comments), never asked again — it is machine-global config, not per-project.
   - If `~/.claude/project-tracker/language.txt` does not exist: ask once which language the tracking files and portfolio should be written in (English / French), and write the code (`en` / `fr`) to `language.txt`. Machine-global config, never asked again.
   - Otherwise: resolve the effective language and glance at `STATUS.md`. If it is visibly in the other language, offer the full retranslation (see `references/writing-tracking-files.md`, `## Retranslating on a language change`).
@@ -72,7 +73,7 @@ A sequence of questions, one at a time, never an assumption:
    - If yes and no existing list fits: ask *"What name for the list?"* (default suggestion = project name, to confirm or change — never created without the name being confirmed), then create a new one flat (`reminders_lists` action `create`) — the tool cannot file it into a Reminders folder automatically, the user does that themselves if they want.
    - In every case (yes or no), write the answer to the `reminders_list` frontmatter (the list name, or `"non"` if declined — never an empty string, which is too easily confused with "not filled in yet") — never asked again. See `references/reminders-sync.md` for how it works once linked.
 6. *"Category for this project?"* — read the `category` values already present in the other tracked projects' `STATUS.md` files (walk the roots in `~/.claude/project-tracker/scopes.txt`) and offer them for reuse (e.g. "already used: Work, Personal — or a new one") to avoid case/spelling duplicates. Write the answer to the `category` frontmatter (the label, or `"non"` if the user wants none). Never asked again for this project.
-7. *"Is the project complex enough to deserve a separate `ARCHITECTURE.md`, or is `CLAUDE.md` enough?"* and *"any domain jargon that would justify a `GLOSSARY.md`?"* — optional, decided case by case; create them only if the answer is yes.
+7. *"Is the project complex enough to deserve a separate `ARCHITECTURE.md`, or is `CLAUDE.md` enough?"* — optional, decided case by case; create it only if the answer is yes. (`GLOSSARY.md` is **not** asked here — it is created later, on first need; see `## Detecting a project's root` and `## Continuous updates`.)
 
 First run `mkdir -p docs/project-tracker/` at the project root, then create the standard files (next section) filled in with the answers obtained — never invented content for anything that wasn't answered. `README.md` and `CLAUDE.md` go at the project root; the 7 other standard files in `docs/project-tracker/` (see the next section for the per-file detail). `project:` in the frontmatter is always the folder's own name — never asked. The frontmatter of the `STATUS.md` thus created immediately includes `backlog_model: "adopté"`, written automatically along with the other fields — never asked as a question at this stage, since `BACKLOG.md` is one of the standard files created unconditionally (see next section).
 
@@ -96,7 +97,9 @@ Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project 
 | `docs/project-tracker/ERRORS.md` | Bug encountered → cause → fix, searchable | **Append-only**, every significant resolved bug |
 | `docs/project-tracker/BACKLOG.md` | Raw, complete reservoir of every envisaged idea/feature (effort, perceived value). Never purged, enriched and archived. See `references/backlog-phases.md` | **Append-only** (archiving, never purging) |
 
-Optional (created only if requested at bootstrap step 7, in `docs/project-tracker/`): `ARCHITECTURE.md`, `GLOSSARY.md`.
+Two optional files, both in `docs/project-tracker/`:
+- `ARCHITECTURE.md` — created at bootstrap (step 7) if the project is complex enough.
+- `GLOSSARY.md` — **created on first need**, not at bootstrap (see `## Detecting a project's root` for the proactive check, `## Continuous updates` for the in-session triggers).
 
 How to write each of these well — reader, structure, what belongs and what does not, worked good/poor examples: see `references/writing-tracking-files.md`. Consult it whenever you create or substantially rewrite one of these files.
 
@@ -118,6 +121,7 @@ category: "<free text>"   # "non" if the user declined a category, absent if nev
 backlog_model: "adopté"   # automatic at bootstrap; "non" only possible via a declined retrofit; absent only for a project tracked before this feature and not yet retrofitted
 phase_model: "superpowers"   # or "leger"; absent if no phase ever proposed
 language: fr              # en | fr ; absent = inherit language.txt
+glossary: "non"           # "non" = proactive glossary scan declined; absent = not yet checked; unset once GLOSSARY.md exists
 ---
 ```
 
@@ -165,6 +169,11 @@ When you judge that you have made a significant change in a session (new feature
 5. The Reminders sync itself is no longer triggered here (see `references/reminders-sync.md` — a `PostToolUse` hook handles it on the first change to `docs/project-tracker/STATUS.md`/`docs/project-tracker/ROADMAP.md` of each session (one reminder per session and per project)); the linking question, for a project that has never had it, is asked earlier — see `## Detecting a project's root` — not here.
 
 This trigger (judging a change to be "significant") is your own judgment, not a mechanical rule. Safety net: the user can ask you for an update explicitly at any time — in that case, check the real state before writing anything (do not rewrite if nothing has actually changed since the last `last_updated`).
+
+**`GLOSSARY.md` — in-session triggers.** Independent of the "significant change" judgment above. When either happens, add the term to `docs/project-tracker/GLOSSARY.md` — **create the file if it does not exist, with that first entry, and say so** (no separate question for a single term); if `glossary` was `"non"`, drop the key, the file now exists:
+- the user asks what a **project-specific** term means (coined term, jargon, a common word used with a specific local meaning — not a standard industry term): answer, then add it, with the project meaning + where it shows up + a short usage example;
+- a project-specific term keeps coming up undefined while you work.
+Format and what to include/exclude: `references/writing-tracking-files.md` (`## GLOSSARY.md`).
 
 ### Collisions between concurrent sessions
 
