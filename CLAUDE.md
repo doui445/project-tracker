@@ -14,7 +14,9 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 
 - `skills/project-tracker/SKILL.md` — the full behaviour specification (source
   of truth for how the skill acts).
-- `skills/project-tracker/references/` — `backlog-phases.md`, `reminders-sync.md`.
+- `skills/project-tracker/references/` — `backlog-phases.md`,
+  `reminders-sync.md`, `writing-tracking-files.md`, and `i18n/{en,fr}.md`
+  (the output-language catalogue).
 - `skills/project-tracker/hooks/` — `session_start.sh`, `reminders_sync_trigger.sh`,
   `portfolio_regen.sh` (+ their `test_*.sh`). **Self-relative** — never
   hardcode `~/.claude/...` paths in them.
@@ -57,7 +59,7 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 
 ```bash
 python3 -m unittest test_plugin_manifest
-python3 -m unittest skills.project-tracker.scripts.test_generate_portfolio   # or run the file directly
+python3 -m unittest discover -s skills/project-tracker/scripts -p 'test_*.py'
 bash skills/project-tracker/hooks/test_session_start.sh
 bash skills/project-tracker/hooks/test_reminders_sync_trigger.sh
 bash skills/project-tracker/hooks/test_portfolio_regen.sh
@@ -90,6 +92,9 @@ is declared stable):
 2. Regenerate the installer: `bash skills/project-tracker/scripts/build_installer.sh`.
 3. In `docs/project-tracker/CHANGELOG.md`: rename `[Unreleased]` to
    `[X.Y.Z] — YYYY-MM-DD`, add a fresh empty `[Unreleased]` above it.
+   Update `STATUS.md` (version, next actions), append to `JOURNAL.md`, move
+   any completed `BACKLOG.md` items, add a `DECISIONS.md` entry if the
+   release settled a structural choice.
 4. Run the tests (see Build / test).
 5. Commit `release: vX.Y.Z — <summary>`, then
    `git tag -a vX.Y.Z -m "<summary>"`, then

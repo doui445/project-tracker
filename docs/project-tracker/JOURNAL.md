@@ -4,7 +4,7 @@ Dated chronological log. Append-only.
 
 ## 2026-08-30 — Self-tracking bootstrap
 
-- Removed `/Users/manu/Documents/Code/project-tracker` from
+- Removed this repo's own path from
   `~/.claude/project-tracker/trackignore.txt` — the tool now tracks its own
   repo as a real project (auto-detection on, not manual-only).
 - Bootstrapped the nine standard files in `docs/project-tracker/` + optional
@@ -192,3 +192,21 @@ Dated chronological log. Append-only.
   (v0.4.0 output language, v0.4.1 cleanup, v0.5.0 lazy glossary, v0.6.0
   fresh-eyes pass, v0.7.0 un-exclude) has shipped. Next themes will come
   from real use.
+
+## 2026-08-30 — Full repo audit (clean-up pass)
+
+- Personal-info sweep: one absolute home path in `JOURNAL.md`'s first entry,
+  genericised. Nothing else — no emails, no other-project names, no session
+  URLs, no secrets in tracked files (installer base64 blobs decoded and
+  checked too).
+- `ROADMAP.md` was four releases stale — full rewrite (v0.1–v0.3 grouped,
+  v0.4.0–v0.7.0 listed, current focus = empty backlog).
+- `CLAUDE.md`: reference-file list completed (`writing-tracking-files.md`,
+  `i18n/`), `test_generate_portfolio` command fixed, release routine now
+  names the STATUS/JOURNAL/BACKLOG/DECISIONS updates.
+- `README.md`: install commands were printed twice → deduped; frontmatter
+  example completed (all 12 keys); fresh-eyes + un-exclude behaviours added;
+  ROADMAP row reworded. Ran the fresh-eyes pass inline — otherwise clean.
+- Version consistency verified: `plugin.json` == `marketplace.json` == tag
+  `v0.7.0` == `CHANGELOG` top == `STATUS`. Installer regeneration produces no
+  diff. All suites green (8 + 89 + 3 hooks).

@@ -31,7 +31,7 @@ already tracked, Claude picks up where the files left off.
 | `README.md` *(project root)* | What, why, stack, install/run, links |
 | `CLAUDE.md` *(project root)* | Instructions for Claude: conventions, build/test commands, pitfalls |
 | `docs/project-tracker/STATUS.md` | Snapshot of the current state + next actions. Rewritten every session |
-| `docs/project-tracker/ROADMAP.md` | Prioritised synthesis: past / current / anticipated phases |
+| `docs/project-tracker/ROADMAP.md` | Prioritised synthesis: what's done, the current focus, what's anticipated |
 | `docs/project-tracker/JOURNAL.md` | Dated log of what was done and why. Append-only |
 | `docs/project-tracker/CHANGELOG.md` | Keep a Changelog format |
 | `docs/project-tracker/DECISIONS.md` | Why each structural choice, alternatives rejected. Append-only |
@@ -50,8 +50,9 @@ Plus, on top of the files:
 - **User-selectable EN/FR output** — the tracking files and the portfolio can
   be written in English or French, set once and overridable per portfolio or
   per project.
-- **Never guesses** — a field it can't fill stays marked "to fill in" rather
-  than invented.
+- **A readability pass** — after Claude substantially rewrites an onboarding
+  file (`README` / `CLAUDE.md` / …), a fresh-eyes review checks it still reads
+  well for a newcomer.
 
 ## Requirements
 
@@ -69,13 +70,9 @@ Plus, on top of the files:
 
 ### As a Claude Code plugin (recommended)
 
-```
-/plugin marketplace add doui445/project-tracker
-/plugin install project-tracker@project-tracker
-```
-
-Restart Claude Code. The plugin bundles the skill and its three hooks
-(`SessionStart` + two `PostToolUse`) — no manual `settings.json` edit.
+The two commands from **Quick start**, then restart Claude Code. The plugin
+bundles the skill and its three hooks (`SessionStart` + two `PostToolUse`) —
+no manual `settings.json` edit.
 
 Third-party marketplaces don't auto-update by default. To pick up a new
 version: `/plugin marketplace update project-tracker` then
@@ -132,8 +129,10 @@ in plain language.
   project. `GLOSSARY.md` is created later, the first time the project's own
   jargon calls for it — Claude proposes it when it spots a domain vocabulary,
   or adds a term when you ask what one means.
-- **`STATUS.md` frontmatter.** The one structured part — what the portfolio
-  reads:
+- **Excluded folders.** A folder in `trackignore.txt` is left alone — but if
+  you ask to track it, Claude offers to un-exclude it and set it up.
+- **`STATUS.md` frontmatter.** The one structured block; the portfolio reads
+  `project`, `status`, `last_updated`, `stack`, `repo` and `category` from it:
 
   ```yaml
   ---
@@ -146,6 +145,10 @@ in plain language.
   next_milestone: "Ship the import flow"
   reminders_list: "My app"   # or "non"
   category: "Work"           # or "non"
+  backlog_model: "adopté"
+  phase_model: "superpowers" # or "leger"; absent until a phase is proposed
+  language: fr               # en | fr ; absent = inherit language.txt
+  glossary: "non"            # "non" = proactive glossary scan declined
   ---
   ```
 

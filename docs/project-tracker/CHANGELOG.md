@@ -12,6 +12,21 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+### Fixed
+- `docs/project-tracker/JOURNAL.md` carried an absolute home path in the
+  first bootstrap entry — genericised.
+- `ROADMAP.md` was four releases stale (stuck at the v0.3.0 era) — rewritten
+  to cover v0.4.0–v0.7.0.
+- `CLAUDE.md` layout section listed only two reference files — added
+  `writing-tracking-files.md` and `references/i18n/`; fixed the
+  `test_generate_portfolio` command; the release routine now names the
+  tracking-file updates.
+
+### Changed
+- `README.md` tidied: the install commands are no longer printed twice, the
+  `STATUS.md` frontmatter example shows every key, and the fresh-eyes pass /
+  un-exclude behaviours are listed.
+
 ## [0.7.0] — 2026-08-30
 
 ### Changed
