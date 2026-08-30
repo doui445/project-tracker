@@ -57,6 +57,10 @@ EOF
 OUT="$(run_hook "$TRACKED")"
 assert_contains "$OUT" "tracked project" "tracked project -> verification reminder"
 assert_contains "$OUT" "project: Tracked" "tracked project -> STATUS.md content included"
+assert_contains "$OUT" "Not yet configured" "tracked project missing keys -> enumerated"
+assert_contains "$OUT" "reminders_list" "missing reminders_list listed"
+assert_contains "$OUT" "category" "missing category listed"
+assert_contains "$OUT" "portfolio.txt" "missing global portfolio.txt listed"
 
 # Case 3: cwd in a deep subfolder of an already-tracked project
 mkdir -p "$TRACKED/subdir/deep"
@@ -188,6 +192,39 @@ OUT="$(run_hook "$SCOPE_ROOT")"
 assert_empty "$OUT" "entry = scope root -> the exact root is ignored"
 OUT="$(run_hook "$TRACKED")"
 assert_contains "$OUT" "tracked project" "entry = scope root -> project inside is still detected"
+
+# Case 13 (new): a tracked project with every key set AND a global
+# portfolio.txt -> no "Not yet configured" line.
+FULL="$SCOPE_ROOT/full-project"
+mkdir -p "$FULL/docs/project-tracker"
+cat > "$FULL/docs/project-tracker/STATUS.md" <<'EOF'
+---
+project: Full
+status: active
+last_updated: 2026-01-01
+reminders_list: "non"
+backlog_model: "adopté"
+category: "non"
+---
+Content.
+EOF
+printf '/tmp/x\n' > "$TMP_HOME/.claude/project-tracker/portfolio.txt"
+OUT="$(run_hook "$FULL")"
+assert_contains "$OUT" "tracked project" "full project -> still detected"
+if [[ "$OUT" == *"Not yet configured"* ]]; then
+  echo "FAIL: full project -> should not emit 'Not yet configured'"
+  FAIL=1
+else
+  echo "PASS: full project -> no 'Not yet configured' line"
+fi
+
+# Case 14 (new): a "~"-prefixed entry in scopes.txt resolves against $HOME.
+TILDE_SCOPE="$TMP_HOME/tildescope"
+mkdir -p "$TILDE_SCOPE/proj"
+printf '%s\n~/tildescope\n' "$SCOPE_ROOT" > "$TMP_HOME/.claude/project-tracker/scopes.txt"
+: > "$TMP_HOME/.claude/project-tracker/trackignore.txt"
+OUT="$(run_hook "$TILDE_SCOPE/proj")"
+assert_contains "$OUT" "No tracking detected" "~ scope entry -> resolved, folder seen as new"
 
 if [ "$FAIL" -eq 1 ]; then
   echo "Some tests failed."

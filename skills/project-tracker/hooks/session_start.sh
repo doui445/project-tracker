@@ -20,6 +20,7 @@ while IFS= read -r line || [ -n "$line" ]; do
   line="${line%/}"
   case "$line" in
     ""|"#"*) continue ;;
+    "~"|"~/"*) line="${HOME}${line#\~}" ;;
   esac
   case "$CWD" in
     "$line"|"$line"/*) SCOPE_ROOT="$line"; break ;;
@@ -34,12 +35,14 @@ if [ -f "$IGNORE_FILE" ]; then
     entry="${entry%/}"
     case "$entry" in
       ""|"#"*) continue ;;
+      "~"|"~/"*) entry="${HOME}${entry#\~}" ;;
     esac
     entry_is_scope_root=0
     while IFS= read -r scope || [ -n "$scope" ]; do
       scope="${scope%/}"
       case "$scope" in
         ""|"#"*) continue ;;
+        "~"|"~/"*) scope="${HOME}${scope#\~}" ;;
       esac
       if [ "$scope" = "$entry" ]; then
         entry_is_scope_root=1
@@ -68,10 +71,17 @@ while :; do
 done
 
 if [ -n "$STATUS_FILE" ]; then
+  FM="$(awk '/^---$/{count++} {print} count==2{exit}' "$STATUS_FILE" 2>/dev/null || true)"
+  MISSING=""
+  printf '%s\n' "$FM" | grep -q '^reminders_list:' || MISSING="$MISSING reminders_list"
+  printf '%s\n' "$FM" | grep -q '^backlog_model:'  || MISSING="$MISSING backlog_model"
+  printf '%s\n' "$FM" | grep -q '^category:'       || MISSING="$MISSING category"
+  [ -f "$HOME/.claude/project-tracker/portfolio.txt" ] || MISSING="$MISSING portfolio.txt(global)"
   echo "[project-tracker] Session opened in a tracked project ($ROOT)."
+  [ -n "$MISSING" ] && echo "Not yet configured -> invoke the project-tracker skill and ask about:$MISSING"
   echo "Invoke the project-tracker skill: compare last_updated (frontmatter below) with the last real activity (latest git commit if uses_git=true, otherwise file modification dates) and propose an update if needed. Do not write anything without checking the current state of the files first."
   echo "--- STATUS.md frontmatter ---"
-  awk '/^---$/{count++} {print} count==2{exit}' "$STATUS_FILE" 2>/dev/null | head -c 4000 || true
+  printf '%s\n' "$FM" | head -c 4000
   echo
   exit 0
 fi
