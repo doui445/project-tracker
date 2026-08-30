@@ -59,7 +59,32 @@ bash skills/project-tracker/scripts/build_installer.sh   # regenerate the instal
   default branch `main`.
 - Never commit or push without explicit confirmation. Conventional-commit
   style messages (`skill:`, `hooks:`, `portfolio:`, `plugin:`, `docs:`,
-  `test:`).
+  `test:`, `release:`).
+
+## Releasing
+
+**Version scheme** (this is a `0.x` project — major stays `0` until the skill
+is declared stable):
+
+- **minor** (`0.N.0`) — a new command, hook, config knob, or standard file, or
+  any change to how the skill behaves.
+- **patch** (`0.x.N`) — fixes, doc and guidance changes, refactors with no
+  behaviour change.
+
+**Routine** (every release):
+
+1. Bump `version` in **both** `.claude-plugin/plugin.json` and
+   `.claude-plugin/marketplace.json` — kept equal, `test_plugin_manifest.py`
+   enforces it.
+2. Regenerate the installer: `bash skills/project-tracker/scripts/build_installer.sh`.
+3. In `docs/project-tracker/CHANGELOG.md`: rename `[Unreleased]` to
+   `[X.Y.Z] — YYYY-MM-DD`, add a fresh empty `[Unreleased]` above it.
+4. Run the tests (see Build / test).
+5. Commit `release: vX.Y.Z — <summary>`, then
+   `git tag -a vX.Y.Z -m "<summary>"`, then
+   `git push origin main --follow-tags`.
+
+## Dogfooding note
 
 ## Dogfooding note
 

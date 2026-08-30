@@ -64,6 +64,10 @@ budget.
 - Commands must be runnable verbatim, copy-paste ready.
 - "Known pitfalls" = things Claude would otherwise get wrong (a non-obvious
   test setup, a file that must not be hand-edited, a naming rule).
+- Routines Claude runs belong here too — e.g. a **release routine** (how to
+  bump the version, regenerate artefacts, tag). Keep the versioning *scheme*
+  (what counts as major/minor/patch) in the `CHANGELOG.md` header and the
+  step-by-step here; don't create a separate file for either.
 
 > **Poor:** *"This project was started in August after we decided against a
 > Rails backend (see the discussion in the July notes). The architecture has
@@ -117,6 +121,8 @@ landed. [Keep a Changelog](https://keepachangelog.com/) format.
 - Keep an `[Unreleased]` section at the top that accumulates until a release,
   then rename it to the version with a date.
 - One line per change, a noun phrase or an imperative.
+- State the project's **versioning scheme** in the header (what a major /
+  minor / patch bump means here) — this is its home, not a separate file.
 
 ## `DECISIONS.md`
 

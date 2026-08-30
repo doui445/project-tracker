@@ -47,8 +47,6 @@ build workstreams are done:
 ### Known gaps
 
 - Output language is effectively fixed to English — the user cannot choose.
-- The versioning policy (major/minor/patch rules, release routine) is not
-  written down anywhere yet — under discussion.
 
 ## Next 3 actions
 
@@ -56,7 +54,7 @@ build workstreams are done:
    where the setting lives (machine-global file vs. per-project frontmatter),
    how the skill and `generate_portfolio.py` consume it, default behaviour.
    See `BACKLOG.md`.
-2. Decide where the versioning policy lives (`CLAUDE.md` release routine +
-   a scheme note in `CHANGELOG.md`, vs. a dedicated doc).
+2. Cut the next release when `[Unreleased]` has accumulated enough (currently:
+   the versioning-policy write-up) — follow `CLAUDE.md` § Releasing.
 3. Dogfood — keep capturing friction from self-tracking in
    `JOURNAL.md` / `ERRORS.md` as it comes up.

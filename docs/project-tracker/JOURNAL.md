@@ -57,5 +57,8 @@ Dated chronological log. Append-only.
     session) worked as intended, just chatty by design.
   - `plugin.json` / `marketplace.json` → `0.3.1`, installer regenerated,
     `CHANGELOG` `[0.3.1]` dated.
-- Open question raised: whether the versioning policy deserves its own file
-  (see next action 2).
+- Versioning policy written down (decided against a dedicated file): the
+  scheme lives in the `CHANGELOG.md` header, the step-by-step release routine
+  in `CLAUDE.md` § Releasing. `writing-tracking-files.md` now points future
+  projects to those two homes. Sits in `CHANGELOG [Unreleased]` — rides the
+  next real release rather than triggering a 0.3.2 for two lines.

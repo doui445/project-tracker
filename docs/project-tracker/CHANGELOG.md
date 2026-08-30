@@ -1,10 +1,21 @@
 # Changelog — project-tracker
 
 All notable changes to this project. Format based on
-[Keep a Changelog](https://keepachangelog.com/); this project follows
-semantic-ish versioning in `plugin.json` / `marketplace.json`.
+[Keep a Changelog](https://keepachangelog.com/).
+
+**Versioning.** A `0.x` project — `major` stays `0` until the skill is declared
+stable. `minor` (`0.N.0`) = a new command, hook, config knob or standard file,
+or any change to how the skill behaves. `patch` (`0.x.N`) = fixes, docs and
+guidance, no-behaviour-change refactors. The version lives in
+`plugin.json` / `marketplace.json` (kept equal); the release routine is in
+`CLAUDE.md` § Releasing.
 
 ## [Unreleased]
+
+### Added
+- Versioning policy written down: the scheme in this file's header, the
+  release routine in `CLAUDE.md` § Releasing. `writing-tracking-files.md`
+  points future projects to the same two homes (no dedicated file).
 
 ## [0.3.1] — 2026-08-30
 
