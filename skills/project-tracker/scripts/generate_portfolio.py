@@ -102,12 +102,84 @@ STATUS_ORDER = ["active", "paused", "blocked", "archived"]
 # page background changes theme, not the badges themselves.
 # "paused" in blue (not violet): the accent is now violet (hue ~293),
 # same logic as for "blocked" vs the old copper accent.
-STATUS_LABELS = {
-    "active": ("Active", "oklch(0.55 0.15 145)"),
-    "paused": ("Paused", "oklch(0.55 0.19 255)"),
-    "blocked": ("Blocked", "oklch(0.55 0.19 25)"),
-    "archived": ("Archived", "oklch(0.50 0.02 270)"),
+STATUS_COLORS = {
+    "active": "oklch(0.55 0.15 145)",
+    "paused": "oklch(0.55 0.19 255)",
+    "blocked": "oklch(0.55 0.19 25)",
+    "archived": "oklch(0.50 0.02 270)",
 }
+_UNKNOWN_STATUS_COLOR = "oklch(0.50 0.02 210)"
+
+STRINGS = {
+    "en": {
+        "html_lang": "en",
+        "page_title": "Project portfolio",
+        "default_title": "My projects",
+        "meta_line": "{count} tracked · {generated_at}",
+        "status_active": "Active",
+        "status_paused": "Paused",
+        "status_blocked": "Blocked",
+        "status_archived": "Archived",
+        "freshness_today": "today",
+        "freshness_yesterday": "yesterday",
+        "freshness_days_ago": "{n} days ago",
+        "freshness_month_ago": "~1 month ago",
+        "freshness_months_ago": "~{n} months ago",
+        "card_next_milestone": "Next milestone",
+        "card_updated": "Updated",
+        "card_aria_open_repo": "Open the {name} repository",
+        "uncategorized": "Uncategorized",
+        "empty_title": "No tracked projects yet.",
+        "empty_body": "Open a Claude Code session in a folder of this scope — the project-tracker skill will offer to track it.",
+        "stats_aria": "Filter by status",
+        "stack_title": "Stack & tools",
+        "stack_hint": "Click a technology to filter the projects that use it.",
+        "stack_aria": "Filter by technology",
+        "search_placeholder": "Search for a project…",
+        "search_aria": "Search for a project by name",
+        "reset_filters": "Reset filters",
+        "filter_empty": "No project matches the filters.",
+        "generated_note": "Regenerated automatically by project-tracker.",
+    },
+    "fr": {
+        "html_lang": "fr",
+        "page_title": "Portfolio de projets",
+        "default_title": "Mes projets",
+        "meta_line": "{count} suivis · {generated_at}",
+        "status_active": "Actif",
+        "status_paused": "En pause",
+        "status_blocked": "Bloqué",
+        "status_archived": "Archivé",
+        "freshness_today": "aujourd'hui",
+        "freshness_yesterday": "hier",
+        "freshness_days_ago": "il y a {n} jours",
+        "freshness_month_ago": "il y a ~1 mois",
+        "freshness_months_ago": "il y a ~{n} mois",
+        "card_next_milestone": "Prochain jalon",
+        "card_updated": "Mis à jour",
+        "card_aria_open_repo": "Ouvrir le dépôt {name}",
+        "uncategorized": "Sans catégorie",
+        "empty_title": "Aucun projet suivi pour l'instant.",
+        "empty_body": "Ouvre une session Claude Code dans un dossier de ce périmètre — le skill project-tracker proposera de le suivre.",
+        "stats_aria": "Filtrer par statut",
+        "stack_title": "Stack & outils",
+        "stack_hint": "Clique sur une technologie pour filtrer les projets qui l'utilisent.",
+        "stack_aria": "Filtrer par technologie",
+        "search_placeholder": "Rechercher un projet…",
+        "search_aria": "Rechercher un projet par son nom",
+        "reset_filters": "Réinitialiser les filtres",
+        "filter_empty": "Aucun projet ne correspond aux filtres.",
+        "generated_note": "Régénéré automatiquement par project-tracker.",
+    },
+}
+
+
+def _strings(lang):
+    return STRINGS.get(lang, STRINGS["en"])
+
+
+def _status_label(status_key, s):
+    return s.get(f"status_{status_key}", status_key or "?")
 
 
 def parse_frontmatter(text):
@@ -227,10 +299,10 @@ def status_counts(projects):
 STALE_AFTER_DAYS = 30
 
 
-def relative_freshness(date_str, today):
-    """Relative label ('N days ago', 'yesterday'…) since last_updated,
-    plus a "stale" boolean (>= STALE_AFTER_DAYS). Returns (None, False)
-    if the date cannot be parsed (never invented)."""
+def relative_freshness(date_str, today, s):
+    """Relative label since last_updated, plus a "stale" boolean
+    (>= STALE_AFTER_DAYS). Returns (None, False) if the date cannot be
+    parsed (never invented). `s` is a _strings() dict."""
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d").date()
     except (ValueError, TypeError):
@@ -239,13 +311,13 @@ def relative_freshness(date_str, today):
     if delta < 0:
         return None, False  # future date: nothing safe to display
     if delta == 0:
-        return "today", False
+        return s["freshness_today"], False
     if delta == 1:
-        return "yesterday", False
+        return s["freshness_yesterday"], False
     if delta < STALE_AFTER_DAYS:
-        return f"{delta} days ago", False
+        return s["freshness_days_ago"].format(n=delta), False
     months = max(1, delta // 30)
-    label = "~1 month ago" if months == 1 else f"~{months} months ago"
+    label = s["freshness_month_ago"] if months == 1 else s["freshness_months_ago"].format(n=months)
     return label, True
 
 
@@ -262,11 +334,12 @@ def sort_by_recency(projects):
     return sorted(projects, key=key)
 
 
-def render_card(p, today=None):
+def render_card(p, s, today=None):
     if today is None:
         today = date.today()
     status_key = p.get("status", "")
-    label, color = STATUS_LABELS.get(status_key, (status_key or "?", "oklch(0.50 0.02 210)"))
+    color = STATUS_COLORS.get(status_key, _UNKNOWN_STATUS_COLOR)
+    label = _status_label(status_key, s)
     stack = p.get("stack", [])
     stack_html = "".join(f'<span class="tag">{escape(s)}</span>' for s in stack)
     name = p.get("project", p["_path"])
@@ -280,7 +353,7 @@ def render_card(p, today=None):
     status_attr = escape(status_key.lower())
 
     last_updated = p.get("last_updated", "?")
-    freshness, is_stale = relative_freshness(last_updated, today)
+    freshness, is_stale = relative_freshness(last_updated, today, s)
     freshness_html = ""
     if freshness:
         cls = "freshness freshness-stale" if is_stale else "freshness"
@@ -292,7 +365,7 @@ def render_card(p, today=None):
     if repo:
         open_tag = (
             f'<a href="{escape(repo)}" class="card" data-stack="{stack_attr}" '
-            f'data-status="{status_attr}" aria-label="Open the {escape(name)} repository">'
+            f'data-status="{status_attr}" aria-label="{escape(s["card_aria_open_repo"].format(name=name))}">'
         )
         close_tag = "</a>"
         affordance = '<span class="card-arrow" aria-hidden="true">&#8599;</span>'
@@ -310,8 +383,8 @@ def render_card(p, today=None):
       <p class="path">{escape(p["_path"])}</p>
       <div class="tags">{stack_html}</div>
       <dl class="meta">
-        <div><dt>Next milestone</dt><dd>{milestone}</dd></div>
-        <div><dt>Updated</dt><dd>{escape(last_updated)}{freshness_html}</dd></div>
+        <div><dt>{escape(s["card_next_milestone"])}</dt><dd>{milestone}</dd></div>
+        <div><dt>{escape(s["card_updated"])}</dt><dd>{escape(last_updated)}{freshness_html}</dd></div>
       </dl>
       {affordance}
     {close_tag}"""
@@ -324,18 +397,18 @@ EMPTY_STATE = """
     </div>"""
 
 
-def render_stats_section(projects):
+def render_stats_section(projects, s):
     if not projects:
         return ""
     # Buttons rather than static divs: clicking a status filters the
     # grid, same mechanism as the Stack & tools chips.
     items = "".join(
-        f'<button type="button" class="stat" data-status="{escape(s)}" aria-pressed="false">'
+        f'<button type="button" class="stat" data-status="{escape(sk)}" aria-pressed="false">'
         f'<span class="stat-num">{n}</span>'
-        f'<span class="stat-label">{escape(STATUS_LABELS.get(s, (s, ""))[0])}</span></button>'
-        for s, n in status_counts(projects)
+        f'<span class="stat-label">{escape(_status_label(sk, s))}</span></button>'
+        for sk, n in status_counts(projects)
     )
-    return f'<section class="stats" role="group" aria-label="Filter by status">{items}</section>'
+    return f'<section class="stats" role="group" aria-label="{escape(s["stats_aria"])}">{items}</section>'
 
 
 def render_stack_section(projects):
@@ -791,9 +864,11 @@ def build_page(projects, generated_at, title="My projects"):
         groups_html = f'<div class="grid">{EMPTY_STATE}</div>'
     else:
         parts = []
+        # Task 4 will thread the real portfolio language here.
+        s = _strings("en")
         for cat, members in _group_by_category(projects):
             label = cat if cat else "Uncategorized"
-            cards = "\n".join(render_card(p) for p in members)
+            cards = "\n".join(render_card(p, s) for p in members)
             parts.append(
                 f'<section class="category-group" data-category="{escape(cat)}">\n'
                 f'  <h3 class="category-title">{escape(label)}</h3>\n'
@@ -805,7 +880,7 @@ def build_page(projects, generated_at, title="My projects"):
         title=escape(title),
         count=len(projects),
         generated_at=generated_at,
-        stats_section=render_stats_section(projects),
+        stats_section=render_stats_section(projects, _strings("en")),
         stack_section=render_stack_section(projects),
     )
 

@@ -243,15 +243,15 @@ class StatusCountsTests(unittest.TestCase):
 
 class RenderSectionsTests(unittest.TestCase):
     def test_stats_section_empty_when_no_projects(self):
-        self.assertEqual(gp.render_stats_section([]), "")
+        self.assertEqual(gp.render_stats_section([], gp._strings("en")), "")
 
     def test_stats_section_shows_real_status_label(self):
-        html = gp.render_stats_section([{"status": "active"}, {"status": "active"}])
+        html = gp.render_stats_section([{"status": "active"}, {"status": "active"}], gp._strings("en"))
         self.assertIn("2", html)
         self.assertIn("Active", html)
 
     def test_stats_section_renders_as_filter_buttons(self):
-        html = gp.render_stats_section([{"status": "active"}])
+        html = gp.render_stats_section([{"status": "active"}], gp._strings("en"))
         self.assertIn('<button type="button" class="stat" data-status="active" aria-pressed="false">', html)
 
     def test_stack_section_empty_when_no_stack_anywhere(self):
@@ -265,21 +265,50 @@ class RenderSectionsTests(unittest.TestCase):
         )
 
 
+class LocalisationTests(unittest.TestCase):
+    def test_freshness_labels_localise(self):
+        s = gp._strings("fr")
+        self.assertEqual(gp.relative_freshness("2026-08-30", date(2026, 8, 30), s)[0], "aujourd'hui")
+        self.assertEqual(gp.relative_freshness("2026-08-29", date(2026, 8, 30), s)[0], "hier")
+        self.assertEqual(gp.relative_freshness("2026-08-25", date(2026, 8, 30), s)[0], "il y a 5 jours")
+        label, stale = gp.relative_freshness("2026-06-01", date(2026, 8, 30), s)
+        self.assertTrue(stale)
+        self.assertIn("mois", label)
+
+    def test_card_status_label_localises(self):
+        p = {"project": "x", "_path": "~/x", "status": "active", "last_updated": "2026-08-30", "stack": []}
+        html_fr = gp.render_card(p, gp._strings("fr"))
+        self.assertIn("Actif", html_fr)
+        self.assertNotIn(">Active<", html_fr)
+
+    def test_card_meta_labels_localise(self):
+        p = {"project": "x", "_path": "~/x", "status": "active", "last_updated": "2026-08-30", "stack": []}
+        html_fr = gp.render_card(p, gp._strings("fr"))
+        self.assertIn("Prochain jalon", html_fr)
+        self.assertIn("Mis à jour", html_fr)
+
+    def test_stats_section_labels_localise(self):
+        projects = [{"status": "active"}, {"status": "paused"}]
+        html_fr = gp.render_stats_section(projects, gp._strings("fr"))
+        self.assertIn("Actif", html_fr)
+        self.assertIn("En pause", html_fr)
+
+
 class RenderCardTests(unittest.TestCase):
     def test_renders_link_for_http_repo(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p", "repo": "https://example.com/repo"}
-        html = gp.render_card(p)
+        html = gp.render_card(p, gp._strings("en"))
         self.assertIn('<a href="https://example.com/repo"', html)
 
     def test_suppresses_non_http_repo_scheme(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p", "repo": "javascript:alert(1)"}
-        html = gp.render_card(p)
+        html = gp.render_card(p, gp._strings("en"))
         self.assertNotIn("<a href=", html)
         self.assertNotIn("javascript:", html)
 
     def test_absent_repo_renders_no_link(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p"}
-        html = gp.render_card(p)
+        html = gp.render_card(p, gp._strings("en"))
         self.assertNotIn("<a href=", html)
 
     def test_data_stack_attribute_is_lowercased_for_matching(self):
@@ -287,56 +316,56 @@ class RenderCardTests(unittest.TestCase):
             "project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p",
             "stack": ["Python", "FastAPI"],
         }
-        html = gp.render_card(p)
+        html = gp.render_card(p, gp._strings("en"))
         self.assertIn('data-stack="python,fastapi"', html)
 
     def test_data_stack_attribute_present_without_repo_too(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-08-23", "_path": "p", "stack": ["Go"]}
-        html = gp.render_card(p)
+        html = gp.render_card(p, gp._strings("en"))
         self.assertIn('<article class="card" data-stack="go" data-status="active">', html)
 
     def test_data_status_attribute_lowercased(self):
         p = {"project": "P", "status": "Paused", "last_updated": "2026-08-23", "_path": "p"}
-        html = gp.render_card(p)
+        html = gp.render_card(p, gp._strings("en"))
         self.assertIn('data-status="paused"', html)
 
     def test_freshness_shown_for_recent_date(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-08-20", "_path": "p"}
-        html = gp.render_card(p, today=date(2026, 8, 23))
+        html = gp.render_card(p, gp._strings("en"), today=date(2026, 8, 23))
         self.assertIn("3 days ago", html)
         self.assertNotIn("freshness-stale", html)
 
     def test_freshness_flags_stale_projects(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-06-01", "_path": "p"}
-        html = gp.render_card(p, today=date(2026, 8, 23))
+        html = gp.render_card(p, gp._strings("en"), today=date(2026, 8, 23))
         self.assertIn("freshness-stale", html)
 
     def test_freshness_absent_for_unparseable_date(self):
         p = {"project": "P", "status": "active", "last_updated": "n/a", "_path": "p"}
-        html = gp.render_card(p, today=date(2026, 8, 23))
+        html = gp.render_card(p, gp._strings("en"), today=date(2026, 8, 23))
         self.assertNotIn("freshness", html)
 
 
 class RelativeFreshnessTests(unittest.TestCase):
     def test_today_and_yesterday_have_dedicated_labels(self):
-        self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23)), ("today", False))
-        self.assertEqual(gp.relative_freshness("2026-08-22", date(2026, 8, 23)), ("yesterday", False))
+        self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23), gp._strings("en")), ("today", False))
+        self.assertEqual(gp.relative_freshness("2026-08-22", date(2026, 8, 23), gp._strings("en")), ("yesterday", False))
 
     def test_days_label_under_stale_threshold(self):
-        label, is_stale = gp.relative_freshness("2026-08-13", date(2026, 8, 23))
+        label, is_stale = gp.relative_freshness("2026-08-13", date(2026, 8, 23), gp._strings("en"))
         self.assertEqual(label, "10 days ago")
         self.assertFalse(is_stale)
 
     def test_stale_after_30_days(self):
-        label, is_stale = gp.relative_freshness("2026-07-01", date(2026, 8, 23))
+        label, is_stale = gp.relative_freshness("2026-07-01", date(2026, 8, 23), gp._strings("en"))
         self.assertTrue(is_stale)
         self.assertIn("month", label)
 
     def test_unparseable_date_returns_none(self):
-        self.assertEqual(gp.relative_freshness("not a date", date(2026, 8, 23)), (None, False))
+        self.assertEqual(gp.relative_freshness("not a date", date(2026, 8, 23), gp._strings("en")), (None, False))
 
     def test_future_date_returns_none(self):
-        self.assertEqual(gp.relative_freshness("2026-09-01", date(2026, 8, 23)), (None, False))
+        self.assertEqual(gp.relative_freshness("2026-09-01", date(2026, 8, 23), gp._strings("en")), (None, False))
 
 
 class SortByRecencyTests(unittest.TestCase):
