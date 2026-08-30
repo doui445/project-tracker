@@ -96,6 +96,14 @@ class CollectProjectsTests(unittest.TestCase):
         self.assertEqual(projects[0]["project"], "ProjA")
         self.assertEqual(warnings, [])
 
+    def test_project_carries_its_category(self):
+        self._write_status("WithCat", "---\nproject: WithCat\nstatus: active\nlast_updated: 2026-08-23\ncategory: \"Perso\"\n---\nOk.\n")
+        self._write_status("NoCat", "---\nproject: NoCat\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, _ = self._collect()
+        by_name = {p["project"]: p for p in projects}
+        self.assertEqual(by_name["WithCat"]["category"], "Perso")
+        self.assertEqual(by_name["NoCat"]["category"], "")
+
     def test_project_path_is_home_relative_or_absolute(self):
         self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         projects, warnings = self._collect()
@@ -324,6 +332,38 @@ class BuildPageTests(unittest.TestCase):
         self.assertIn("No tracked projects yet.", html)
 
 
+class GroupByCategoryTests(unittest.TestCase):
+    def _p(self, name, category=None, last_updated="2026-08-23"):
+        d = {"project": name, "status": "active", "last_updated": last_updated, "_path": "~/x/" + name}
+        if category is not None:
+            d["category"] = category
+        return d
+
+    def test_groups_by_category(self):
+        html = gp.build_page([self._p("A1", "Alpha"), self._p("B1", "Beta")], generated_at="2026-08-30 12:00")
+        self.assertIn('<h3 class="category-title">Alpha</h3>', html)
+        self.assertIn('<h3 class="category-title">Beta</h3>', html)
+
+    def test_uncategorized_section_first(self):
+        html = gp.build_page([self._p("A1", "Alpha"), self._p("U1")], generated_at="2026-08-30 12:00")
+        self.assertLess(html.index(">Uncategorized</h3>"), html.index(">Alpha</h3>"))
+
+    def test_categories_ordered_by_activity(self):
+        projects = [self._p("F1", "Fresh", "2026-08-29"), self._p("S1", "Stale", "2026-01-01")]
+        html = gp.build_page(projects, generated_at="2026-08-30 12:00")
+        self.assertLess(html.index(">Fresh</h3>"), html.index(">Stale</h3>"))
+
+    def test_non_sentinel_treated_as_uncategorized(self):
+        html = gp.build_page([self._p("N1", "non")], generated_at="2026-08-30 12:00")
+        self.assertIn(">Uncategorized</h3>", html)
+        self.assertNotIn(">non</h3>", html)
+
+    def test_empty_state_still_rendered(self):
+        html = gp.build_page([], generated_at="2026-08-30 12:00")
+        self.assertIn("No tracked projects yet.", html)
+        self.assertIn('class="grid"', html)
+
+
 class MainTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -337,11 +377,12 @@ class MainTests(unittest.TestCase):
         self.scopeA = self.home / "scopeA"
         self.scopeB = self.home / "scopeB"
 
-    def _status(self, scope, rel, name):
+    def _status(self, scope, rel, name, category=None):
         d = scope / rel / "docs" / "project-tracker"
         d.mkdir(parents=True, exist_ok=True)
+        cat_line = f'category: "{category}"\n' if category is not None else ""
         (d / "STATUS.md").write_text(
-            f"---\nproject: {name}\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n",
+            f"---\nproject: {name}\nstatus: active\nlast_updated: 2026-08-23\n{cat_line}---\nOk.\n",
             encoding="utf-8",
         )
 
@@ -362,12 +403,13 @@ class MainTests(unittest.TestCase):
         out_dir = self.home / "out"
         (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n{self.scopeB}\n", encoding="utf-8")
         (self.cfg / "portfolio.txt").write_text(f"{out_dir}\n", encoding="utf-8")
-        self._status(self.scopeA, "Alpha", "Alpha")
+        self._status(self.scopeA, "Alpha", "Alpha", category="Work")
         self._status(self.scopeB, "Beta", "Beta")
         gp.main([])
         html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
         self.assertIn("Alpha", html)
         self.assertIn("Beta", html)
+        self.assertIn('<h3 class="category-title">Work</h3>', html)
 
     def test_explicit_out_mode(self):
         out_dir = self.home / "explicit"
