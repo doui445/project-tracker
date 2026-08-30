@@ -159,6 +159,7 @@ def collect_projects(scope_root, ignore_entries, scope_roots):
             continue
         data["_path"] = home_relative(proj_dir)
         data["scope"] = str(scope_root)
+        data["category"] = data.get("category", "")
         projects.append(data)
     return projects, warnings
 
@@ -425,6 +426,19 @@ PAGE_TEMPLATE = """<!doctype html>
     flex-shrink: 0;
   }}
   .section-title {{ font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 1rem; }}
+  .category-group {{ margin: 0 0 2rem; }}
+  .category-group[hidden] {{ display: none; }}
+  .category-title {{
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 1.75rem 0 0.9rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }}
+  .category-group:first-of-type .category-title {{ margin-top: 0; }}
   .stats {{ display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0 0 2.5rem; }}
   .stat {{
     display: flex;
@@ -632,10 +646,8 @@ PAGE_TEMPLATE = """<!doctype html>
   <input type="search" id="portfolio-search" class="search-input" placeholder="Search for a project…" aria-label="Search for a project by name">
   <button type="button" id="reset-filters" class="reset-btn" hidden>Reset filters</button>
 </div>
-<div class="grid">
-{cards}
+{groups}
 <p class="filter-empty" hidden>No project matches the filters.</p>
-</div>
 {stack_section}
 <p class="generated">Regenerated automatically by project-tracker.</p>
 <script>
@@ -663,6 +675,12 @@ PAGE_TEMPLATE = """<!doctype html>
       var show = techMatch && statusMatch && nameMatch;
       card.hidden = !show;
       if (show) visible++;
+    }});
+    document.querySelectorAll('.category-group').forEach(function (grp) {{
+      var someVisible = Array.prototype.some.call(
+        grp.querySelectorAll('.card'), function (c) {{ return !c.hidden; }}
+      );
+      grp.hidden = !someVisible;
     }});
     var filterActive = selectedTech.size > 0 || selectedStatus.size > 0 || !!searchTerm;
     if (emptyMsg) emptyMsg.hidden = !(filterActive && visible === 0);
@@ -710,10 +728,45 @@ PAGE_TEMPLATE = """<!doctype html>
 """
 
 
+def _group_by_category(projects):
+    """projects: recency-sorted. Returns [(label, [projects])] with the
+    uncategorized group ("") first, then categories in first-appearance
+    order (= most-recently-active first)."""
+    buckets = {}
+    order = []
+    for p in projects:
+        cat = p.get("category", "") or ""
+        if cat == "non":
+            cat = ""
+        if cat not in buckets:
+            buckets[cat] = []
+            order.append(cat)
+        buckets[cat].append(p)
+    result = []
+    if "" in buckets:
+        result.append(("", buckets[""]))
+    for cat in order:
+        if cat:
+            result.append((cat, buckets[cat]))
+    return result
+
+
 def build_page(projects, generated_at):
-    cards = "\n".join(render_card(p) for p in projects) if projects else EMPTY_STATE
+    if not projects:
+        groups_html = f'<div class="grid">{EMPTY_STATE}</div>'
+    else:
+        parts = []
+        for cat, members in _group_by_category(projects):
+            label = cat if cat else "Uncategorized"
+            cards = "\n".join(render_card(p) for p in members)
+            parts.append(
+                f'<section class="category-group" data-category="{escape(cat)}">\n'
+                f'  <h3 class="category-title">{escape(label)}</h3>\n'
+                f'  <div class="grid">\n{cards}\n  </div>\n</section>'
+            )
+        groups_html = "\n".join(parts)
     return PAGE_TEMPLATE.format(
-        cards=cards,
+        groups=groups_html,
         count=len(projects),
         generated_at=generated_at,
         stats_section=render_stats_section(projects),
