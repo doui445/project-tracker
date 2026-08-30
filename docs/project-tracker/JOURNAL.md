@@ -31,3 +31,8 @@ Dated chronological log. Append-only.
   expansion, a `STATUS.md` frontmatter example. Fixed two `SKILL.md` issues
   (step 6 → 7; the `title:` line of `portfolio.txt` was undocumented in its
   own § Portfolio). Installer regenerated; manifest tests pass.
+- README restructured for a first-time reader: the audit had turned it into a
+  spec. Now opens with a plain hook + Quick start; "What you get" trimmed to
+  the file table + four capabilities; edge cases (no-git, retrofit, concurrent
+  sessions, optional files, frontmatter) collected under a "Details" section.
+  Same substance, reordered.

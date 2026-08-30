@@ -11,10 +11,11 @@ semantic-ish versioning in `plugin.json` / `marketplace.json`.
   `ARCHITECTURE.md` / `GLOSSARY.md` files — it is step 7.
 
 ### Changed
-- README documents the retrofit path, the no-git mode, the optional files,
-  the follow-up questions on already-tracked projects, concurrent-session
-  handling, `~`/`$VAR` expansion in the config files, and shows the
-  `STATUS.md` frontmatter.
+- README restructured for first-time readers: plain-language hook, a
+  Quick start section up top, a tight "What you get", and the edge-case
+  material (no-git mode, retrofit, concurrent sessions, optional files,
+  frontmatter) moved into a "Details" section.
+- README also documents `~`/`$VAR` expansion in the config files.
 - `SKILL.md` § Portfolio now documents the `title:` line and the `.html`
   explicit-path tolerance of `portfolio.txt`.
 

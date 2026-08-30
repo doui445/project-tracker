@@ -1,90 +1,66 @@
 # project-tracker
 
-A Claude Code skill that bootstraps and maintains a standard set of Markdown
-tracking files for every project under configured scope roots — automatically
-when you open a Claude Code session in a tracked folder, and on demand.
+Open a Claude Code session in one of your projects and it keeps a small set of
+Markdown files — `STATUS.md`, `ROADMAP.md`, `JOURNAL.md`, `CHANGELOG.md`,
+`DECISIONS.md` and a few more — current as you work, so you and Claude always
+have the project's context in one predictable place. It also builds a single
+`PORTFOLIO.html` across every project you track.
 
-## What it does
+It's a Claude Code plugin (a skill + three hooks). It never guesses: anything it
+doesn't know, it asks.
 
-- **Auto-detection** (`SessionStart` hook): when you open a Claude Code session
-  in a folder covered by `scopes.txt`, a reminder is injected telling Claude
-  whether the project is already tracked (and its current state) or new
-  (bootstrap to propose). On an already-tracked project it may still ask once
-  for anything never set (Reminders link, category, portfolio location).
-  Folders listed in `trackignore.txt` stay silent.
-- **Bootstrap**: asks about the goal, stack, git/GitHub handling, the Reminders
-  link and a category — never guesses — then creates the nine standard files
-  (plus optional `ARCHITECTURE.md` / `GLOSSARY.md`) from your answers.
-- **Retrofit**: a project that already has ad-hoc tracking files (an existing
-  `CLAUDE.md` / `JOURNAL.md`, `.pages` docs, a home-grown `BACKLOG.md`) is
-  adopted by reusing what's there rather than starting from scratch.
-- **Continuous upkeep**: during a session, keeps `STATUS.md` current (state +
-  next actions) and logs to `JOURNAL.md` / `CHANGELOG.md` / `DECISIONS.md` /
-  `ERRORS.md` as appropriate.
-- **Concurrent sessions**: before rewriting `STATUS.md` it checks for an
-  out-of-session change (via `git`, or the file's mtime) and asks rather than
-  clobbering; the append-only files are only ever appended to.
-- **Git / GitHub** (optional): works fully without git (`uses_git: false`,
-  staleness detected from file timestamps); or creates a private GitHub repo on
-  request, or grafts onto an existing one — never commits or pushes without
-  confirmation.
-- **Apple Reminders sync** (optional, macOS): if a project is linked to a
-  Reminders list, a `PostToolUse` hook triggers a deterministic sync check the
-  first time `STATUS.md` / `ROADMAP.md` changes each session.
-- **Portfolio**: regenerates a single unified `PORTFOLIO.html` (all scopes,
-  grouped by category) at the folder you configure in `portfolio.txt`.
-- **Backlog & phases**: `BACKLOG.md` is a raw reservoir of every idea;
-  coherent items get grouped into `ROADMAP.md` phases (always proposed, never
-  automatic). Phase plans are written with the `superpowers` `writing-plans`
-  skill when that plugin is available, otherwise as a lightweight
-  `PHASE_N_SPEC.md`.
+## Quick start
 
-## The nine standard files
+```
+/plugin marketplace add doui445/project-tracker
+/plugin install project-tracker@project-tracker
+```
+
+Restart Claude Code, then tell it which folders to watch — either run
+`/project-tracker:config`, or edit `~/.claude/project-tracker/scopes.txt`
+directly (one path per line, e.g. `~/code`).
+
+Now open a session in any project under one of those folders. If it's new,
+Claude offers to set it up (a handful of questions — goal, stack, git); if it's
+already tracked, Claude picks up where the files left off.
+
+## What you get
 
 | File | Purpose |
 |---|---|
-| `README.md` (project root) | What, why, stack, install/run, links |
-| `CLAUDE.md` (project root) | Instructions for Claude: conventions, build/test commands, known pitfalls |
-| `docs/project-tracker/ROADMAP.md` | Prioritised synthesis: past phases, current phase, anticipated phases |
-| `docs/project-tracker/STATUS.md` | Snapshot of the current state + machine-readable frontmatter (status, stack, category, …). Rewritten every session |
-| `docs/project-tracker/JOURNAL.md` | Dated chronological log. Append-only |
+| `README.md` *(project root)* | What, why, stack, install/run, links |
+| `CLAUDE.md` *(project root)* | Instructions for Claude: conventions, build/test commands, pitfalls |
+| `docs/project-tracker/STATUS.md` | Snapshot of the current state + next actions. Rewritten every session |
+| `docs/project-tracker/ROADMAP.md` | Prioritised synthesis: past / current / anticipated phases |
+| `docs/project-tracker/JOURNAL.md` | Dated log of what was done and why. Append-only |
 | `docs/project-tracker/CHANGELOG.md` | Keep a Changelog format |
-| `docs/project-tracker/DECISIONS.md` | Why each structural technical choice, alternatives rejected. Append-only |
+| `docs/project-tracker/DECISIONS.md` | Why each structural choice, alternatives rejected. Append-only |
 | `docs/project-tracker/ERRORS.md` | Bug → cause → fix, searchable. Append-only |
-| `docs/project-tracker/BACKLOG.md` | Raw reservoir of every envisaged idea/feature. Append-only |
+| `docs/project-tracker/BACKLOG.md` | Raw reservoir of every envisaged idea. Append-only |
 
-Two more are created only if the bootstrap asks and you say yes:
-`docs/project-tracker/ARCHITECTURE.md` and `docs/project-tracker/GLOSSARY.md`.
+Plus, on top of the files:
 
-`STATUS.md` carries a machine-readable frontmatter block — the only structured
-part, and what the portfolio reads:
-
-```yaml
----
-project: my-app          # always the folder name
-status: active           # active | paused | blocked | archived
-uses_git: true
-repo: https://github.com/you/my-app
-stack: [Python, FastAPI]
-last_updated: 2026-08-30
-next_milestone: "Ship the import flow"
-reminders_list: "My app"   # or "non"
-category: "Work"           # or "non"
-backlog_model: "adopté"
-phase_model: "superpowers" # or "leger"; absent until a phase is proposed
----
-```
+- **A unified portfolio** — one `PORTFOLIO.html` aggregating every tracked
+  project across all your scope roots, grouped by category, regenerated
+  automatically whenever a `STATUS.md` changes.
+- **Optional GitHub automation** — creates a private repo or grafts onto an
+  existing one, on request. Never commits or pushes without confirmation.
+- **Optional Apple Reminders sync** (macOS) — links a project to a Reminders
+  list and keeps its next actions in sync both ways.
+- **Never guesses** — a field it can't fill stays marked "to fill in" rather
+  than invented.
 
 ## Requirements
 
-- **Claude Code**
-- **Python 3** — standard library only, no dependencies
-- **macOS + the `apple-reminders` MCP server** — only for the optional Reminders
-  sync
-- **The `gh` CLI** — only for the optional GitHub repo automation
-- **The `superpowers` plugin** — only if you want phase plans written via its
-  `writing-plans` skill; without it, phases fall back to a lightweight
-  `PHASE_N_SPEC.md` format
+- **Claude Code** — that's the only hard requirement.
+- **Python 3** — standard library only, no dependencies (bundled, used by the
+  portfolio generator).
+- **The `gh` CLI** — only for the optional GitHub repo automation.
+- **macOS + the `apple-reminders` MCP server** — only for the optional
+  Reminders sync.
+- **The `superpowers` plugin** — only if you want roadmap-phase plans written
+  via its `writing-plans` skill; without it, phases use a lightweight
+  `PHASE_N_SPEC.md` instead.
 
 ## Install
 
@@ -109,38 +85,58 @@ git clone https://github.com/doui445/project-tracker ~/src/project-tracker
 bash ~/src/project-tracker/install-project-tracker.sh
 ```
 
-The installer:
-
-- copies the skill to `~/.claude/skills/project-tracker/`
-- registers the two `PostToolUse` hooks and the `SessionStart` hook in
-  `~/.claude/settings.json` with an idempotent merge
-- creates `~/.claude/project-tracker/scopes.txt` and `trackignore.txt`
-- runs the test suites
-
-The `/project-tracker:config` command is only available with the plugin install.
-
-Either way, then open a Claude Code session in a folder under one of your
-scope roots.
+The installer copies the skill to `~/.claude/skills/project-tracker/`,
+registers the three hooks in `~/.claude/settings.json` with an idempotent
+merge, creates `scopes.txt` and `trackignore.txt`, and runs the test suites.
+The `/project-tracker:config` command is only available with the plugin
+install.
 
 ## Configuration
 
 Up to three files in `~/.claude/project-tracker/`. The plugin/installer creates
-the first two; `portfolio.txt` is created the first time you set a portfolio
-location (its absence is the "not configured yet" signal). In all three, `~`
-and `$VAR` are expanded, and `#` comments and blank lines are ignored.
+the first two; `portfolio.txt` appears the first time you set a portfolio
+location. In all three, `~` and `$VAR` are expanded and `#` comments are
+ignored.
 
 - **`scopes.txt`** — one path per line. Everything under these roots gets
   auto-detection.
 - **`trackignore.txt`** — one path per line, to skip. An entry equal to a scope
   root ignores only that exact folder, not the projects inside it.
-- **`portfolio.txt`** — the folder where the unified `PORTFOLIO.html` is written
-  (a path ending in `.html` is taken as an explicit file path); an optional
-  `title:` line sets its heading (default: "My projects").
+- **`portfolio.txt`** — the folder where `PORTFOLIO.html` is written; an
+  optional `title:` line sets its heading (default: "My projects").
 
-Run `/project-tracker:config` (plugin install only) to view and change any of
-this in plain language.
+`/project-tracker:config` (plugin install only) views and changes all of this
+in plain language.
 
-## How it behaves
+## Details
+
+- **Works without git.** Pick "no git" at setup (`uses_git: false`) and
+  everything still works — staleness is detected from file timestamps instead
+  of `git log`.
+- **Retrofit.** A project that already has ad-hoc tracking files (an existing
+  `CLAUDE.md` / `JOURNAL.md`, `.pages` docs, a home-grown `BACKLOG.md`) is
+  adopted by reusing what's there.
+- **Concurrent sessions.** Before rewriting `STATUS.md`, it checks for an
+  out-of-session change (via `git`, or the file's mtime) and asks rather than
+  overwriting. The append-only files are only ever appended to.
+- **Optional files.** `ARCHITECTURE.md` and `GLOSSARY.md` are created only if
+  you ask for them at setup.
+- **`STATUS.md` frontmatter.** The one structured part — what the portfolio
+  reads:
+
+  ```yaml
+  ---
+  project: my-app          # always the folder name
+  status: active           # active | paused | blocked | archived
+  uses_git: true
+  repo: https://github.com/you/my-app
+  stack: [Python, FastAPI]
+  last_updated: 2026-08-30
+  next_milestone: "Ship the import flow"
+  reminders_list: "My app"   # or "non"
+  category: "Work"           # or "non"
+  ---
+  ```
 
 The full behaviour specification lives in
 [`skills/project-tracker/SKILL.md`](skills/project-tracker/SKILL.md).
