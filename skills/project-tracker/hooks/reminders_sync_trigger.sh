@@ -111,11 +111,11 @@ MARKER="$MARKER_DIR/${SESSION_ID}__${SAFE_ROOT}"
 touch "$MARKER" 2>/dev/null || true
 
 PROJECT_NAME="$(basename "$PROJECT_ROOT")"
-CTX_PROJECT_NAME="$PROJECT_NAME" python3 -c '
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CTX_PROJECT_NAME="$PROJECT_NAME" CTX_REF_PATH="$SKILL_DIR/references/reminders-sync.md" python3 -c '
 import json, os
 name = os.environ.get("CTX_PROJECT_NAME", "")
-home = os.environ.get("HOME", "")
-ref_path = home + "/.claude/skills/project-tracker/references/reminders-sync.md"
+ref_path = os.environ.get("CTX_REF_PATH", "")
 msg = ("STATUS.md/ROADMAP.md for " + name +
        " was just modified - invoke the project-tracker skill "
        "(if not already done this session) then check the Reminders "

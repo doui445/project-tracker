@@ -114,7 +114,8 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < "$PORTFOLIO_FILE"
 [ "$HAS_TARGET" -eq 1 ] || exit 0
 
-GEN="$HOME/.claude/skills/project-tracker/scripts/generate_portfolio.py"
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GEN="$SKILL_DIR/scripts/generate_portfolio.py"
 [ -f "$GEN" ] || exit 0
 python3 "$GEN" >/dev/null 2>&1 || true
 exit 0
