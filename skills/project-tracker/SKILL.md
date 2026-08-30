@@ -1,7 +1,6 @@
 ---
 name: project-tracker
 description: Bootstraps and keeps up to date a standard set of markdown tracking files (README, ROADMAP, STATUS, JOURNAL, CHANGELOG, CLAUDE, DECISIONS, ERRORS, BACKLOG) for projects under the scopes defined in ~/.claude/project-tracker/scopes.txt, manages GitHub repo creation, and regenerates PORTFOLIO.html. Use it at the start of a session in a project under those scopes, after a significant change, or explicitly on request.
-allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py *)
 ---
 
 # project-tracker
@@ -73,7 +72,7 @@ A sequence of questions, one at a time, never an assumption:
 6. *"Category for this project?"* — read the `category` values already present in the other tracked projects' `STATUS.md` files (walk the roots in `~/.claude/project-tracker/scopes.txt`) and offer them for reuse ("already used: Perso, NUMA — or a new one") to avoid case/spelling duplicates. Write the answer to the `category` frontmatter (the label, or `"non"` if the user wants none). Never asked again for this project.
 7. *"Is the project complex enough to deserve a separate `ARCHITECTURE.md`, or is `CLAUDE.md` enough?"* and *"any domain jargon that would justify a `GLOSSARY.md`?"* — optional, decided case by case; create them only if the answer is yes.
 
-First run `mkdir -p docs/project-tracker/` at the project root, then create the standard files (next section) filled in with the answers obtained — never invented content for anything that wasn't answered. `README.md` and `CLAUDE.md` go at the project root; the 7 other standard files in `docs/project-tracker/` (see the next section for the per-file detail). The frontmatter of the `STATUS.md` thus created immediately includes `backlog_model: "adopté"`, written automatically along with the other fields — never asked as a question at this stage, since `BACKLOG.md` is one of the standard files created unconditionally (see next section).
+First run `mkdir -p docs/project-tracker/` at the project root, then create the standard files (next section) filled in with the answers obtained — never invented content for anything that wasn't answered. `README.md` and `CLAUDE.md` go at the project root; the 7 other standard files in `docs/project-tracker/` (see the next section for the per-file detail). `project:` in the frontmatter is always the folder's own name — never asked. The frontmatter of the `STATUS.md` thus created immediately includes `backlog_model: "adopté"`, written automatically along with the other fields — never asked as a question at this stage, since `BACKLOG.md` is one of the standard files created unconditionally (see next section).
 
 If `~/.claude/project-tracker/portfolio.txt` does not exist yet (first tracked project on this machine), ask where the unified portfolio should go — `~/Desktop`, `~/Documents`, or another folder — and write the chosen folder path to `portfolio.txt`, so `PORTFOLIO.html` is generated from this first project. See the `portfolio.txt` bullet under `## Detecting a project's root`.
 
@@ -99,7 +98,7 @@ Optional (created only if requested at bootstrap step 6, in `docs/project-tracke
 
 ```yaml
 ---
-project: <project name>
+project: <folder name>   # always the folder's own name
 status: active            # active | paused | blocked | archived
 uses_git: true            # or false depending on the bootstrap choice
 repo: https://github.com/<user>/<repo>   # empty if not applicable
@@ -140,9 +139,11 @@ If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, differe
 
 ## Portfolio
 
-A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself.** If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
+A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself** — except once, with the user's approval, right after they change the portfolio folder or title via `/project-tracker:config` (the regeneration hook only fires on `STATUS.md` writes). If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
 
 Projects are grouped into sections by the `category` frontmatter field — uncategorized first, then categories ordered by most recent activity.
+
+To change the portfolio location or title, or any config (scopes, ignored paths, a project's category), the user runs `/project-tracker:config`.
 
 ## Retrofitting an existing project
 
