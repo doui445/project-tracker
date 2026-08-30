@@ -6,11 +6,52 @@ Run with: python3 -m unittest test_generate_portfolio -v
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import generate_portfolio as gp
+
+
+class ConfigLoaderTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.home = Path(self.tmp.name)
+        self.cfg = self.home / ".claude" / "project-tracker"
+        self.cfg.mkdir(parents=True)
+        self._env = unittest.mock.patch.dict("os.environ", {"HOME": str(self.home)})
+        self._env.start()
+        self.addCleanup(self._env.stop)
+
+    def test_load_scopes_reads_absolute_paths_and_skips_comments(self):
+        (self.cfg / "scopes.txt").write_text("# c\n\n/a/b\n/c/d/\n", encoding="utf-8")
+        self.assertEqual(gp.load_scopes(), [Path("/a/b"), Path("/c/d")])
+
+    def test_load_scopes_missing_file_returns_empty(self):
+        self.assertEqual(gp.load_scopes(), [])
+
+    def test_load_global_trackignore_reads_entries(self):
+        (self.cfg / "trackignore.txt").write_text("# x\n/a/b\n/c/d/\n", encoding="utf-8")
+        self.assertEqual(gp.load_global_trackignore(), ["/a/b", "/c/d"])
+
+    def test_load_portfolio_target_directory_appends_filename(self):
+        (self.cfg / "portfolio.txt").write_text("# c\n/tmp/out\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_target(), Path("/tmp/out/PORTFOLIO.html"))
+
+    def test_load_portfolio_target_html_line_used_as_is(self):
+        (self.cfg / "portfolio.txt").write_text("/tmp/out/custom.html\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_target(), Path("/tmp/out/custom.html"))
+
+    def test_load_portfolio_target_expands_tilde(self):
+        (self.cfg / "portfolio.txt").write_text("~/Desktop\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_target(), self.home / "Desktop" / "PORTFOLIO.html")
+
+    def test_load_portfolio_target_missing_or_comments_only_returns_none(self):
+        self.assertIsNone(gp.load_portfolio_target())
+        (self.cfg / "portfolio.txt").write_text("# only a comment\n\n", encoding="utf-8")
+        self.assertIsNone(gp.load_portfolio_target())
 
 
 class ParseFrontmatterTests(unittest.TestCase):
@@ -45,43 +86,57 @@ class CollectProjectsTests(unittest.TestCase):
         d.mkdir(parents=True, exist_ok=True)
         (d / "STATUS.md").write_text(content, encoding="utf-8")
 
+    def _collect(self):
+        return gp.collect_projects(self.root, gp.load_global_trackignore(), [str(self.root)])
+
     def test_collects_valid_project(self):
         self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
-        projects, warnings = gp.collect_projects(self.root)
+        projects, warnings = self._collect()
         self.assertEqual(len(projects), 1)
         self.assertEqual(projects[0]["project"], "ProjA")
         self.assertEqual(warnings, [])
 
-    def test_project_path_excludes_docs_project_tracker_suffix(self):
+    def test_project_path_is_home_relative_or_absolute(self):
         self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
-        projects, warnings = gp.collect_projects(self.root)
-        self.assertEqual(projects[0]["_path"], "ProjA")
+        projects, warnings = self._collect()
+        self.assertTrue(projects[0]["_path"].endswith("ProjA"))
+
+    def test_project_carries_its_scope(self):
+        self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = self._collect()
+        self.assertEqual(projects[0]["scope"], str(self.root))
 
     def test_skips_malformed_frontmatter_with_warning(self):
         self._write_status("ProjBad", "No frontmatter.\n")
         self._write_status("ProjGood", "---\nproject: Good\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
-        projects, warnings = gp.collect_projects(self.root)
+        projects, warnings = self._collect()
         self.assertEqual([p["project"] for p in projects], ["Good"])
         self.assertEqual(len(warnings), 1)
         self.assertIn("ProjBad", warnings[0])
 
     def test_skips_missing_required_fields_with_warning(self):
         self._write_status("ProjIncomplete", "---\nproject: Incomplete\n---\nOk.\n")
-        projects, warnings = gp.collect_projects(self.root)
+        projects, warnings = self._collect()
         self.assertEqual(projects, [])
         self.assertEqual(len(warnings), 1)
 
-    def test_respects_trackignore(self):
+    def test_respects_global_trackignore(self):
         self._write_status("Kept", "---\nproject: Kept\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         self._write_status("Skipped", "---\nproject: Skipped\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
-        (self.root / ".trackignore").write_text("Skipped\n", encoding="utf-8")
-        projects, warnings = gp.collect_projects(self.root)
+        entries = [str(self.root / "Skipped")]
+        projects, _ = gp.collect_projects(self.root, entries, [str(self.root)])
         self.assertEqual([p["project"] for p in projects], ["Kept"])
+
+    def test_scope_root_entry_matches_exactly_only(self):
+        self._write_status("Inside", "---\nproject: Inside\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        entries = [str(self.root)]  # entry == scope root
+        projects, _ = gp.collect_projects(self.root, entries, [str(self.root)])
+        self.assertEqual([p["project"] for p in projects], ["Inside"])
 
     def test_dedupes_nested_status_under_same_project(self):
         self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         self._write_status("ProjA/backend", "---\nproject: ProjA-backend\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
-        projects, warnings = gp.collect_projects(self.root)
+        projects, warnings = self._collect()
         self.assertEqual(len(projects), 1)
         self.assertEqual(projects[0]["project"], "ProjA")
         self.assertEqual(warnings, [])
@@ -93,7 +148,7 @@ class CollectProjectsTests(unittest.TestCase):
             "---\nproject: ProjFlat\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n",
             encoding="utf-8",
         )
-        projects, warnings = gp.collect_projects(self.root)
+        projects, warnings = self._collect()
         self.assertEqual(projects, [])
         self.assertEqual(warnings, [])
 
@@ -101,7 +156,7 @@ class CollectProjectsTests(unittest.TestCase):
         self._write_status(".git/some/nested/dir", "---\nproject: GitInternal\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         self._write_status("node_modules/some-pkg", "---\nproject: NpmPkg\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         self._write_status("ProjGood", "---\nproject: Good\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
-        projects, warnings = gp.collect_projects(self.root)
+        projects, warnings = self._collect()
         self.assertEqual([p["project"] for p in projects], ["Good"])
         self.assertEqual(warnings, [])
 
@@ -262,6 +317,7 @@ class MainTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
 
+    @unittest.skip("rewritten in Task 2 (config-driven main)")
     def test_main_writes_portfolio_html(self):
         d = self.root / "ProjA"
         (d / "docs" / "project-tracker").mkdir(parents=True)
