@@ -26,6 +26,7 @@ Three possible states:
   - If its frontmatter has **no** `reminders_list` key at all (never asked — distinct from a key present with the value `"non"`, which means declined): ask the Reminders linking question right away, before anything else, regardless of whether a significant change happens in this session (see `references/reminders-sync.md`) — this question must never wait for a "Continuous updates" trigger.
   - If its frontmatter has no `backlog_model` key at all: first check whether `ROADMAP.md` explicitly mentions/references a file named `BACKLOG.md` (at its standard location `docs/project-tracker/BACKLOG.md`, or at a non-standard path elsewhere in the project — e.g. nested in a subfolder; do not require it to be at the standard location, look instead for the explicit mention) — if so, the project has already adopted the model without going through the `project-tracker` bootstrap: write `backlog_model: "adopté"` directly, without asking; to decide whether to consolidate that file into `docs/project-tracker/` or leave it where it is, see `## Retrofitting an existing project` (two cases depending on whether a `STATUS.md` of its own exists at that path). Otherwise, ask the Backlog/Roadmap model adoption question (see `references/backlog-phases.md`), once, never asked again afterwards.
   - If `backlog_model` is `"adopté"` (or was just auto-recognized above) and the frontmatter has no `phase_model` key at all: check whether files matching `PHASE_N_SPEC.md` already exist in the project — if so, auto-recognize `phase_model: "leger"` without asking (same logic as above). Otherwise, do **not** ask a question here: `phase_model` stays absent until a phase is actually proposed (see `references/backlog-phases.md`, "How phases work").
+  - If `~/.claude/project-tracker/portfolio.txt` does not exist: propose an output **folder** for the unified portfolio to the user (default suggestion to confirm: `~/Desktop` or `~/Documents`), then write the chosen path to `portfolio.txt`. If the user declines, write a comments-only `portfolio.txt` (never asked again). Once the file exists (path or comments), never asked again — it is machine-global config, not per-project.
   - These checks are independent of one another — ask them one after another rather than all at once in the same message.
   - Then go to "Continuous updates".
 - **Excluded**: the absolute path appears in `~/.claude/project-tracker/trackignore.txt` (an entry equal to a scope root ignores only that exact folder, not the projects inside it) → do nothing, unless the user brings it up explicitly.
@@ -134,13 +135,7 @@ If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, differe
 
 ## Portfolio
 
-After any write to `STATUS.md`, regenerate the portfolio for the scope concerned:
-
-```bash
-${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py <scope root>
-```
-
-Example: `${CLAUDE_SKILL_DIR}/scripts/generate_portfolio.py ~/Documents/Code`. The script writes `PORTFOLIO.html` at the scope root and prints a summary (number of projects, warnings). Never write the HTML yourself — the script guarantees a consistent presentation, your role stops at invoking it after a `STATUS.md` update.
+A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself.** If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
 
 ## Retrofitting an existing project
 
