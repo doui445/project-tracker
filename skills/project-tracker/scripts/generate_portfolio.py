@@ -65,6 +65,32 @@ def load_portfolio_title():
     return "My projects"
 
 
+_LANG_ALIASES = {
+    "en": "en", "eng": "en", "english": "en", "anglais": "en",
+    "fr": "fr", "fra": "fr", "french": "fr", "francais": "fr", "français": "fr",
+}
+
+
+def _normalise_lang(raw):
+    return _LANG_ALIASES.get(raw.strip().lower(), "en")
+
+
+def load_language():
+    """Machine-global output language ('en'/'fr'), from
+    ~/.claude/project-tracker/language.txt. Default 'en'; unknown -> 'en'."""
+    lines = _config_lines("language.txt")
+    return _normalise_lang(lines[0]) if lines else "en"
+
+
+def load_portfolio_language():
+    """Portfolio language: the 'language:' line of portfolio.txt if present,
+    else the machine-global load_language()."""
+    for raw in _config_lines("portfolio.txt"):
+        if raw.startswith("language:"):
+            return _normalise_lang(raw[len("language:"):])
+    return load_language()
+
+
 def home_relative(p):
     p = Path(p)
     try:

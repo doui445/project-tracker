@@ -66,6 +66,33 @@ class ConfigLoaderTests(unittest.TestCase):
         (self.cfg / "scopes.txt").write_text("~/foo\n$HOME/bar\n", encoding="utf-8")
         self.assertEqual(gp.load_scopes(), [self.home / "foo", self.home / "bar"])
 
+    def test_load_language_reads_code(self):
+        (self.cfg / "language.txt").write_text("fr\n", encoding="utf-8")
+        self.assertEqual(gp.load_language(), "fr")
+
+    def test_load_language_normalises_and_is_case_insensitive(self):
+        (self.cfg / "language.txt").write_text("# lang\nFrançais\n", encoding="utf-8")
+        self.assertEqual(gp.load_language(), "fr")
+
+    def test_load_language_missing_defaults_to_en(self):
+        self.assertEqual(gp.load_language(), "en")
+
+    def test_load_language_unknown_defaults_to_en(self):
+        (self.cfg / "language.txt").write_text("kl\n", encoding="utf-8")
+        self.assertEqual(gp.load_language(), "en")
+
+    def test_load_portfolio_language_from_portfolio_txt(self):
+        (self.cfg / "portfolio.txt").write_text("~/Documents\nlanguage: fr\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_language(), "fr")
+
+    def test_load_portfolio_language_falls_back_to_global(self):
+        (self.cfg / "language.txt").write_text("fr\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text("~/Documents\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_language(), "fr")
+
+    def test_load_portfolio_language_defaults_to_en(self):
+        self.assertEqual(gp.load_portfolio_language(), "en")
+
 
 class ParseFrontmatterTests(unittest.TestCase):
     def test_parses_flat_fields_and_list(self):
