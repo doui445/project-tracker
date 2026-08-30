@@ -10,8 +10,9 @@ when you open a Claude Code session in a tracked folder, and on demand.
   in a folder covered by `scopes.txt`, a reminder is injected telling Claude
   whether the project is already tracked (and its current state) or new
   (bootstrap to propose). Folders listed in `trackignore.txt` stay silent.
-- **Bootstrap**: asks about the goal, stack and git/GitHub handling — never
-  guesses — then creates the nine standard files from your answers.
+- **Bootstrap**: asks about the goal, stack, git/GitHub handling, the Reminders
+  link and a category — never guesses — then creates the nine standard files
+  from your answers.
 - **Continuous upkeep**: during a session, keeps `STATUS.md` current (state +
   next actions) and logs to `JOURNAL.md` / `CHANGELOG.md` / `DECISIONS.md` /
   `ERRORS.md` as appropriate.
@@ -20,8 +21,8 @@ when you open a Claude Code session in a tracked folder, and on demand.
 - **Apple Reminders sync** (optional, macOS): if a project is linked to a
   Reminders list, a `PostToolUse` hook triggers a deterministic sync check the
   first time `STATUS.md` / `ROADMAP.md` changes each session.
-- **Portfolio**: regenerates a static `PORTFOLIO.html` at each scope root,
-  listing every tracked project.
+- **Portfolio**: regenerates a single unified `PORTFOLIO.html` (all scopes,
+  grouped by category) at the folder you configure in `portfolio.txt`.
 
 ## The nine standard files
 
@@ -30,7 +31,7 @@ when you open a Claude Code session in a tracked folder, and on demand.
 | `README.md` (project root) | What, why, stack, install/run, links |
 | `CLAUDE.md` (project root) | Instructions for Claude: conventions, build/test commands, known pitfalls |
 | `docs/project-tracker/ROADMAP.md` | Prioritised synthesis: past phases, current phase, anticipated phases |
-| `docs/project-tracker/STATUS.md` | Snapshot of the current state + machine-readable frontmatter. Rewritten every session |
+| `docs/project-tracker/STATUS.md` | Snapshot of the current state + machine-readable frontmatter (status, stack, category, …). Rewritten every session |
 | `docs/project-tracker/JOURNAL.md` | Dated chronological log. Append-only |
 | `docs/project-tracker/CHANGELOG.md` | Keep a Changelog format |
 | `docs/project-tracker/DECISIONS.md` | Why each structural technical choice, alternatives rejected. Append-only |
@@ -76,23 +77,29 @@ The installer:
 - creates `~/.claude/project-tracker/scopes.txt` and `trackignore.txt`
 - runs the test suites
 
+The `/project-tracker:config` command is only available with the plugin install.
+
 Either way, then open a Claude Code session in a folder under one of your
 scope roots.
 
 ## Configuration
 
-Two files in `~/.claude/project-tracker/`:
+Three files in `~/.claude/project-tracker/`:
 
 - **`scopes.txt`** — one absolute path per line. Everything under these roots
   gets auto-detection.
 - **`trackignore.txt`** — one absolute path per line, to skip. An entry equal to
   a scope root ignores only that exact folder, not the projects inside it.
+- **`portfolio.txt`** — the folder where the unified `PORTFOLIO.html` is written;
+  an optional `title:` line sets its heading (default: "My projects").
+
+Run `/project-tracker:config` (plugin install only) to view and change any of
+this in plain language.
 
 ## How it behaves
 
 The full behaviour specification lives in
-[`skills/project-tracker/SKILL.md`](skills/project-tracker/SKILL.md)
-*(currently in French — English translation in progress).*
+[`skills/project-tracker/SKILL.md`](skills/project-tracker/SKILL.md).
 
 ## License
 
