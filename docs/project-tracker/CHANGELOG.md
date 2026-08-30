@@ -12,6 +12,15 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+### Changed
+- `generate_portfolio.py` HTML escaping goes through `_attr()` / `_txt()`
+  helpers chosen by context (attribute vs element text), so a future
+  locale's apostrophes and quotes can't break an attribute or clutter a
+  text node. No change to the rendered output for `en` / `fr`.
+- `writing-tracking-files.md`: the stale "French repo → French tracking
+  files" heuristic is replaced — the language is resolved from the
+  settings, and a French repo is only a hint for the first-run question.
+
 ## [0.4.0] — 2026-08-30
 
 ### Added

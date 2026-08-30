@@ -17,10 +17,11 @@ stays the single source of truth — only the prose notes below are added here.
   sentences that carry no information. Short is a feature.
 - **Concrete over abstract.** Real names, paths, commands, error text — not
   "various files" or "some issues".
-- **Match the project's voice and language.** If the repo and its `README`
-  are in French, the tracking files are too (unless the user set otherwise) —
-  but whenever an effective language is resolved (see `SKILL.md` § Output
-  language), it always wins over this heuristic.
+- **Match the project's voice.** The output *language* is resolved from the
+  settings (see `SKILL.md` § Output language), never guessed here — but tone,
+  formality and terminology should still match the project. A French repo /
+  `README` is a good reason to suggest `fr` when you ask the first-run
+  language question, not a reason to override a resolved language.
 - **Non-English output** follows `references/i18n/<code>.md` — its section
   headings and template phrases are authoritative; write free prose in that
   language. Never translate the machine values it lists.

@@ -14,6 +14,22 @@ from datetime import date, datetime
 from html import escape
 from pathlib import Path
 
+
+# HTML-escaping convention — pick by *where the value lands*, not by language.
+# A new locale's strings can contain apostrophes and quotes; the call name is
+# what keeps every site correct:
+#   _attr() — inside a double-quoted attribute ("aria-label=…", "href=…"). A
+#             raw " or ' would break out of the attribute, so encode them.
+#   _txt()  — element text between tags. Quotes are safe there, so leave them
+#             readable ("aujourd'hui", not "aujourd&#x27;hui").
+def _attr(value):
+    return escape(value, quote=True)
+
+
+def _txt(value):
+    return escape(value, quote=False)
+
+
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 REQUIRED_FIELDS = ["project", "status", "last_updated"]
 
@@ -349,31 +365,31 @@ def render_card(p, s, today=None):
     color = STATUS_COLORS.get(status_key, _UNKNOWN_STATUS_COLOR)
     label = _status_label(status_key, s)
     stack = p.get("stack", [])
-    stack_html = "".join(f'<span class="tag">{escape(tech)}</span>' for tech in stack)
+    stack_html = "".join(f'<span class="tag">{_txt(tech)}</span>' for tech in stack)
     name = p.get("project", p["_path"])
     repo = p.get("repo", "")
     if not (repo.startswith("http://") or repo.startswith("https://")):
         repo = ""
-    milestone = escape(p.get("next_milestone", "")) or "—"
+    milestone = _txt(p.get("next_milestone", "")) or "—"
     # Normalised (lowercase) for the JS filters (Stack & tools, status)
     # — the display keeps the original case, only this is used for matching.
-    stack_attr = escape(",".join(tech.lower() for tech in stack))
-    status_attr = escape(status_key.lower())
+    stack_attr = _attr(",".join(tech.lower() for tech in stack))
+    status_attr = _attr(status_key.lower())
 
     last_updated = p.get("last_updated", "?")
     freshness, is_stale = relative_freshness(last_updated, today, s)
     freshness_html = ""
     if freshness:
         cls = "freshness freshness-stale" if is_stale else "freshness"
-        freshness_html = f' <span class="{cls}">({escape(freshness)})</span>'
+        freshness_html = f' <span class="{cls}">({_txt(freshness)})</span>'
 
     # The whole card is the clickable target when a repo exists (large
     # click area rather than a small text link) — but the accessible name
     # stays short (aria-label), not the whole card content read at once.
     if repo:
         open_tag = (
-            f'<a href="{escape(repo)}" class="card" data-stack="{stack_attr}" '
-            f'data-status="{status_attr}" aria-label="{escape(s["card_aria_open_repo"].format(name=name))}">'
+            f'<a href="{_attr(repo)}" class="card" data-stack="{stack_attr}" '
+            f'data-status="{status_attr}" aria-label="{_attr(s["card_aria_open_repo"].format(name=name))}">'
         )
         close_tag = "</a>"
         affordance = '<span class="card-arrow" aria-hidden="true">&#8599;</span>'
@@ -385,26 +401,24 @@ def render_card(p, s, today=None):
     return f"""
     {open_tag}
       <header class="card-header">
-        <h2>{escape(name)}</h2>
-        <span class="status" style="background:{color}">{escape(label)}</span>
+        <h2>{_txt(name)}</h2>
+        <span class="status" style="background:{color}">{_txt(label)}</span>
       </header>
-      <p class="path">{escape(p["_path"])}</p>
+      <p class="path">{_txt(p["_path"])}</p>
       <div class="tags">{stack_html}</div>
       <dl class="meta">
-        <div><dt>{escape(s["card_next_milestone"])}</dt><dd>{milestone}</dd></div>
-        <div><dt>{escape(s["card_updated"])}</dt><dd>{escape(last_updated)}{freshness_html}</dd></div>
+        <div><dt>{_txt(s["card_next_milestone"])}</dt><dd>{milestone}</dd></div>
+        <div><dt>{_txt(s["card_updated"])}</dt><dd>{_txt(last_updated)}{freshness_html}</dd></div>
       </dl>
       {affordance}
     {close_tag}"""
 
 
 def _empty_state(s):
-    # These land as element text (not attribute values), so quote=False:
-    # an apostrophe like "pour l'instant" stays readable rather than &#x27;.
     return f"""
     <div class="empty">
-      <p class="empty-title">{escape(s["empty_title"], quote=False)}</p>
-      <p class="empty-body">{escape(s["empty_body"], quote=False)}</p>
+      <p class="empty-title">{_txt(s["empty_title"])}</p>
+      <p class="empty-body">{_txt(s["empty_body"])}</p>
     </div>"""
 
 
@@ -414,12 +428,12 @@ def render_stats_section(projects, s):
     # Buttons rather than static divs: clicking a status filters the
     # grid, same mechanism as the Stack & tools chips.
     items = "".join(
-        f'<button type="button" class="stat" data-status="{escape(sk)}" aria-pressed="false">'
+        f'<button type="button" class="stat" data-status="{_attr(sk)}" aria-pressed="false">'
         f'<span class="stat-num">{n}</span>'
-        f'<span class="stat-label">{escape(_status_label(sk, s))}</span></button>'
+        f'<span class="stat-label">{_txt(_status_label(sk, s))}</span></button>'
         for sk, n in status_counts(projects)
     )
-    return f'<section class="stats" role="group" aria-label="{escape(s["stats_aria"])}">{items}</section>'
+    return f'<section class="stats" role="group" aria-label="{_attr(s["stats_aria"])}">{items}</section>'
 
 
 def render_stack_section(projects, s):
@@ -430,15 +444,15 @@ def render_stack_section(projects, s):
     # chip orange AND filters the cards that use that tech, rather than
     # an arbitrary alternation with no rule.
     chips = "".join(
-        f'<button type="button" class="chip" data-tech="{escape(tech.lower())}" '
-        f'aria-pressed="false">{escape(tech)}</button>'
+        f'<button type="button" class="chip" data-tech="{_attr(tech.lower())}" '
+        f'aria-pressed="false">{_txt(tech)}</button>'
         for tech in stack
     )
     return f"""
 <section class="stack-section">
-  <h2 class="section-title">{escape(s["stack_title"])}</h2>
-  <p class="stack-hint">{escape(s["stack_hint"], quote=False)}</p>
-  <div class="stack-chips" role="group" aria-label="{escape(s["stack_aria"])}">{chips}</div>
+  <h2 class="section-title">{_txt(s["stack_title"])}</h2>
+  <p class="stack-hint">{_txt(s["stack_hint"])}</p>
+  <div class="stack-chips" role="group" aria-label="{_attr(s["stack_aria"])}">{chips}</div>
 </section>"""
 
 PAGE_TEMPLATE = """<!doctype html>
@@ -880,23 +894,23 @@ def build_page(projects, generated_at, title=None, lang="en"):
             label = cat if cat else s["uncategorized"]
             cards = "\n".join(render_card(p, s) for p in members)
             parts.append(
-                f'<section class="category-group" data-category="{escape(cat)}">\n'
-                f'  <h3 class="category-title">{escape(label)}</h3>\n'
+                f'<section class="category-group" data-category="{_attr(cat)}">\n'
+                f'  <h3 class="category-title">{_txt(label)}</h3>\n'
                 f'  <div class="grid">\n{cards}\n  </div>\n</section>'
             )
         groups_html = "\n".join(parts)
     resolved_title = title if title is not None else s["default_title"]
     return PAGE_TEMPLATE.format(
-        html_lang=escape(s["html_lang"]),
-        page_title=escape(s["page_title"]),
+        html_lang=_attr(s["html_lang"]),
+        page_title=_txt(s["page_title"]),
         groups=groups_html,
-        title=escape(resolved_title),
-        meta_line=escape(s["meta_line"].format(count=len(projects), generated_at=generated_at)),
-        search_placeholder=escape(s["search_placeholder"]),
-        search_aria=escape(s["search_aria"]),
-        reset_filters=escape(s["reset_filters"]),
-        filter_empty=escape(s["filter_empty"]),
-        generated_note=escape(s["generated_note"]),
+        title=_txt(resolved_title),
+        meta_line=_txt(s["meta_line"].format(count=len(projects), generated_at=generated_at)),
+        search_placeholder=_attr(s["search_placeholder"]),
+        search_aria=_attr(s["search_aria"]),
+        reset_filters=_txt(s["reset_filters"]),
+        filter_empty=_txt(s["filter_empty"]),
+        generated_note=_txt(s["generated_note"]),
         stats_section=render_stats_section(projects, s),
         stack_section=render_stack_section(projects, s),
     )

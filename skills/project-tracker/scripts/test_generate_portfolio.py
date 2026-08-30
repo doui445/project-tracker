@@ -327,6 +327,19 @@ class LocalisationTests(unittest.TestCase):
         for lang in gp.STRINGS:
             self.assertEqual(set(gp.STRINGS[lang]), set(gp.STRINGS["en"]), lang)
 
+    def test_escaping_convention_text_vs_attribute(self):
+        # A new locale's strings may carry apostrophes/quotes. Text nodes keep
+        # them readable (_txt); attribute values must encode them (_attr).
+        self.assertEqual(gp._txt("l'an \"x\""), "l'an \"x\"")
+        self.assertEqual(gp._attr("l'an \"x\""), "l&#x27;an &quot;x&quot;")
+        # End to end: a repo-name apostrophe lands in an aria-label (attribute)
+        # and is encoded; the FR freshness label sits in text and stays plain.
+        p = {"project": "O'Brien", "_path": "~/o", "status": "active",
+             "last_updated": "2026-08-30", "stack": [], "repo": "https://x/o"}
+        html_fr = gp.render_card(p, gp._strings("fr"), today=date(2026, 8, 30))
+        self.assertIn('aria-label="Ouvrir le dépôt O&#x27;Brien"', html_fr)
+        self.assertIn(">(aujourd'hui)<", html_fr)
+
 
 class RenderCardTests(unittest.TestCase):
     def test_renders_link_for_http_repo(self):

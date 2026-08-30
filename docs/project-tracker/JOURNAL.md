@@ -121,3 +121,14 @@ Dated chronological log. Append-only.
   8 manifest + 3 hook suites green on the merged result.
 - `BACKLOG.md`: the output-language item moved to Completed.
   `DECISIONS.md`: added the D1–D15 rationale entry.
+
+## 2026-08-30 — Post-v0.4.0 residual cleanup
+
+- Final-review residuals cleared: `generate_portfolio.py` now routes every
+  HTML escape through `_attr()` / `_txt()` helpers picked by context, so
+  adding a locale can't get attribute-vs-text escaping wrong (new
+  `test_escaping_convention_text_vs_attribute` guards it). The vestigial
+  "French repo → French tracking files" heuristic in
+  `writing-tracking-files.md` — dead since the resolution cascade always
+  resolves — is reframed as a hint for the first-run question only.
+- 88 portfolio tests + 8 manifest + hook suites green; installer regenerated.
