@@ -4,6 +4,20 @@ All notable changes to this project. Format based on
 [Keep a Changelog](https://keepachangelog.com/); this project follows
 semantic-ish versioning in `plugin.json` / `marketplace.json`.
 
+## [Unreleased]
+
+### Fixed
+- `SKILL.md` referenced "bootstrap step 6" for the optional
+  `ARCHITECTURE.md` / `GLOSSARY.md` files — it is step 7.
+
+### Changed
+- README documents the retrofit path, the no-git mode, the optional files,
+  the follow-up questions on already-tracked projects, concurrent-session
+  handling, `~`/`$VAR` expansion in the config files, and shows the
+  `STATUS.md` frontmatter.
+- `SKILL.md` § Portfolio now documents the `title:` line and the `.html`
+  explicit-path tolerance of `portfolio.txt`.
+
 ## [0.3.0] — 2026-08-30
 
 ### Added

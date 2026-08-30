@@ -9,15 +9,25 @@ when you open a Claude Code session in a tracked folder, and on demand.
 - **Auto-detection** (`SessionStart` hook): when you open a Claude Code session
   in a folder covered by `scopes.txt`, a reminder is injected telling Claude
   whether the project is already tracked (and its current state) or new
-  (bootstrap to propose). Folders listed in `trackignore.txt` stay silent.
+  (bootstrap to propose). On an already-tracked project it may still ask once
+  for anything never set (Reminders link, category, portfolio location).
+  Folders listed in `trackignore.txt` stay silent.
 - **Bootstrap**: asks about the goal, stack, git/GitHub handling, the Reminders
   link and a category — never guesses — then creates the nine standard files
-  from your answers.
+  (plus optional `ARCHITECTURE.md` / `GLOSSARY.md`) from your answers.
+- **Retrofit**: a project that already has ad-hoc tracking files (an existing
+  `CLAUDE.md` / `JOURNAL.md`, `.pages` docs, a home-grown `BACKLOG.md`) is
+  adopted by reusing what's there rather than starting from scratch.
 - **Continuous upkeep**: during a session, keeps `STATUS.md` current (state +
   next actions) and logs to `JOURNAL.md` / `CHANGELOG.md` / `DECISIONS.md` /
   `ERRORS.md` as appropriate.
-- **GitHub** (optional): creates a private repo on request, or grafts onto an
-  existing one — never commits or pushes without confirmation.
+- **Concurrent sessions**: before rewriting `STATUS.md` it checks for an
+  out-of-session change (via `git`, or the file's mtime) and asks rather than
+  clobbering; the append-only files are only ever appended to.
+- **Git / GitHub** (optional): works fully without git (`uses_git: false`,
+  staleness detected from file timestamps); or creates a private GitHub repo on
+  request, or grafts onto an existing one — never commits or pushes without
+  confirmation.
 - **Apple Reminders sync** (optional, macOS): if a project is linked to a
   Reminders list, a `PostToolUse` hook triggers a deterministic sync check the
   first time `STATUS.md` / `ROADMAP.md` changes each session.
@@ -42,6 +52,28 @@ when you open a Claude Code session in a tracked folder, and on demand.
 | `docs/project-tracker/DECISIONS.md` | Why each structural technical choice, alternatives rejected. Append-only |
 | `docs/project-tracker/ERRORS.md` | Bug → cause → fix, searchable. Append-only |
 | `docs/project-tracker/BACKLOG.md` | Raw reservoir of every envisaged idea/feature. Append-only |
+
+Two more are created only if the bootstrap asks and you say yes:
+`docs/project-tracker/ARCHITECTURE.md` and `docs/project-tracker/GLOSSARY.md`.
+
+`STATUS.md` carries a machine-readable frontmatter block — the only structured
+part, and what the portfolio reads:
+
+```yaml
+---
+project: my-app          # always the folder name
+status: active           # active | paused | blocked | archived
+uses_git: true
+repo: https://github.com/you/my-app
+stack: [Python, FastAPI]
+last_updated: 2026-08-30
+next_milestone: "Ship the import flow"
+reminders_list: "My app"   # or "non"
+category: "Work"           # or "non"
+backlog_model: "adopté"
+phase_model: "superpowers" # or "leger"; absent until a phase is proposed
+---
+```
 
 ## Requirements
 
@@ -92,14 +124,18 @@ scope roots.
 
 ## Configuration
 
-Three files in `~/.claude/project-tracker/`:
+Up to three files in `~/.claude/project-tracker/`. The plugin/installer creates
+the first two; `portfolio.txt` is created the first time you set a portfolio
+location (its absence is the "not configured yet" signal). In all three, `~`
+and `$VAR` are expanded, and `#` comments and blank lines are ignored.
 
-- **`scopes.txt`** — one absolute path per line. Everything under these roots
-  gets auto-detection.
-- **`trackignore.txt`** — one absolute path per line, to skip. An entry equal to
-  a scope root ignores only that exact folder, not the projects inside it.
-- **`portfolio.txt`** — the folder where the unified `PORTFOLIO.html` is written;
-  an optional `title:` line sets its heading (default: "My projects").
+- **`scopes.txt`** — one path per line. Everything under these roots gets
+  auto-detection.
+- **`trackignore.txt`** — one path per line, to skip. An entry equal to a scope
+  root ignores only that exact folder, not the projects inside it.
+- **`portfolio.txt`** — the folder where the unified `PORTFOLIO.html` is written
+  (a path ending in `.html` is taken as an explicit file path); an optional
+  `title:` line sets its heading (default: "My projects").
 
 Run `/project-tracker:config` (plugin install only) to view and change any of
 this in plain language.

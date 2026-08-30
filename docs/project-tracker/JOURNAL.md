@@ -25,3 +25,9 @@ Dated chronological log. Append-only.
 - README gap fixed: `superpowers` was an undocumented optional dependency
   (phase plans via `writing-plans`). Added it to Requirements and a
   "Backlog & phases" bullet to "What it does".
+- Full README audit against `SKILL.md` / `hooks.json` / `config.md`. Added:
+  retrofit path, no-git mode, optional `ARCHITECTURE`/`GLOSSARY`, follow-up
+  questions on tracked projects, concurrent-session handling, `~`/`$VAR`
+  expansion, a `STATUS.md` frontmatter example. Fixed two `SKILL.md` issues
+  (step 6 → 7; the `title:` line of `portfolio.txt` was undocumented in its
+  own § Portfolio). Installer regenerated; manifest tests pass.

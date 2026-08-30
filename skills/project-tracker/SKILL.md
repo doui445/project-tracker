@@ -92,7 +92,7 @@ Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project 
 | `docs/project-tracker/ERRORS.md` | Bug encountered → cause → fix, searchable | **Append-only**, every significant resolved bug |
 | `docs/project-tracker/BACKLOG.md` | Raw, complete reservoir of every envisaged idea/feature (effort, perceived value). Never purged, enriched and archived. See `references/backlog-phases.md` | **Append-only** (archiving, never purging) |
 
-Optional (created only if requested at bootstrap step 6, in `docs/project-tracker/`): `ARCHITECTURE.md`, `GLOSSARY.md`.
+Optional (created only if requested at bootstrap step 7, in `docs/project-tracker/`): `ARCHITECTURE.md`, `GLOSSARY.md`.
 
 ### `STATUS.md` frontmatter
 
@@ -140,6 +140,8 @@ If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, differe
 ## Portfolio
 
 A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself** — except once, with the user's approval, right after they change the portfolio folder or title via `/project-tracker:config` (the regeneration hook only fires on `STATUS.md` writes). If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
+
+`portfolio.txt` holds the output **folder** on its first non-comment line (a line ending in `.html` is taken as an explicit file path instead); `~`/`$VAR` are expanded. An optional `title:` line anywhere in the file sets the portfolio heading (default: "My projects"). Both are edited via `/project-tracker:config`, never written by this skill directly.
 
 Projects are grouped into sections by the `category` frontmatter field — uncategorized first, then categories ordered by most recent activity.
 
