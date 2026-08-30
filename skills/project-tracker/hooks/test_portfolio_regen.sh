@@ -27,11 +27,17 @@ assert_no_file() {
     echo "FAIL: $label — file should not exist: $path"; FAIL=1; fi
 }
 
-run_hook() {
+run_hook_raw() {
   local tool_name="$1" file_path="$2" session_id="$3"
   printf '{"session_id": "%s", "cwd": "%s", "hook_event_name": "PostToolUse", "tool_name": "%s", "tool_input": {"file_path": "%s"}, "tool_response": {"success": true}}' \
     "$session_id" "$(dirname "$file_path")" "$tool_name" "$file_path" \
     | HOME="$TMP_HOME" TMPDIR="$TMP_MARKERS" bash "$HOOK"
+}
+
+run_hook() {
+  # Clear the 10s throttle marker so ordinary cases are not affected by it.
+  rm -f "$TMP_MARKERS/project-tracker-portfolio-regen/last"
+  run_hook_raw "$@"
 }
 
 TMP_HOME="$(mktemp -d)"
@@ -110,6 +116,16 @@ printf '# not set\n' > "$TMP_HOME/.claude/project-tracker/portfolio.txt"
 OUT="$(run_hook "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "s8")"
 assert_empty "$OUT" "portfolio.txt comments-only -> silent"
 assert_no_file "$OUT_DIR/PORTFOLIO.html" "portfolio.txt comments-only -> no regen"
+
+# Case 10 (new): two edits within 10s -> only one regeneration (throttle).
+echo "$OUT_DIR" > "$TMP_HOME/.claude/project-tracker/portfolio.txt"
+: > "$TMP_HOME/.claude/project-tracker/trackignore.txt"
+rm -f "$OUT_DIR/PORTFOLIO.html" "$TMP_MARKERS/project-tracker-portfolio-regen/last"
+run_hook_raw "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "t1" >/dev/null
+assert_file "$OUT_DIR/PORTFOLIO.html" "throttle -> first edit regenerates"
+rm -f "$OUT_DIR/PORTFOLIO.html"
+run_hook_raw "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "t1" >/dev/null
+assert_no_file "$OUT_DIR/PORTFOLIO.html" "throttle -> second edit within 10s is skipped"
 
 # Case 9: python3 missing -> exit 0, no crash
 OUT="$(printf '{"session_id": "s9", "cwd": "%s", "hook_event_name": "PostToolUse", "tool_name": "Edit", "tool_input": {"file_path": "%s"}}' "$TRACKED/docs/project-tracker" "$TRACKED/docs/project-tracker/STATUS.md" | env -i PATH=/bin HOME="$TMP_HOME" TMPDIR="$TMP_MARKERS" bash "$HOOK" 2>&1)" || true

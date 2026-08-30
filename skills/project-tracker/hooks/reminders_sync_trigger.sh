@@ -58,6 +58,7 @@ while IFS= read -r line || [ -n "$line" ]; do
   line="${line%/}"
   case "$line" in
     ""|"#"*) continue ;;
+    "~"|"~/"*) line="${HOME}${line#\~}" ;;
   esac
   case "$PROJECT_ROOT" in
     "$line"|"$line"/*) SCOPE_ROOT="$line"; break ;;
@@ -72,12 +73,14 @@ if [ -f "$IGNORE_FILE" ]; then
     entry="${entry%/}"
     case "$entry" in
       ""|"#"*) continue ;;
+      "~"|"~/"*) entry="${HOME}${entry#\~}" ;;
     esac
     entry_is_scope_root=0
     while IFS= read -r scope || [ -n "$scope" ]; do
       scope="${scope%/}"
       case "$scope" in
         ""|"#"*) continue ;;
+        "~"|"~/"*) scope="${HOME}${scope#\~}" ;;
       esac
       if [ "$scope" = "$entry" ]; then
         entry_is_scope_root=1
