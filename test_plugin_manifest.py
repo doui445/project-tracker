@@ -71,6 +71,15 @@ class PluginManifestTests(unittest.TestCase):
         self.assertTrue(p.is_file())
         self.assertIn("description:", p.read_text(encoding="utf-8"))
 
+    def test_i18n_catalogues_have_matching_keys(self):
+        import re
+        i18n = REPO / "skills" / "project-tracker" / "references" / "i18n"
+        key_re = re.compile(r"^- ([a-z0-9_.]+):", re.MULTILINE)
+        en = key_re.findall((i18n / "en.md").read_text(encoding="utf-8"))
+        fr = key_re.findall((i18n / "fr.md").read_text(encoding="utf-8"))
+        self.assertEqual(en, fr, "en.md and fr.md must list the same keys in the same order")
+        self.assertEqual(len(en), len(set(en)), "duplicate keys in en.md")
+
 
 if __name__ == "__main__":
     unittest.main()
