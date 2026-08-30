@@ -76,3 +76,8 @@ Dated chronological log. Append-only.
   session per project. Not a friction; the BACKLOG item was dropped. The
   `GLOSSARY.md` trigger list also gained "Claude spots a domain vocabulary
   while reading the code/docs → proposes the glossary then".
+- New BACKLOG item (medium): a "fresh eyes" readability pass — after a
+  substantial rewrite of README / ARCHITECTURE / GLOSSARY / CLAUDE, a
+  subagent (fallback inline) reviews it against the reader definition and
+  `writing-tracking-files.md`, advisory only. Prompted by this session's
+  three README passes.

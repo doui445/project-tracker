@@ -57,5 +57,6 @@ build workstreams are done:
 2. `GLOSSARY.md` lazy creation + enrichment loop — create it on first
    real entry (not at bootstrap), and add the "user asks about a project
    term → propose adding it" trigger. See `BACKLOG.md` (Medium).
-3. Cut the next release when `[Unreleased]` has accumulated enough — follow
-   `CLAUDE.md` § Releasing.
+3. "Fresh eyes" readability pass (subagent, advisory) after a substantial
+   rewrite of README / ARCHITECTURE / GLOSSARY / CLAUDE. See `BACKLOG.md`
+   (Medium).
