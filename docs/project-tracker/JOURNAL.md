@@ -179,3 +179,16 @@ Dated chronological log. Append-only.
   subagent-not-inline / advisory-not-gate choices.
 - 89 portfolio + 8 manifest + hook suites green; installer regenerated.
 - Backlog reservoir is now down to one Low item (trackignore un-exclude).
+
+## 2026-08-30 — v0.7.0: un-exclude on request
+
+- The **Excluded** state now acts when the user asks to track the folder:
+  if its own path is the `trackignore.txt` line, Claude offers to remove it
+  and bootstrap (symmetric with bootstrap step 1); if an ancestor is the
+  ignored line, Claude explains that un-ignoring the whole subtree is the
+  only option and asks. Bringing the folder up for anything else is
+  unchanged. `SKILL.md` only; no test, no i18n.
+- **Backlog reservoir is now empty** — every item planned this session
+  (v0.4.0 output language, v0.4.1 cleanup, v0.5.0 lazy glossary, v0.6.0
+  fresh-eyes pass, v0.7.0 un-exclude) has shipped. Next themes will come
+  from real use.

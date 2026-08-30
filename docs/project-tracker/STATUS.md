@@ -5,7 +5,7 @@ uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
 last_updated: 2026-08-30
-next_milestone: "Offer to un-exclude a trackignore folder on request"
+next_milestone: "Backlog empty — next themes from real use / dogfooding"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.6.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.7.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -50,6 +50,8 @@ build workstreams are done:
   not asked at bootstrap.
 - Fresh-eyes readability pass (subagent, advisory) after a substantial
   onboarding-file write/rewrite.
+- An excluded folder the user asks to track is offered an un-exclude +
+  bootstrap.
 - `test_plugin_manifest.py` + the hook/portfolio test suites pass.
 
 ### Known gaps
@@ -58,10 +60,12 @@ build workstreams are done:
 
 ## Next 3 actions
 
-1. When the user asks to track a folder listed in `trackignore.txt`, offer
-   to un-exclude it + bootstrap rather than leaving a manual edit. See
-   `BACKLOG.md` (Low) — the last open backlog item.
-2. Groom the backlog: after this item the reservoir is empty. Decide what
-   the next themes are (feed from real use / dogfooding).
-3. Cut the next release once `[Unreleased]` has accumulated something —
-   follow `CLAUDE.md` § Releasing.
+The `BACKLOG.md` reservoir is empty — every planned item has shipped
+(v0.4.0 → v0.7.0). No queued work.
+
+1. Let the next themes surface from real use / dogfooding, and add them to
+   `BACKLOG.md` as they come up.
+2. Consider a "fresh eyes" pass on `README.md` — it grew across the
+   v0.4.x–v0.7.0 releases and hasn't been reviewed as a whole since the
+   v0.3.x restructure.
+3. Cut the next release once `[Unreleased]` has accumulated something.

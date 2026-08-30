@@ -32,7 +32,11 @@ Three possible states:
   - Otherwise: resolve the effective language and glance at `STATUS.md`. If it is visibly in the other language, offer the full retranslation (see `references/writing-tracking-files.md`, `## Retranslating on a language change`).
   - These checks are independent of one another — ask them one after another rather than all at once in the same message.
   - Then go to "Continuous updates".
-- **Excluded**: the absolute path appears in `~/.claude/project-tracker/trackignore.txt` (an entry equal to a scope root ignores only that exact folder, not the projects inside it) → do nothing, unless the user brings it up explicitly.
+- **Excluded**: the folder is ignored via `~/.claude/project-tracker/trackignore.txt` — either its own absolute path is a line there (an entry equal to a scope root ignores only that exact folder, not the projects inside it), or a non-scope-root ancestor is. → do nothing, unless the user brings it up explicitly.
+  - If the user brings it up **to ask for it to be tracked** ("track this", "let's track this one"):
+    - If the folder's **own path** is the `trackignore.txt` line: offer to remove that line, then go to "Bootstrapping a new project". (Symmetric with bootstrap step 1, which adds the line on a declined setup.)
+    - If it is an **ancestor** that is ignored (the folder's own path is not a line): explain that there is no way to track just this folder without un-ignoring the whole subtree under that ancestor. Offer to remove the ancestor's `trackignore.txt` line (un-ignores everything under it, then bootstrap this folder), or to leave it as is.
+  - If the user brings it up for anything else: unchanged — do nothing about the tracking state.
 - **New/unknown**: neither → go to "Bootstrapping a new project".
 
 When you are invoked via the `SessionStart` hook reminder, it already tells you which of these three states applies (with the content of `STATUS.md` where relevant) — no need to re-detect it yourself in that case.

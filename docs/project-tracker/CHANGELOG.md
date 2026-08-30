@@ -12,6 +12,15 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-08-30
+
+### Changed
+- An **excluded** folder (in `trackignore.txt`) that the user asks to track
+  is now offered an un-exclude + bootstrap, instead of leaving a manual
+  `trackignore.txt` edit. If it is an *ancestor* that is ignored, Claude
+  explains that un-ignoring the whole subtree is the only option and asks.
+  Bringing the folder up for anything else is unchanged.
+
 ## [0.6.0] — 2026-08-30
 
 ### Added

@@ -4,18 +4,18 @@ Raw reservoir of every idea/feature envisaged. Never purged — enriched and
 archived. Statuses: `[ ]` to do · `[~]` in progress · `[x]` done · `[-]`
 abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
-## Low priority
+## Open
 
-- [ ] **Excluded project: offer to un-exclude when the user asks to track it**
-  — effort S, value ⭐
-  A folder in `trackignore.txt` currently gets "do nothing unless the user
-  brings it up". When the user *does* bring it up ("track this"), the skill
-  should offer to remove the `trackignore.txt` line and run the bootstrap,
-  rather than leaving the user to edit the file by hand (dogfooding friction,
-  2026-08-30).
+_Empty — every planned item has shipped (v0.4.0 → v0.7.0). Add new ideas
+here as they surface from real use._
 
 ## Completed
 
+- [x] **Excluded project: offer to un-exclude when the user asks to track it**
+  (0.7.0) — when the user asks to track a `trackignore.txt`-excluded folder,
+  Claude offers to remove the line + bootstrap (or, for an ignored ancestor,
+  explains the whole-subtree trade-off). Bringing it up for anything else is
+  unchanged.
 - [x] **"Fresh eyes" readability pass on onboarding files** (0.6.0) — after a
   substantial write/rewrite of `README` / `CLAUDE.md` / `ARCHITECTURE.md` /
   `GLOSSARY.md`, a subagent (inline fallback) reviews it against the file's
