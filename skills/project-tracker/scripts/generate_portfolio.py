@@ -88,8 +88,8 @@ def load_portfolio_title():
 
 
 _LANG_ALIASES = {
-    "en": "en", "eng": "en", "english": "en", "anglais": "en",
-    "fr": "fr", "fra": "fr", "french": "fr", "francais": "fr", "français": "fr",
+    "en": "en", "english": "en", "anglais": "en",
+    "fr": "fr", "french": "fr", "francais": "fr", "français": "fr",
 }
 
 

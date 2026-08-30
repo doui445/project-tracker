@@ -1,6 +1,8 @@
 # Catalogue i18n — Français (`fr`)
 
 Traduction 1:1 de `en.md` : **mêmes clés, même ordre**. Un test le vérifie.
+`en.md` fait foi pour les clés et la structure ; ce fichier n'en est que la
+traduction.
 
 **Jamais traduit** (absent d'ici, gardé verbatim dans toutes les langues) :
 clés de frontmatter et leurs valeurs énumérées (`status: active|paused|blocked|archived`,
@@ -18,11 +20,16 @@ noms de hooks, le tag `#tracker-sync`, les codes de langue.
 
 ## ROADMAP.md
 
+La structure dépend des phases (voir `references/backlog-phases.md`) : sans
+phase démarrée, `current_focus` porte une simple liste priorisée ; dès qu'une
+phase tourne, `in_progress` et `after` la remplacent.
+
 - roadmap.title: ROADMAP — {project}
 - roadmap.intro: Synthèse priorisée. Le détail brut est dans BACKLOG.md.
 - roadmap.heading.done: Fait
 - roadmap.heading.current_focus: Focus actuel
-- roadmap.heading.next: Ensuite
+- roadmap.heading.in_progress: Phase {n} — en cours
+- roadmap.heading.after: Après la phase {n}
 - roadmap.heading.unprioritised: Idées non priorisées
 
 ## JOURNAL.md

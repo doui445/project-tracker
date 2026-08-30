@@ -20,6 +20,12 @@ guidance, no-behaviour-change refactors. The version lives in
 - `writing-tracking-files.md`: the stale "French repo → French tracking
   files" heuristic is replaced — the language is resolved from the
   settings, and a French repo is only a hint for the first-run question.
+- `references/i18n/en.md` is stated as the source of truth for heading
+  wording, its ROADMAP keys reconciled with `backlog-phases.md`
+  (`in_progress` / `after` added, phase-dependence noted).
+- `_normalise_lang` drops the off-spec `eng` / `fra` aliases; the accepted
+  set is exactly the spec's (`en`/`english`/`anglais`,
+  `fr`/`french`/`francais`/`français`), now covered by a test.
 
 ## [0.4.0] — 2026-08-30
 

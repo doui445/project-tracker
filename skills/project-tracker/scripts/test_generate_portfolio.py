@@ -91,6 +91,15 @@ class ConfigLoaderTests(unittest.TestCase):
         (self.cfg / "language.txt").write_text("kl\n", encoding="utf-8")
         self.assertEqual(gp.load_language(), "en")
 
+    def test_normalise_lang_accepts_the_spec_aliases_only(self):
+        for raw in ("en", "EN", "english", "Anglais"):
+            self.assertEqual(gp._normalise_lang(raw), "en")
+        for raw in ("fr", "FR", "french", "francais", "Français"):
+            self.assertEqual(gp._normalise_lang(raw), "fr")
+        # ISO 639-2 codes are not in the spec's tolerance list -> default
+        self.assertEqual(gp._normalise_lang("eng"), "en")
+        self.assertEqual(gp._normalise_lang("fra"), "en")
+
     def test_load_portfolio_language_from_portfolio_txt(self):
         (self.cfg / "portfolio.txt").write_text("~/Documents\nlanguage: fr\n", encoding="utf-8")
         self.assertEqual(gp.load_portfolio_language(), "fr")

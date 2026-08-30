@@ -4,6 +4,13 @@ Canonical key list for the tracking-file headings and template phrases the
 `project-tracker` skill writes. `fr.md` (and any future `<code>.md`) mirrors
 this file: **same keys, same order**. A guard test enforces it.
 
+**This file is the source of truth for the wording.** `SKILL.md`,
+`references/writing-tracking-files.md` and `references/backlog-phases.md`
+describe the *structure* of each file; wherever they name a heading, that
+text must match a value here. When either side changes, reconcile the other.
+`generate_portfolio.py` keeps its own `STRINGS` table (portfolio UI only) —
+that one is not derived from this file.
+
 **Never translated** (not listed here, kept verbatim in every language):
 frontmatter keys and their enum values (`status: active|paused|blocked|archived`,
 `"non"`, `"adopté"`, `"leger"`, `"superpowers"`), standard file names, hook
@@ -20,11 +27,16 @@ names, the tag `#tracker-sync`, language codes.
 
 ## ROADMAP.md
 
+Structure is phase-dependent (see `references/backlog-phases.md`): with no
+phase started, `current_focus` holds a simple prioritised list; once a phase
+is running, `in_progress` and `after` replace it.
+
 - roadmap.title: ROADMAP — {project}
 - roadmap.intro: Prioritised synthesis. Raw detail lives in BACKLOG.md.
 - roadmap.heading.done: Done
 - roadmap.heading.current_focus: Current focus
-- roadmap.heading.next: Next
+- roadmap.heading.in_progress: Phase {n} — in progress
+- roadmap.heading.after: After Phase {n}
 - roadmap.heading.unprioritised: Unprioritised ideas
 
 ## JOURNAL.md

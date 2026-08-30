@@ -132,3 +132,14 @@ Dated chronological log. Append-only.
   `writing-tracking-files.md` — dead since the resolution cascade always
   resolves — is reframed as a hint for the first-run question only.
 - 88 portfolio tests + 8 manifest + hook suites green; installer regenerated.
+
+## 2026-08-30 — Last two low-priority residuals cleared
+
+- `_normalise_lang`: removed the off-spec `eng`/`fra` aliases (ISO 639-2);
+  the tolerance list now matches the spec exactly, with a test.
+- `references/i18n/en.md`: declared the source of truth for heading wording
+  (structure still owned by `SKILL.md` / `writing-tracking-files.md` /
+  `backlog-phases.md`); its ROADMAP keys reconciled with `backlog-phases.md`
+  — added `roadmap.heading.in_progress` and `.after` (was a bare `.next`),
+  noted that headings 2–3 depend on whether a phase has started. `fr.md`
+  follows; parity guard green (89 portfolio tests).
