@@ -61,8 +61,8 @@ def load_portfolio_target():
 def load_portfolio_title():
     for raw in _config_lines("portfolio.txt"):
         if raw.startswith("title:"):
-            return raw[len("title:"):].strip() or "My projects"
-    return "My projects"
+            return raw[len("title:"):].strip() or None
+    return None
 
 
 _LANG_ALIASES = {
@@ -390,10 +390,13 @@ def render_card(p, s, today=None):
     {close_tag}"""
 
 
-EMPTY_STATE = """
+def _empty_state(s):
+    # These land as element text (not attribute values), so quote=False:
+    # an apostrophe like "pour l'instant" stays readable rather than &#x27;.
+    return f"""
     <div class="empty">
-      <p class="empty-title">No tracked projects yet.</p>
-      <p class="empty-body">Open a Claude Code session in a folder of this scope — the <code>project-tracker</code> skill will offer to track it.</p>
+      <p class="empty-title">{escape(s["empty_title"], quote=False)}</p>
+      <p class="empty-body">{escape(s["empty_body"], quote=False)}</p>
     </div>"""
 
 
@@ -411,7 +414,7 @@ def render_stats_section(projects, s):
     return f'<section class="stats" role="group" aria-label="{escape(s["stats_aria"])}">{items}</section>'
 
 
-def render_stack_section(projects):
+def render_stack_section(projects, s):
     stack = aggregate_stack(projects)
     if not stack:
         return ""
@@ -419,23 +422,23 @@ def render_stack_section(projects):
     # chip orange AND filters the cards that use that tech, rather than
     # an arbitrary alternation with no rule.
     chips = "".join(
-        f'<button type="button" class="chip" data-tech="{escape(s.lower())}" '
-        f'aria-pressed="false">{escape(s)}</button>'
-        for s in stack
+        f'<button type="button" class="chip" data-tech="{escape(tech.lower())}" '
+        f'aria-pressed="false">{escape(tech)}</button>'
+        for tech in stack
     )
     return f"""
 <section class="stack-section">
-  <h2 class="section-title">Stack &amp; tools</h2>
-  <p class="stack-hint">Click a technology to filter the projects that use it.</p>
-  <div class="stack-chips" role="group" aria-label="Filter by technology">{chips}</div>
+  <h2 class="section-title">{escape(s["stack_title"])}</h2>
+  <p class="stack-hint">{escape(s["stack_hint"])}</p>
+  <div class="stack-chips" role="group" aria-label="{escape(s["stack_aria"])}">{chips}</div>
 </section>"""
 
 PAGE_TEMPLATE = """<!doctype html>
-<html lang="en">
+<html lang="{html_lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Project portfolio</title>
+<title>{page_title}</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>&#128193;</text></svg>">
 <style>
   :root {{
@@ -746,17 +749,17 @@ PAGE_TEMPLATE = """<!doctype html>
     <h1>Portfolio<span>.</span></h1>
     <p class="tagline">{title}</p>
   </div>
-  <p class="meta-line">{count} tracked · {generated_at}</p>
+  <p class="meta-line">{meta_line}</p>
 </header>
 {stats_section}
 <div class="search-row">
-  <input type="search" id="portfolio-search" class="search-input" placeholder="Search for a project…" aria-label="Search for a project by name">
-  <button type="button" id="reset-filters" class="reset-btn" hidden>Reset filters</button>
+  <input type="search" id="portfolio-search" class="search-input" placeholder="{search_placeholder}" aria-label="{search_aria}">
+  <button type="button" id="reset-filters" class="reset-btn" hidden>{reset_filters}</button>
 </div>
 {groups}
-<p class="filter-empty" hidden>No project matches the filters.</p>
+<p class="filter-empty" hidden>{filter_empty}</p>
 {stack_section}
-<p class="generated">Regenerated automatically by project-tracker.</p>
+<p class="generated">{generated_note}</p>
 <script>
 (function () {{
   var cards = document.querySelectorAll('.card[data-stack]');
@@ -858,16 +861,15 @@ def _group_by_category(projects):
     return result
 
 
-def build_page(projects, generated_at, title="My projects"):
+def build_page(projects, generated_at, title=None, lang="en"):
+    s = _strings(lang)
     projects = sort_by_recency(projects)
     if not projects:
-        groups_html = f'<div class="grid">{EMPTY_STATE}</div>'
+        groups_html = f'<div class="grid">{_empty_state(s)}</div>'
     else:
         parts = []
-        # Task 4 will thread the real portfolio language here.
-        s = _strings("en")
         for cat, members in _group_by_category(projects):
-            label = cat if cat else "Uncategorized"
+            label = cat if cat else s["uncategorized"]
             cards = "\n".join(render_card(p, s) for p in members)
             parts.append(
                 f'<section class="category-group" data-category="{escape(cat)}">\n'
@@ -875,20 +877,27 @@ def build_page(projects, generated_at, title="My projects"):
                 f'  <div class="grid">\n{cards}\n  </div>\n</section>'
             )
         groups_html = "\n".join(parts)
+    resolved_title = title if title is not None else s["default_title"]
     return PAGE_TEMPLATE.format(
+        html_lang=escape(s["html_lang"]),
+        page_title=escape(s["page_title"]),
         groups=groups_html,
-        title=escape(title),
-        count=len(projects),
-        generated_at=generated_at,
-        stats_section=render_stats_section(projects, _strings("en")),
-        stack_section=render_stack_section(projects),
+        title=escape(resolved_title),
+        meta_line=escape(s["meta_line"].format(count=len(projects), generated_at=generated_at)),
+        search_placeholder=escape(s["search_placeholder"]),
+        search_aria=escape(s["search_aria"]),
+        reset_filters=escape(s["reset_filters"]),
+        filter_empty=escape(s["filter_empty"]),
+        generated_note=escape(s["generated_note"]),
+        stats_section=render_stats_section(projects, s),
+        stack_section=render_stack_section(projects, s),
     )
 
 
-def _write_portfolio(target, projects, warnings, title="My projects"):
+def _write_portfolio(target, projects, warnings, title=None, lang="en"):
     for w in warnings:
         print(f"WARNING: {w}", file=sys.stderr)
-    html = build_page(projects, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"), title=title)
+    html = build_page(projects, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"), title=title, lang=lang)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(html, encoding="utf-8")
     print(f"PORTFOLIO.html regenerated: {len(projects)} project(s), {len(warnings)} warning(s) -> {target}")
@@ -901,7 +910,7 @@ def _resolve_out_arg(raw):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    title = "My projects"
+    title = None
     if argv and argv[0] == "--out":
         if len(argv) < 3:
             print("usage: generate_portfolio.py --out <dir|file> <scope_root> [<scope_root>...]", file=sys.stderr)
@@ -922,6 +931,7 @@ def main(argv=None):
         scope_roots = [str(s) for s in scopes]
         title = load_portfolio_title()
 
+    lang = load_portfolio_language()
     projects, warnings = [], []
     for scope in scopes:
         if not Path(scope).is_dir():
@@ -930,7 +940,7 @@ def main(argv=None):
         ps, ws = collect_projects(scope, ignore_entries, scope_roots)
         projects += ps
         warnings += ws
-    _write_portfolio(target, projects, warnings, title=title)
+    _write_portfolio(target, projects, warnings, title=title, lang=lang)
 
 
 if __name__ == "__main__":

@@ -57,10 +57,14 @@ class ConfigLoaderTests(unittest.TestCase):
         (self.cfg / "portfolio.txt").write_text("title: My stuff\n/tmp/out\n", encoding="utf-8")
         self.assertEqual(gp.load_portfolio_target(), Path("/tmp/out/PORTFOLIO.html"))
 
-    def test_load_portfolio_title_read_and_default(self):
-        self.assertEqual(gp.load_portfolio_title(), "My projects")
+    def test_load_portfolio_title_read(self):
         (self.cfg / "portfolio.txt").write_text("/tmp/out\ntitle:  Foo bar \n", encoding="utf-8")
         self.assertEqual(gp.load_portfolio_title(), "Foo bar")
+
+    def test_load_portfolio_title_returns_none_when_absent(self):
+        self.assertIsNone(gp.load_portfolio_title())
+        (self.cfg / "portfolio.txt").write_text("/tmp/out\ntitle:   \n", encoding="utf-8")
+        self.assertIsNone(gp.load_portfolio_title())
 
     def test_load_scopes_expands_tilde(self):
         (self.cfg / "scopes.txt").write_text("~/foo\n$HOME/bar\n", encoding="utf-8")
@@ -255,10 +259,10 @@ class RenderSectionsTests(unittest.TestCase):
         self.assertIn('<button type="button" class="stat" data-status="active" aria-pressed="false">', html)
 
     def test_stack_section_empty_when_no_stack_anywhere(self):
-        self.assertEqual(gp.render_stack_section([{"status": "active"}]), "")
+        self.assertEqual(gp.render_stack_section([{"status": "active"}], gp._strings("en")), "")
 
     def test_stack_section_lists_aggregated_chips_as_filter_buttons(self):
-        html = gp.render_stack_section([{"stack": ["Python", "Go"]}])
+        html = gp.render_stack_section([{"stack": ["Python", "Go"]}], gp._strings("en"))
         self.assertIn('<button type="button" class="chip" data-tech="go" aria-pressed="false">Go</button>', html)
         self.assertIn(
             '<button type="button" class="chip" data-tech="python" aria-pressed="false">Python</button>', html
@@ -292,6 +296,17 @@ class LocalisationTests(unittest.TestCase):
         html_fr = gp.render_stats_section(projects, gp._strings("fr"))
         self.assertIn("Actif", html_fr)
         self.assertIn("En pause", html_fr)
+
+    def test_stack_section_labels_localise(self):
+        html_fr = gp.render_stack_section([{"stack": ["Python"]}], gp._strings("fr"))
+        self.assertIn("Stack &amp; outils", html_fr)
+        self.assertIn("Filtrer par technologie", html_fr)
+        self.assertIn("Clique sur une technologie", html_fr)
+
+    def test_stack_section_title_ampersand_escaped_in_en(self):
+        html_en = gp.render_stack_section([{"stack": ["Python"]}], gp._strings("en"))
+        self.assertIn("Stack &amp; tools", html_en)
+        self.assertNotIn("Stack & tools", html_en)
 
 
 class RenderCardTests(unittest.TestCase):
@@ -414,6 +429,27 @@ class BuildPageTests(unittest.TestCase):
         )
         self.assertIn('<p class="tagline">My projects</p>', html)
         self.assertNotIn(">My projects</h2>", html)
+
+    def test_build_page_html_lang_follows_language(self):
+        html = gp.build_page([], generated_at="2026-08-30 10:00", lang="fr")
+        self.assertIn('<html lang="fr">', html)
+
+    def test_build_page_localizes_chrome(self):
+        html = gp.build_page([], generated_at="2026-08-30 10:00", lang="fr")
+        self.assertIn("Aucun projet suivi pour l'instant.", html)
+        self.assertIn("Rechercher un projet", html)
+        self.assertIn("Réinitialiser les filtres", html)
+        self.assertIn("Régénéré automatiquement par project-tracker.", html)
+
+    def test_build_page_localized_default_title(self):
+        html = gp.build_page([], generated_at="x", title=None, lang="fr")
+        self.assertIn("Mes projets", html)
+
+    def test_build_page_localized_meta_line_and_uncategorized(self):
+        p = {"project": "x", "_path": "~/x", "status": "active", "last_updated": "2026-08-30", "stack": [], "category": ""}
+        html = gp.build_page([p], generated_at="2026-08-30 10:00", lang="fr")
+        self.assertIn("1 suivis · 2026-08-30 10:00", html)
+        self.assertIn("Sans catégorie", html)
 
 
 class GroupByCategoryTests(unittest.TestCase):
