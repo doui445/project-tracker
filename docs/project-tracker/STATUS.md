@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.4.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.4.1**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -50,11 +50,9 @@ build workstreams are done:
 
 ### Known gaps
 
-- Minor, non-blocking (from the v0.4.0 final review): `render_stack_section`
-  still mixes `escape(quote=True/False)` across its own strings (output
-  identical for the current copy); the "French repo → French tracking files"
-  heuristic in `writing-tracking-files.md` is now, strictly read, always
-  overridden by the resolved effective language.
+- None tracked. The v0.4.0 final-review residuals (context-picked HTML
+  escaping, the vestigial French-repo heuristic, off-spec language aliases,
+  `en.md` written in isolation) were all cleared in v0.4.1.
 
 ## Next 3 actions
 

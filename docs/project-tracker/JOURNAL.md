@@ -143,3 +143,10 @@ Dated chronological log. Append-only.
   — added `roadmap.heading.in_progress` and `.after` (was a bare `.next`),
   noted that headings 2–3 depend on whether a phase has started. `fr.md`
   follows; parity guard green (89 portfolio tests).
+
+## 2026-08-30 — v0.4.1 released
+
+- Patch release: the four post-v0.4.0 cleanup entries from `[Unreleased]`
+  (escaping helpers, French-repo heuristic, `en.md` source of truth,
+  `_normalise_lang` spec alignment). No behaviour change. `v0.4.1` tagged
+  and pushed; 89 portfolio + 8 manifest + hook suites green.
