@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Test manuel de session_start.sh — aucune dépendance à un framework de test.
-# Lancer avec: bash test_session_start.sh
+# Manual test for session_start.sh — no test-framework dependency.
+# Run with: bash test_session_start.sh
 set -uo pipefail
 
 HOOK="$(dirname "$0")/session_start.sh"
@@ -11,7 +11,7 @@ assert_contains() {
   if [[ "$haystack" == *"$needle"* ]]; then
     echo "PASS: $label"
   else
-    echo "FAIL: $label — attendu de trouver: $needle"
+    echo "FAIL: $label — expected to find: $needle"
     FAIL=1
   fi
 }
@@ -21,7 +21,7 @@ assert_empty() {
   if [ -z "$value" ]; then
     echo "PASS: $label"
   else
-    echo "FAIL: $label — attendu vide, obtenu: $value"
+    echo "FAIL: $label — expected empty, got: $value"
     FAIL=1
   fi
 }
@@ -39,11 +39,11 @@ SCOPE_ROOT="$TMP_HOME/scope"
 mkdir -p "$SCOPE_ROOT"
 echo "$SCOPE_ROOT" > "$TMP_HOME/.claude/project-tracker/scopes.txt"
 
-# Cas 1: cwd hors de tout périmètre -> silence total
+# Case 1: cwd outside any scope -> total silence
 OUT="$(run_hook "/tmp/outside-scope-$$")"
-assert_empty "$OUT" "hors perimetre -> silence"
+assert_empty "$OUT" "outside scope -> silence"
 
-# Cas 2: cwd dans le périmètre, projet suivi (docs/project-tracker/STATUS.md présent)
+# Case 2: cwd within the scope, tracked project (docs/project-tracker/STATUS.md present)
 TRACKED="$SCOPE_ROOT/tracked-project"
 mkdir -p "$TRACKED/docs/project-tracker"
 cat > "$TRACKED/docs/project-tracker/STATUS.md" <<'EOF'
@@ -52,53 +52,53 @@ project: Tracked
 status: active
 last_updated: 2026-01-01
 ---
-Contenu.
+Content.
 EOF
 OUT="$(run_hook "$TRACKED")"
-assert_contains "$OUT" "projet suivi" "projet suivi -> rappel de verification"
-assert_contains "$OUT" "project: Tracked" "projet suivi -> contenu STATUS.md inclus"
+assert_contains "$OUT" "tracked project" "tracked project -> verification reminder"
+assert_contains "$OUT" "project: Tracked" "tracked project -> STATUS.md content included"
 
-# Cas 3: cwd dans un sous-dossier profond d'un projet déjà suivi
+# Case 3: cwd in a deep subfolder of an already-tracked project
 mkdir -p "$TRACKED/subdir/deep"
 OUT="$(run_hook "$TRACKED/subdir/deep")"
-assert_contains "$OUT" "projet suivi" "sous-dossier d'un projet suivi -> retrouve la racine"
+assert_contains "$OUT" "tracked project" "subfolder of a tracked project -> finds the root"
 
-# Cas 4: cwd dans le périmètre, non suivi, non ignoré -> rappel de bootstrap
+# Case 4: cwd within the scope, not tracked, not ignored -> bootstrap reminder
 NEW="$SCOPE_ROOT/new-project"
 mkdir -p "$NEW"
 OUT="$(run_hook "$NEW")"
-assert_contains "$OUT" "Aucun suivi detecte" "nouveau dossier -> rappel de bootstrap"
+assert_contains "$OUT" "No tracking detected" "new folder -> bootstrap reminder"
 
-# Cas 5: cwd dans le périmètre, non suivi, mais dans trackignore.txt global -> silence
+# Case 5: cwd within the scope, not tracked, but in the global trackignore.txt -> silence
 IGNORED="$SCOPE_ROOT/ignored-project"
 mkdir -p "$IGNORED"
 IGNORE_FILE="$TMP_HOME/.claude/project-tracker/trackignore.txt"
 echo "$IGNORED" > "$IGNORE_FILE"
 OUT="$(run_hook "$IGNORED")"
-assert_empty "$OUT" "dossier dans trackignore.txt -> silence"
+assert_empty "$OUT" "folder in trackignore.txt -> silence"
 
-# Cas 6 (regression): cwd avec trailing slash doit se comporter identiquement à sans trailing slash
+# Case 6 (regression): cwd with a trailing slash must behave identically to without one
 TRACKED_SLASH="$TRACKED/"
 OUT_WITH_SLASH="$(run_hook "$TRACKED_SLASH")"
 OUT_WITHOUT_SLASH="$(run_hook "$TRACKED")"
 if [ "$OUT_WITH_SLASH" = "$OUT_WITHOUT_SLASH" ]; then
   echo "PASS: trailing slash normalization"
 else
-  echo "FAIL: trailing slash normalization — avec slash et sans slash ne produisent pas le même résultat"
+  echo "FAIL: trailing slash normalization — with slash and without slash do not produce the same result"
   FAIL=1
 fi
 
-# Cas 7 (regression): python3 manquant doit exit 0 avec sortie vide
+# Case 7 (regression): missing python3 must exit 0 with empty output
 run_hook_no_python() {
   local cwd="$1"
   printf '{"cwd": "%s", "hook_event_name": "SessionStart", "source": "startup"}' "$cwd" | env -i PATH=/bin HOME="$TMP_HOME" bash "$HOOK"
 }
 OUT_NO_PYTHON="$(run_hook_no_python "$TRACKED" 2>&1)" || true
-assert_empty "$OUT_NO_PYTHON" "python3 manquant -> exit 0 et sortie vide"
+assert_empty "$OUT_NO_PYTHON" "missing python3 -> exit 0 and empty output"
 
-# Cas 8 (regression Fix 1): dossier dans .trackignore qui contient AUSSI son
-# propre docs/project-tracker/STATUS.md -> l'exclusion .trackignore doit
-# gagner, silence total (et non le message "projet suivi").
+# Case 8 (regression Fix 1): a folder in trackignore.txt that ALSO has its own
+# docs/project-tracker/STATUS.md -> the trackignore exclusion must win,
+# total silence (not the "tracked project" message).
 IGNORED_WITH_STATUS="$SCOPE_ROOT/ignored-with-status"
 mkdir -p "$IGNORED_WITH_STATUS/docs/project-tracker"
 cat > "$IGNORED_WITH_STATUS/docs/project-tracker/STATUS.md" <<'EOF'
@@ -107,15 +107,15 @@ project: IgnoredButTracked
 status: active
 last_updated: 2026-01-01
 ---
-Contenu.
+Content.
 EOF
 echo "$IGNORED_WITH_STATUS" >> "$IGNORE_FILE"
 OUT="$(run_hook "$IGNORED_WITH_STATUS")"
-assert_empty "$OUT" "trackignore.txt avec STATUS.md propre -> silence (exclusion prioritaire)"
+assert_empty "$OUT" "trackignore.txt with its own STATUS.md -> silence (exclusion takes precedence)"
 
-# Cas 9 (regression Fix 2): un STATUS.md avec un corps volumineux (bien
-# au-dela de 4000 octets) ne doit produire qu'une sortie bornee -- seul le
-# frontmatter (cape a 4000 octets) est inclus, pas le corps entier.
+# Case 9 (regression Fix 2): a STATUS.md with a large body (well beyond 4000
+# bytes) must produce only bounded output -- only the frontmatter (capped at
+# 4000 bytes) is included, not the whole body.
 BIGBODY="$SCOPE_ROOT/big-body-project"
 mkdir -p "$BIGBODY/docs/project-tracker"
 {
@@ -124,31 +124,31 @@ mkdir -p "$BIGBODY/docs/project-tracker"
   echo "status: active"
   echo "last_updated: 2026-01-01"
   echo "---"
-  # Corps tres volumineux : > 4000 octets a lui seul.
+  # Very large body: > 4000 bytes on its own.
   for i in $(seq 1 500); do
-    echo "Ligne de corps numero $i qui sert uniquement a gonfler le fichier."
+    echo "Body line number $i, here only to bloat the file."
   done
 } > "$BIGBODY/docs/project-tracker/STATUS.md"
 OUT="$(run_hook "$BIGBODY")"
 OUT_LEN="${#OUT}"
-assert_contains "$OUT" "project: BigBody" "corps volumineux -> frontmatter toujours present"
+assert_contains "$OUT" "project: BigBody" "large body -> frontmatter still present"
 if [ "$OUT_LEN" -lt 6000 ]; then
-  echo "PASS: corps volumineux -> sortie totale bornee (obtenu $OUT_LEN octets)"
+  echo "PASS: large body -> total output bounded (got $OUT_LEN bytes)"
 else
-  echo "FAIL: corps volumineux -> sortie totale bornee — obtenu $OUT_LEN octets, attendu < 6000"
+  echo "FAIL: large body -> total output bounded — got $OUT_LEN bytes, expected < 6000"
   FAIL=1
 fi
-if ! [[ "$OUT" == *"Ligne de corps numero 400"* ]]; then
-  echo "PASS: corps volumineux -> le corps loin dans le fichier n'apparait pas"
+if ! [[ "$OUT" == *"Body line number 400"* ]]; then
+  echo "PASS: large body -> body deep in the file does not appear"
 else
-  echo "FAIL: corps volumineux -> le corps ne devrait pas etre inclus en entier"
+  echo "FAIL: large body -> the body should not be included in full"
   FAIL=1
 fi
 
-# Cas 10 (regression): STATUS.md avec divider --- dans le corps ne doit pas
-# laisser fuir le contenu post-divider dans la sortie frontmatter. Le sed original
-# avait un bug : la plage /---/,/---/ repartait apres chaque fermeture de plage.
-# Le fix awk arrete l extraction a la deuxieme ligne ---, donc rien du corps ne fuit.
+# Case 10 (regression): a STATUS.md with a --- divider in the body must not
+# leak the post-divider content into the frontmatter output. The original sed
+# had a bug: the /---/,/---/ range restarted after each range close. The awk
+# fix stops extraction at the second --- line, so nothing from the body leaks.
 BODY_WITH_DIVIDER="$SCOPE_ROOT/body-with-divider"
 mkdir -p "$BODY_WITH_DIVIDER/docs/project-tracker"
 cat > "$BODY_WITH_DIVIDER/docs/project-tracker/STATUS.md" <<'EOF'
@@ -157,41 +157,40 @@ project: BodyWithDivider
 status: active
 last_updated: 2026-01-01
 ---
-Contenu narratif normal.
+Normal narrative content.
 
 ---
 
-Ceci ne doit PAS apparaitre car c est apres un divider dans le corps.
+This must NOT appear because it is after a divider in the body.
 EOF
 OUT="$(run_hook "$BODY_WITH_DIVIDER")"
 assert_contains "$OUT" "project: BodyWithDivider" "body-with-divider -> frontmatter present"
-if [[ "$OUT" == *"Ceci ne doit PAS apparaitre"* ]]; then
-  echo "FAIL: body-with-divider -> contenu post-divider a fui (bug non corrige)"
+if [[ "$OUT" == *"This must NOT appear"* ]]; then
+  echo "FAIL: body-with-divider -> post-divider content leaked (bug not fixed)"
   FAIL=1
 else
-  echo "PASS: body-with-divider -> contenu post-divider ne fuit pas"
+  echo "PASS: body-with-divider -> post-divider content does not leak"
 fi
 
-# Cas 11 (nouveau): un dossier qui a un docs/ mais SANS project-tracker/
-# dedans (ex. un docs/ generique d'un projet non suivi) ne doit pas etre
-# pris pour un projet suivi.
+# Case 11 (new): a folder that has a docs/ but NO project-tracker/ inside it
+# (e.g. a generic docs/ of an untracked project) must not be taken for a
+# tracked project.
 DOCS_NO_PT="$SCOPE_ROOT/docs-without-project-tracker"
 mkdir -p "$DOCS_NO_PT/docs"
 echo "notes" > "$DOCS_NO_PT/docs/notes.md"
 OUT="$(run_hook "$DOCS_NO_PT")"
-assert_contains "$OUT" "Aucun suivi detecte" "docs/ sans project-tracker/ -> pas suivi, rappel de bootstrap"
+assert_contains "$OUT" "No tracking detected" "docs/ without project-tracker/ -> not tracked, bootstrap reminder"
 
-# Cas 12 (nouveau): une entrée de trackignore.txt égale à une racine de
-# périmètre n'ignore QUE ce dossier exact -- les projets à l'intérieur
-# restent détectés.
+# Case 12 (new): an entry in trackignore.txt equal to a scope root ignores
+# ONLY that exact folder -- the projects inside it are still detected.
 echo "$SCOPE_ROOT" >> "$IGNORE_FILE"
 OUT="$(run_hook "$SCOPE_ROOT")"
-assert_empty "$OUT" "entree = racine de perimetre -> la racine exacte est ignoree"
+assert_empty "$OUT" "entry = scope root -> the exact root is ignored"
 OUT="$(run_hook "$TRACKED")"
-assert_contains "$OUT" "projet suivi" "entree = racine de perimetre -> projet a l'interieur toujours detecte"
+assert_contains "$OUT" "tracked project" "entry = scope root -> project inside is still detected"
 
 if [ "$FAIL" -eq 1 ]; then
-  echo "Des tests ont echoue."
+  echo "Some tests failed."
   exit 1
 fi
-echo "Tous les tests sont passes."
+echo "All tests passed."

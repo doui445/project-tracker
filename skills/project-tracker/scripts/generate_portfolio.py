@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Régénère PORTFOLIO.html à la racine d'un scope à partir du frontmatter de
-chaque STATUS.md trouvé sous ce scope. Aucune dépendance externe (pas de
-PyYAML) — le frontmatter est volontairement simple (clé: valeur, une seule
-forme de liste) donc un parseur fait main suffit.
+Regenerates PORTFOLIO.html at a scope root from the frontmatter of every
+STATUS.md found under that scope. No external dependency (no PyYAML) —
+the frontmatter is deliberately simple (key: value, a single list form)
+so a hand-rolled parser is enough.
 
 Usage: generate_portfolio.py <scope_root>
 """
@@ -17,18 +17,15 @@ from pathlib import Path
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 REQUIRED_FIELDS = ["project", "status", "last_updated"]
 STATUS_ORDER = ["active", "paused", "blocked", "archived"]
-# Couleurs de badge (texte blanc dessus) — identiques en clair/sombre,
-# seul le fond de page change de thème, pas les badges eux-mêmes.
-# "paused" en ambre : l'accent de cette palette est bleu, donc ambre
-# reste distinct (contrairement à la palette or où il fallait le
-# décaler vers le bleu pour la même raison, en miroir).
-# "paused" en bleu (pas violet) : l'accent est maintenant violet
-# (hue ~293), meme logique que pour "blocked" vs l'ancien accent cuivre.
+# Badge colours (white text on top) — identical in light/dark, only the
+# page background changes theme, not the badges themselves.
+# "paused" in blue (not violet): the accent is now violet (hue ~293),
+# same logic as for "blocked" vs the old copper accent.
 STATUS_LABELS = {
-    "active": ("Actif", "oklch(0.55 0.15 145)"),
-    "paused": ("En pause", "oklch(0.55 0.19 255)"),
-    "blocked": ("Bloque", "oklch(0.55 0.19 25)"),
-    "archived": ("Archive", "oklch(0.50 0.02 270)"),
+    "active": ("Active", "oklch(0.55 0.15 145)"),
+    "paused": ("Paused", "oklch(0.55 0.19 255)"),
+    "blocked": ("Blocked", "oklch(0.55 0.19 25)"),
+    "archived": ("Archived", "oklch(0.50 0.02 270)"),
 }
 
 
@@ -72,10 +69,10 @@ PRUNED_DIR_NAMES = {"node_modules", ".venv"}
 
 
 def _iter_status_files(scope_root):
-    """Marche dans l'arborescence de scope_root et rend chaque STATUS.md
-    trouve sous <projet>/docs/project-tracker/, en elaguant .git,
-    node_modules, .venv et tout dossier dont le nom commence par un point
-    avant d'y descendre."""
+    """Walks scope_root's tree and yields every STATUS.md found under
+    <project>/docs/project-tracker/, pruning .git, node_modules, .venv
+    and any folder whose name starts with a dot before descending into
+    it."""
     for dirpath, dirnames, filenames in os.walk(scope_root):
         dirnames[:] = [
             d for d in dirnames
@@ -87,8 +84,8 @@ def _iter_status_files(scope_root):
 
 
 def _has_ancestor_in(rel_dir, dirs):
-    """True si un ancetre (strict) de rel_dir, relatif a scope_root, est
-    lui-meme dans dirs (un autre dossier portant un STATUS.md)."""
+    """True if a (strict) ancestor of rel_dir, relative to scope_root, is
+    itself in dirs (another folder carrying a STATUS.md)."""
     return any(ancestor in dirs for ancestor in rel_dir.parents)
 
 
@@ -97,10 +94,10 @@ def collect_projects(scope_root):
     projects = []
     warnings = []
     status_paths = sorted(_iter_status_files(scope_root))
-    # Deux passes pour eviter toute dependance a l'ordre de tri : on
-    # determine d'abord l'ensemble complet des dossiers portant un
-    # STATUS.md, puis on ne retient que ceux qui n'ont pas d'ancetre dans
-    # ce meme ensemble (le plus haut de chaque chaine gagne).
+    # Two passes to avoid any dependency on sort order: first determine
+    # the complete set of folders carrying a STATUS.md, then keep only
+    # those with no ancestor in that same set (the highest of each chain
+    # wins).
     all_status_dirs = {p.parent.parent.parent.relative_to(scope_root) for p in status_paths}
     for status_path in status_paths:
         rel = status_path.parent.parent.parent.relative_to(scope_root)
@@ -111,11 +108,11 @@ def collect_projects(scope_root):
         text = status_path.read_text(encoding="utf-8", errors="replace")
         data = parse_frontmatter(text)
         if not data:
-            warnings.append(f"{status_path}: pas de frontmatter, ignore")
+            warnings.append(f"{status_path}: no frontmatter, skipped")
             continue
         missing = [f for f in REQUIRED_FIELDS if f not in data]
         if missing:
-            warnings.append(f"{status_path}: champs manquants {missing}, ignore")
+            warnings.append(f"{status_path}: missing fields {missing}, skipped")
             continue
         data["_path"] = str(rel)
         projects.append(data)
@@ -123,9 +120,9 @@ def collect_projects(scope_root):
 
 
 def aggregate_stack(projects):
-    """Union dédupliquée (par chaîne exacte) de tous les `stack` des
-    projets, triée insensible à la casse. Chaque projet est une source
-    réelle — rien n'est inventé ici, juste agrégé."""
+    """Deduplicated union (by exact string) of all the projects' `stack`
+    values, sorted case-insensitively. Each project is a real source —
+    nothing is invented here, just aggregated."""
     items = set()
     for p in projects:
         for s in p.get("stack", []):
@@ -135,8 +132,8 @@ def aggregate_stack(projects):
 
 
 def status_counts(projects):
-    """Compte les projets par statut. Ordre stable : STATUS_ORDER
-    d'abord, puis les statuts non prévus par ordre alphabétique."""
+    """Counts projects by status. Stable order: STATUS_ORDER first, then
+    the unexpected statuses alphabetically."""
     counts = {}
     for p in projects:
         s = p.get("status", "?")
@@ -151,31 +148,31 @@ STALE_AFTER_DAYS = 30
 
 
 def relative_freshness(date_str, today):
-    """Étiquette relative ('il y a N jours', 'hier'…) depuis last_updated,
-    et un booléen "obsolète" (>= STALE_AFTER_DAYS). Renvoie (None, False)
-    si la date ne peut pas être interprétée (jamais d'invention)."""
+    """Relative label ('N days ago', 'yesterday'…) since last_updated,
+    plus a "stale" boolean (>= STALE_AFTER_DAYS). Returns (None, False)
+    if the date cannot be parsed (never invented)."""
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d").date()
     except (ValueError, TypeError):
         return None, False
     delta = (today - d).days
     if delta < 0:
-        return None, False  # date future : rien de sûr à afficher
+        return None, False  # future date: nothing safe to display
     if delta == 0:
-        return "aujourd'hui", False
+        return "today", False
     if delta == 1:
-        return "hier", False
+        return "yesterday", False
     if delta < STALE_AFTER_DAYS:
-        return f"il y a {delta} jours", False
+        return f"{delta} days ago", False
     months = max(1, delta // 30)
-    label = "il y a ~1 mois" if months == 1 else f"il y a ~{months} mois"
+    label = "~1 month ago" if months == 1 else f"~{months} months ago"
     return label, True
 
 
 def sort_by_recency(projects):
-    """Trie par last_updated décroissant (le plus récent d'abord). Les
-    dates non interprétables sont poussées à la fin (tri stable, donc
-    leur ordre relatif d'origine est conservé entre elles)."""
+    """Sorts by last_updated descending (most recent first). Unparseable
+    dates are pushed to the end (stable sort, so their original relative
+    order is kept among themselves)."""
     def key(p):
         try:
             d = datetime.strptime(p.get("last_updated", ""), "%Y-%m-%d").date()
@@ -197,8 +194,8 @@ def render_card(p, today=None):
     if not (repo.startswith("http://") or repo.startswith("https://")):
         repo = ""
     milestone = escape(p.get("next_milestone", "")) or "—"
-    # Normalisé (minuscules) pour les filtres JS (Stack & outils, Progression)
-    # — l'affichage garde la casse d'origine, seul ceci sert au matching.
+    # Normalised (lowercase) for the JS filters (Stack & tools, status)
+    # — the display keeps the original case, only this is used for matching.
     stack_attr = escape(",".join(s.lower() for s in stack))
     status_attr = escape(status_key.lower())
 
@@ -209,13 +206,13 @@ def render_card(p, today=None):
         cls = "freshness freshness-stale" if is_stale else "freshness"
         freshness_html = f' <span class="{cls}">({escape(freshness)})</span>'
 
-    # Toute la carte est la cible cliquable quand un dépôt existe (zone de
-    # clic large plutôt qu'un petit lien texte) — mais l'accessible name
-    # reste court (aria-label), pas tout le contenu de la carte lu en bloc.
+    # The whole card is the clickable target when a repo exists (large
+    # click area rather than a small text link) — but the accessible name
+    # stays short (aria-label), not the whole card content read at once.
     if repo:
         open_tag = (
             f'<a href="{escape(repo)}" class="card" data-stack="{stack_attr}" '
-            f'data-status="{status_attr}" aria-label="Ouvrir le dépôt de {escape(name)}">'
+            f'data-status="{status_attr}" aria-label="Open the {escape(name)} repository">'
         )
         close_tag = "</a>"
         affordance = '<span class="card-arrow" aria-hidden="true">&#8599;</span>'
@@ -233,8 +230,8 @@ def render_card(p, today=None):
       <p class="path">{escape(p["_path"])}</p>
       <div class="tags">{stack_html}</div>
       <dl class="meta">
-        <div><dt>Prochain jalon</dt><dd>{milestone}</dd></div>
-        <div><dt>Mis à jour</dt><dd>{escape(last_updated)}{freshness_html}</dd></div>
+        <div><dt>Next milestone</dt><dd>{milestone}</dd></div>
+        <div><dt>Updated</dt><dd>{escape(last_updated)}{freshness_html}</dd></div>
       </dl>
       {affordance}
     {close_tag}"""
@@ -242,32 +239,32 @@ def render_card(p, today=None):
 
 EMPTY_STATE = """
     <div class="empty">
-      <p class="empty-title">Aucun projet suivi pour l'instant.</p>
-      <p class="empty-body">Ouvre une session Claude Code dans un dossier de ce périmètre — le skill <code>project-tracker</code> te proposera de le suivre.</p>
+      <p class="empty-title">No tracked projects yet.</p>
+      <p class="empty-body">Open a Claude Code session in a folder of this scope — the <code>project-tracker</code> skill will offer to track it.</p>
     </div>"""
 
 
 def render_stats_section(projects):
     if not projects:
         return ""
-    # Boutons plutôt que divs statiques : cliquer un statut filtre la
-    # grille, même mécanisme que les chips de Stack & outils.
+    # Buttons rather than static divs: clicking a status filters the
+    # grid, same mechanism as the Stack & tools chips.
     items = "".join(
         f'<button type="button" class="stat" data-status="{escape(s)}" aria-pressed="false">'
         f'<span class="stat-num">{n}</span>'
         f'<span class="stat-label">{escape(STATUS_LABELS.get(s, (s, ""))[0])}</span></button>'
         for s, n in status_counts(projects)
     )
-    return f'<section class="stats" role="group" aria-label="Filtrer par statut">{items}</section>'
+    return f'<section class="stats" role="group" aria-label="Filter by status">{items}</section>'
 
 
 def render_stack_section(projects):
     stack = aggregate_stack(projects)
     if not stack:
         return ""
-    # Une seule couleur neutre par défaut — la sélection (clic) fait
-    # passer une chip en orange ET filtre les cartes qui utilisent cette
-    # techno, plutôt qu'une alternance arbitraire sans règle.
+    # A single neutral colour by default — selecting (clicking) turns a
+    # chip orange AND filters the cards that use that tech, rather than
+    # an arbitrary alternation with no rule.
     chips = "".join(
         f'<button type="button" class="chip" data-tech="{escape(s.lower())}" '
         f'aria-pressed="false">{escape(s)}</button>'
@@ -275,17 +272,17 @@ def render_stack_section(projects):
     )
     return f"""
 <section class="stack-section">
-  <h2 class="section-title">Stack &amp; outils</h2>
-  <p class="stack-hint">Clique sur une techno pour filtrer les projets qui l'utilisent.</p>
-  <div class="stack-chips" role="group" aria-label="Filtrer par technologie">{chips}</div>
+  <h2 class="section-title">Stack &amp; tools</h2>
+  <p class="stack-hint">Click a technology to filter the projects that use it.</p>
+  <div class="stack-chips" role="group" aria-label="Filter by technology">{chips}</div>
 </section>"""
 
 PAGE_TEMPLATE = """<!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Portfolio de projets</title>
+<title>Project portfolio</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>&#128193;</text></svg>">
 <style>
   :root {{
@@ -313,8 +310,8 @@ PAGE_TEMPLATE = """<!doctype html>
   }}
   @media (prefers-color-scheme: dark) {{
     :root {{
-      /* anthracite teinté violet plutôt qu'un noir profond — plus
-         agréable qu'un "void" quasi pur, et cohérent avec l'accent */
+      /* anthracite tinted violet rather than a deep black — nicer than
+         a near-pure "void", and consistent with the accent */
       --bg: oklch(0.170 0.012 293);
       --surface: oklch(0.220 0.016 293);
       --surface-hover: oklch(0.260 0.018 293);
@@ -324,14 +321,14 @@ PAGE_TEMPLATE = """<!doctype html>
       --muted: oklch(0.580 0.008 293);
       --accent: oklch(0.714 0.148 293);
       --accent2: oklch(0.750 0.157 42);
-      /* teintes bien plus discretes qu'en clair — le meme pourcentage
-         d'opacite lit beaucoup plus fort sur un fond quasi noir */
+      /* tints far more subtle than in light — the same opacity
+         percentage reads much stronger on a near-black background */
       --accent-tint: oklch(0.714 0.148 293 / 10%);
       --accent-border: oklch(0.714 0.148 293 / 22%);
       --accent2-tint: oklch(0.750 0.157 42 / 10%);
       --accent2-border: oklch(0.750 0.157 42 / 22%);
-      /* violet gardé discret (apprécié tel quel) ; orange remonté pour
-         avoir plus de présence dans le fond */
+      /* violet kept subtle (liked as is); orange bumped up to have
+         more presence in the background */
       --decor1: oklch(0.714 0.148 293 / 8%);
       --decor2: oklch(0.750 0.157 42 / 16%);
       --shadow-rest: 0 1px 2px rgb(0 0 0 / 30%);
@@ -344,8 +341,8 @@ PAGE_TEMPLATE = """<!doctype html>
     max-width: 72rem;
     margin: 0 auto;
     padding: 3rem 1.5rem 4rem;
-    /* deux taches radiales, plus grandes et plus presentes, fixes (pas
-       d'animation — un fond qui bouge en continu nuit a la lisibilite) */
+    /* two radial blobs, larger and more present, fixed (no animation —
+       a continuously moving background hurts readability) */
     background:
       radial-gradient(circle at 100% 0%, var(--decor1) 0%, transparent 62%),
       radial-gradient(circle at 0% 100%, var(--decor2) 0%, transparent 66%),
@@ -445,11 +442,11 @@ PAGE_TEMPLATE = """<!doctype html>
     box-shadow: var(--shadow-rest);
     color: inherit;
     text-decoration: none;
-    /* seul transform est anime (GPU-only) ; border-color/box-shadow/
-       background changent instantanement sur les etats ci-dessous */
+    /* only transform is animated (GPU-only); border-color/box-shadow/
+       background change instantly on the states below */
     transition: transform 180ms var(--ease);
-    /* entree en escalier — page consultee occasionnellement, pas en
-       continu, donc justifie un bref pont plutot qu'un affichage brut */
+    /* staggered entrance — page consulted occasionally, not
+       continuously, so a brief bridge is justified rather than a raw display */
     animation: cardIn 280ms var(--ease) both;
   }}
   @keyframes cardIn {{
@@ -475,8 +472,8 @@ PAGE_TEMPLATE = """<!doctype html>
     color: var(--border-strong);
     transition: color 180ms var(--ease), transform 180ms var(--ease);
   }}
-  /* hover uniquement pour les pointeurs precis (souris) — un tap sur
-     mobile/tablette ne doit pas laisser la carte "collee" en hover */
+  /* hover only for precise pointers (mouse) — a tap on mobile/tablet
+     must not leave the card "stuck" in hover */
   @media (hover: hover) and (pointer: fine) {{
     .card:hover {{
       transform: translateY(-3px);
@@ -561,7 +558,7 @@ PAGE_TEMPLATE = """<!doctype html>
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius);
     color: var(--muted);
-    /* delight tier — rare (vu une fois, avant le premier projet suivi) */
+    /* delight tier — rare (seen once, before the first tracked project) */
     animation: emptyIn 280ms var(--ease) both;
   }}
   @keyframes emptyIn {{
@@ -581,22 +578,22 @@ PAGE_TEMPLATE = """<!doctype html>
 <header class="page">
   <div>
     <h1>Portfolio<span>.</span></h1>
-    <p class="tagline">Suivi de mes projets de code — actifs, en pause, ou archivés.</p>
+    <p class="tagline">Tracking my code projects — active, paused, or archived.</p>
   </div>
-  <p class="meta-line">{count} suivi(s) · {generated_at}</p>
+  <p class="meta-line">{count} tracked · {generated_at}</p>
 </header>
 {stats_section}
-<h2 class="section-title">Mes projets</h2>
+<h2 class="section-title">My projects</h2>
 <div class="search-row">
-  <input type="search" id="portfolio-search" class="search-input" placeholder="Rechercher un projet…" aria-label="Rechercher un projet par nom">
-  <button type="button" id="reset-filters" class="reset-btn" hidden>Réinitialiser les filtres</button>
+  <input type="search" id="portfolio-search" class="search-input" placeholder="Search for a project…" aria-label="Search for a project by name">
+  <button type="button" id="reset-filters" class="reset-btn" hidden>Reset filters</button>
 </div>
 <div class="grid">
 {cards}
-<p class="filter-empty" hidden>Aucun projet ne correspond aux filtres.</p>
+<p class="filter-empty" hidden>No project matches the filters.</p>
 </div>
 {stack_section}
-<p class="generated">Régénéré automatiquement par project-tracker.</p>
+<p class="generated">Regenerated automatically by project-tracker.</p>
 <script>
 (function () {{
   var cards = document.querySelectorAll('.card[data-stack]');
@@ -675,7 +672,7 @@ def main():
         sys.exit(1)
     scope_root = Path(sys.argv[1]).resolve()
     if not scope_root.is_dir():
-        print(f"erreur: {scope_root} n'existe pas ou n'est pas un dossier", file=sys.stderr)
+        print(f"error: {scope_root} does not exist or is not a directory", file=sys.stderr)
         sys.exit(1)
     projects, warnings = collect_projects(scope_root)
     for w in warnings:
@@ -683,7 +680,7 @@ def main():
     projects = sort_by_recency(projects)
     today = date.today()
     cards = "\n".join(render_card(p, today=today) for p in projects) if projects else EMPTY_STATE
-    generated_at = datetime.now().strftime("%d/%m/%Y à %H:%M")
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     html = PAGE_TEMPLATE.format(
         cards=cards,
         count=len(projects),
@@ -693,7 +690,7 @@ def main():
     )
     out_path = scope_root / "PORTFOLIO.html"
     out_path.write_text(html, encoding="utf-8")
-    print(f"PORTFOLIO.html regenere : {len(projects)} projet(s), {len(warnings)} avertissement(s)")
+    print(f"PORTFOLIO.html regenerated: {len(projects)} project(s), {len(warnings)} warning(s)")
 
 
 if __name__ == "__main__":

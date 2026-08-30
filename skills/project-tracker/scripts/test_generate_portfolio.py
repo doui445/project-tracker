@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Tests pour generate_portfolio.py — stdlib uniquement.
-Lancer avec: python3 -m unittest test_generate_portfolio -v
-(depuis le dossier scripts/)
+"""Tests for generate_portfolio.py — stdlib only.
+Run with: python3 -m unittest test_generate_portfolio -v
+(from the scripts/ folder)
 """
 import sys
 import tempfile
@@ -22,7 +22,7 @@ class ParseFrontmatterTests(unittest.TestCase):
             "stack: [Python, FastAPI]\n"
             "last_updated: 2026-08-23\n"
             "---\n"
-            "Corps du fichier.\n"
+            "File body.\n"
         )
         data = gp.parse_frontmatter(text)
         self.assertEqual(data["project"], "Example")
@@ -31,7 +31,7 @@ class ParseFrontmatterTests(unittest.TestCase):
         self.assertEqual(data["last_updated"], "2026-08-23")
 
     def test_returns_none_without_frontmatter(self):
-        self.assertIsNone(gp.parse_frontmatter("Pas de frontmatter ici.\n"))
+        self.assertIsNone(gp.parse_frontmatter("No frontmatter here.\n"))
 
 
 class CollectProjectsTests(unittest.TestCase):
@@ -58,7 +58,7 @@ class CollectProjectsTests(unittest.TestCase):
         self.assertEqual(projects[0]["_path"], "ProjA")
 
     def test_skips_malformed_frontmatter_with_warning(self):
-        self._write_status("ProjBad", "Pas de frontmatter.\n")
+        self._write_status("ProjBad", "No frontmatter.\n")
         self._write_status("ProjGood", "---\nproject: Good\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         projects, warnings = gp.collect_projects(self.root)
         self.assertEqual([p["project"] for p in projects], ["Good"])
@@ -145,7 +145,7 @@ class RenderSectionsTests(unittest.TestCase):
     def test_stats_section_shows_real_status_label(self):
         html = gp.render_stats_section([{"status": "active"}, {"status": "active"}])
         self.assertIn("2", html)
-        self.assertIn("Actif", html)
+        self.assertIn("Active", html)
 
     def test_stats_section_renders_as_filter_buttons(self):
         html = gp.render_stats_section([{"status": "active"}])
@@ -200,7 +200,7 @@ class RenderCardTests(unittest.TestCase):
     def test_freshness_shown_for_recent_date(self):
         p = {"project": "P", "status": "active", "last_updated": "2026-08-20", "_path": "p"}
         html = gp.render_card(p, today=date(2026, 8, 23))
-        self.assertIn("il y a 3 jours", html)
+        self.assertIn("3 days ago", html)
         self.assertNotIn("freshness-stale", html)
 
     def test_freshness_flags_stale_projects(self):
@@ -216,21 +216,21 @@ class RenderCardTests(unittest.TestCase):
 
 class RelativeFreshnessTests(unittest.TestCase):
     def test_today_and_yesterday_have_dedicated_labels(self):
-        self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23)), ("aujourd'hui", False))
-        self.assertEqual(gp.relative_freshness("2026-08-22", date(2026, 8, 23)), ("hier", False))
+        self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23)), ("today", False))
+        self.assertEqual(gp.relative_freshness("2026-08-22", date(2026, 8, 23)), ("yesterday", False))
 
     def test_days_label_under_stale_threshold(self):
         label, is_stale = gp.relative_freshness("2026-08-13", date(2026, 8, 23))
-        self.assertEqual(label, "il y a 10 jours")
+        self.assertEqual(label, "10 days ago")
         self.assertFalse(is_stale)
 
     def test_stale_after_30_days(self):
         label, is_stale = gp.relative_freshness("2026-07-01", date(2026, 8, 23))
         self.assertTrue(is_stale)
-        self.assertIn("mois", label)
+        self.assertIn("month", label)
 
     def test_unparseable_date_returns_none(self):
-        self.assertEqual(gp.relative_freshness("pas une date", date(2026, 8, 23)), (None, False))
+        self.assertEqual(gp.relative_freshness("not a date", date(2026, 8, 23)), (None, False))
 
     def test_future_date_returns_none(self):
         self.assertEqual(gp.relative_freshness("2026-09-01", date(2026, 8, 23)), (None, False))
@@ -267,14 +267,14 @@ class MainTests(unittest.TestCase):
         (d / "docs" / "project-tracker").mkdir(parents=True)
         (d / "docs" / "project-tracker" / "STATUS.md").write_text(
             "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n"
-            "stack: [Python]\nnext_milestone: \"Terminer X\"\n---\nOk.\n",
+            "stack: [Python]\nnext_milestone: \"Finish X\"\n---\nOk.\n",
             encoding="utf-8",
         )
         sys.argv = ["generate_portfolio.py", str(self.root)]
         gp.main()
         out = (self.root / "PORTFOLIO.html").read_text(encoding="utf-8")
         self.assertIn("ProjA", out)
-        self.assertIn("Terminer X", out)
+        self.assertIn("Finish X", out)
         self.assertIn("Python", out)
 
     def test_main_exits_cleanly_on_missing_scope_root(self):
