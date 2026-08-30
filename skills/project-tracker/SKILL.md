@@ -96,6 +96,8 @@ Optional (created only if requested at bootstrap step 7, in `docs/project-tracke
 
 How to write each of these well — reader, structure, what belongs and what does not, worked good/poor examples: see `references/writing-tracking-files.md`. Consult it whenever you create or substantially rewrite one of these files.
 
+**These files are committed like any other source** — they are the project's memory, `CHANGELOG.md` / `DECISIONS.md` / `ROADMAP.md` are standard public artifacts, and the concurrent-session safeguard below relies on `git diff` seeing `STATUS.md`. Do not add them to `.gitignore`. The only exception: on a public repo whose `STATUS.md` / `JOURNAL.md` / `BACKLOG.md` would carry genuinely sensitive content (unreleased strategy, client names), those three may be ignored while `CHANGELOG.md` / `DECISIONS.md` / `ROADMAP.md` stay committed — never the default, only on request.
+
 ### `STATUS.md` frontmatter
 
 ```yaml

@@ -6,18 +6,24 @@ semantic-ish versioning in `plugin.json` / `marketplace.json`.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-08-30
+
 ### Added
 - `references/writing-tracking-files.md` — per-file guidance on how to write
   each of the nine standard files (plus `ARCHITECTURE.md` / `GLOSSARY.md`):
   who the reader is, structure, what belongs and what doesn't, worked
   good/poor examples, and — for `ARCHITECTURE.md` — a lens for judging the
   architecture itself. `SKILL.md` points to it from "The standard files".
+- `SKILL.md` now states that the tracking files are committed like any other
+  source (with the narrow sensitive-content exception).
+- Retroactive git tags `v0.1.0` / `v0.2.0` / `v0.3.0` (last commit of each
+  version line); tagging is now part of the release routine.
 
 ### Fixed
 - `SKILL.md` referenced "bootstrap step 6" for the optional
   `ARCHITECTURE.md` / `GLOSSARY.md` files — it is step 7.
 - `build_installer.sh` had a hardcoded reference-file list; it now globs
-  `references/*.md` so a new one is always bundled.
+  `references/*.md` so a new one is always bundled (see `ERRORS.md`).
 
 ### Changed
 - README restructured for first-time readers: plain-language hook, a

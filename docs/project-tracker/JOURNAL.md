@@ -46,3 +46,16 @@ Dated chronological log. Append-only.
   `SKILL.md` points to it from "The standard files".
 - Fixed a latent bug found on the way: `build_installer.sh` had a hardcoded
   reference-file list — now globs `references/*.md`.
+- Cleared the three low-priority items and cut **v0.3.1**:
+  - `SKILL.md` now states the tracking files are committed (narrow
+    sensitive-content exception).
+  - Retroactive git tags `v0.1.0` / `v0.2.0` / `v0.3.0` at the last commit of
+    each version line; `v0.3.1` tagged on this release.
+  - Dogfood friction captured: the `build_installer.sh` bug is written up in
+    `ERRORS.md`; the bootstrap itself and the hook chain (portfolio regen +
+    reminders trigger firing on every `STATUS.md` write during a heavy dev
+    session) worked as intended, just chatty by design.
+  - `plugin.json` / `marketplace.json` → `0.3.1`, installer regenerated,
+    `CHANGELOG` `[0.3.1]` dated.
+- Open question raised: whether the versioning policy deserves its own file
+  (see next action 2).

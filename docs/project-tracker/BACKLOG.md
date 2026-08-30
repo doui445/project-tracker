@@ -30,18 +30,16 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Low priority
 
-- [ ] **Git release tags** — effort S, value ⭐
-  `plugin.json` / `marketplace.json` carry `0.1.0`…`0.3.0` but the repo has no
-  tags. Tag retroactively and on every future bump.
+_(nothing open)_
 
-- [ ] **`SKILL.md` should state that tracking files are meant to be committed**
-  — effort S, value ⭐⭐
-  The skill is currently silent on version-controlling `docs/project-tracker/`.
-  Every user asks. Document the default (commit all nine), the reason (they are
-  project memory + the collision safeguard needs `git diff` on `STATUS.md`),
-  and the exception (gitignore `STATUS`/`JOURNAL`/`BACKLOG` only when the
-  content is sensitive for a public repo). See `DECISIONS.md`
-  (2026-08-30 — tracking files committed).
+## Completed
+
+- [x] **Git release tags** (0.3.1) — retroactive `v0.1.0` / `v0.2.0` /
+  `v0.3.0` added at the last commit of each version line; `v0.3.1` tagged on
+  release. Tagging folded into the release routine.
+- [x] **`SKILL.md` states that tracking files are committed** (0.3.1) — added
+  to "The standard files", with the narrow sensitive-content exception. See
+  `DECISIONS.md` (2026-08-30 — tracking files committed).
 
 ## How to use this backlog
 

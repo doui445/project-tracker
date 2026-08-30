@@ -15,7 +15,7 @@ backlog_model: "adopté"
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.3.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.3.1**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -47,8 +47,8 @@ build workstreams are done:
 ### Known gaps
 
 - Output language is effectively fixed to English — the user cannot choose.
-- Version is bumped in `plugin.json` / `marketplace.json` but there are no
-  git release tags.
+- The versioning policy (major/minor/patch rules, release routine) is not
+  written down anywhere yet — under discussion.
 
 ## Next 3 actions
 
@@ -56,7 +56,7 @@ build workstreams are done:
    where the setting lives (machine-global file vs. per-project frontmatter),
    how the skill and `generate_portfolio.py` consume it, default behaviour.
    See `BACKLOG.md`.
-2. Dogfood this bootstrap — `project-tracker` is now tracking itself; capture
-   any friction from this first self-run in `JOURNAL.md` / `ERRORS.md`.
-3. Decide whether to tag releases in git (`v0.1.0` … `v0.3.0`) to match the
-   manifest versions.
+2. Decide where the versioning policy lives (`CLAUDE.md` release routine +
+   a scheme note in `CHANGELOG.md`, vs. a dedicated doc).
+3. Dogfood — keep capturing friction from self-tracking in
+   `JOURNAL.md` / `ERRORS.md` as it comes up.
