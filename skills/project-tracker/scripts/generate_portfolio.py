@@ -34,26 +34,35 @@ def _config_lines(name):
     return out
 
 
+def _expand(path):
+    return os.path.expanduser(os.path.expandvars(path))
+
+
 def load_scopes():
     # No .resolve(): entries are compared as literal strings against
-    # literal paths, the same way the shell hooks do it. Users put
-    # consistent absolute paths in scopes.txt / trackignore.txt.
-    return [Path(l.rstrip("/")) for l in _config_lines("scopes.txt")]
+    # literal paths, the same way the shell hooks do it. `~`/`$VAR` are
+    # expanded so a config written with `~/...` still works.
+    return [Path(_expand(l.rstrip("/"))) for l in _config_lines("scopes.txt")]
 
 
 def load_global_trackignore():
-    return [l.rstrip("/") for l in _config_lines("trackignore.txt")]
+    return [_expand(l.rstrip("/")) for l in _config_lines("trackignore.txt")]
 
 
 def load_portfolio_target():
-    lines = _config_lines("portfolio.txt")
-    if not lines:
-        return None
-    raw = os.path.expandvars(os.path.expanduser(lines[0]))
-    p = Path(os.path.abspath(raw))  # normalise, no symlink resolution
-    if p.suffix == ".html":
-        return p
-    return p / "PORTFOLIO.html"
+    for raw in _config_lines("portfolio.txt"):
+        if raw.startswith("title:"):
+            continue
+        p = Path(os.path.abspath(_expand(raw)))  # normalise, no symlink resolution
+        return p if p.suffix == ".html" else p / "PORTFOLIO.html"
+    return None
+
+
+def load_portfolio_title():
+    for raw in _config_lines("portfolio.txt"):
+        if raw.startswith("title:"):
+            return raw[len("title:"):].strip() or "My projects"
+    return "My projects"
 
 
 def home_relative(p):
@@ -107,7 +116,7 @@ def is_ignored(abs_path, entries, scope_roots):
     return False
 
 
-PRUNED_DIR_NAMES = {"node_modules", ".venv"}
+PRUNED_DIR_NAMES = {"node_modules"}  # .venv etc. covered by the dot-prefix rule below
 
 
 def _iter_status_files(scope_root):
@@ -603,9 +612,9 @@ PAGE_TEMPLATE = """<!doctype html>
   }}
   .card[hidden] {{ display: none; }}
   .filter-empty {{
-    grid-column: 1 / -1;
     text-align: center;
     padding: 2.5rem 1.5rem;
+    margin-top: 1rem;
     color: var(--muted);
     font-size: 0.9rem;
   }}
@@ -636,12 +645,11 @@ PAGE_TEMPLATE = """<!doctype html>
 <header class="page">
   <div>
     <h1>Portfolio<span>.</span></h1>
-    <p class="tagline">Tracking my code projects — active, paused, or archived.</p>
+    <p class="tagline">{title}</p>
   </div>
   <p class="meta-line">{count} tracked · {generated_at}</p>
 </header>
 {stats_section}
-<h2 class="section-title">My projects</h2>
 <div class="search-row">
   <input type="search" id="portfolio-search" class="search-input" placeholder="Search for a project…" aria-label="Search for a project by name">
   <button type="button" id="reset-filters" class="reset-btn" hidden>Reset filters</button>
@@ -735,7 +743,7 @@ def _group_by_category(projects):
     buckets = {}
     order = []
     for p in projects:
-        cat = p.get("category", "") or ""
+        cat = (p.get("category", "") or "").strip()
         if cat == "non":
             cat = ""
         if cat not in buckets:
@@ -751,7 +759,8 @@ def _group_by_category(projects):
     return result
 
 
-def build_page(projects, generated_at):
+def build_page(projects, generated_at, title="My projects"):
+    projects = sort_by_recency(projects)
     if not projects:
         groups_html = f'<div class="grid">{EMPTY_STATE}</div>'
     else:
@@ -767,6 +776,7 @@ def build_page(projects, generated_at):
         groups_html = "\n".join(parts)
     return PAGE_TEMPLATE.format(
         groups=groups_html,
+        title=escape(title),
         count=len(projects),
         generated_at=generated_at,
         stats_section=render_stats_section(projects),
@@ -774,11 +784,10 @@ def build_page(projects, generated_at):
     )
 
 
-def _write_portfolio(target, projects, warnings):
+def _write_portfolio(target, projects, warnings, title="My projects"):
     for w in warnings:
         print(f"WARNING: {w}", file=sys.stderr)
-    projects = sort_by_recency(projects)
-    html = build_page(projects, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"))
+    html = build_page(projects, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"), title=title)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(html, encoding="utf-8")
     print(f"PORTFOLIO.html regenerated: {len(projects)} project(s), {len(warnings)} warning(s) -> {target}")
@@ -791,6 +800,7 @@ def _resolve_out_arg(raw):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    title = "My projects"
     if argv and argv[0] == "--out":
         if len(argv) < 3:
             print("usage: generate_portfolio.py --out <dir|file> <scope_root> [<scope_root>...]", file=sys.stderr)
@@ -809,6 +819,7 @@ def main(argv=None):
         scopes = load_scopes()
         ignore_entries = load_global_trackignore()
         scope_roots = [str(s) for s in scopes]
+        title = load_portfolio_title()
 
     projects, warnings = [], []
     for scope in scopes:
@@ -818,7 +829,7 @@ def main(argv=None):
         ps, ws = collect_projects(scope, ignore_entries, scope_roots)
         projects += ps
         warnings += ws
-    _write_portfolio(target, projects, warnings)
+    _write_portfolio(target, projects, warnings, title=title)
 
 
 if __name__ == "__main__":

@@ -50,6 +50,7 @@ while IFS= read -r line || [ -n "$line" ]; do
   line="${line%/}"
   case "$line" in
     ""|"#"*) continue ;;
+    "~"|"~/"*) line="${HOME}${line#\~}" ;;
   esac
   case "$PROJECT_ROOT" in
     "$line"|"$line"/*) SCOPE_ROOT="$line"; break ;;
@@ -64,12 +65,14 @@ if [ -f "$IGNORE_FILE" ]; then
     entry="${entry%/}"
     case "$entry" in
       ""|"#"*) continue ;;
+      "~"|"~/"*) entry="${HOME}${entry#\~}" ;;
     esac
     entry_is_scope_root=0
     while IFS= read -r scope || [ -n "$scope" ]; do
       scope="${scope%/}"
       case "$scope" in
         ""|"#"*) continue ;;
+        "~"|"~/"*) scope="${HOME}${scope#\~}" ;;
       esac
       if [ "$scope" = "$entry" ]; then
         entry_is_scope_root=1
@@ -87,10 +90,10 @@ if [ -f "$IGNORE_FILE" ]; then
 fi
 
 PORTFOLIO_FILE="$HOME/.claude/project-tracker/portfolio.txt"
+MARKER_DIR="${TMPDIR:-/tmp}/project-tracker-portfolio-regen"
 
 if [ ! -f "$PORTFOLIO_FILE" ]; then
   # Never configured: a hook cannot prompt -- ask Claude to, once per session.
-  MARKER_DIR="${TMPDIR:-/tmp}/project-tracker-portfolio-regen"
   mkdir -p "$MARKER_DIR" 2>/dev/null || exit 0
   MARKER="$MARKER_DIR/${SESSION_ID}"
   [ -f "$MARKER" ] && exit 0
@@ -102,18 +105,17 @@ print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additi
   exit 0
 fi
 
-# File exists: a comment-only file means "configured to off" -> stay silent.
-HAS_TARGET=0
-while IFS= read -r line || [ -n "$line" ]; do
-  line="${line#"${line%%[![:space:]]*}"}"
-  case "$line" in
-    ""|"#"*) continue ;;
-  esac
-  HAS_TARGET=1
-  break
-done < "$PORTFOLIO_FILE"
-[ "$HAS_TARGET" -eq 1 ] || exit 0
+# Throttle: at most one regeneration every 10 seconds.
+mkdir -p "$MARKER_DIR" 2>/dev/null || exit 0
+THROTTLE="$MARKER_DIR/last"
+if [ -f "$THROTTLE" ]; then
+  NOW="$(date +%s)"
+  LAST="$(date -r "$THROTTLE" +%s 2>/dev/null || echo 0)"
+  [ "$((NOW - LAST))" -lt 10 ] && exit 0
+fi
+touch "$THROTTLE" 2>/dev/null || true
 
+# generate_portfolio.py no-ops on a comment-only portfolio.txt.
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GEN="$SKILL_DIR/scripts/generate_portfolio.py"
 [ -f "$GEN" ] || exit 0

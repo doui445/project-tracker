@@ -66,6 +66,11 @@ class PluginManifestTests(unittest.TestCase):
         for group in h.get("PostToolUse", []):
             self.assertEqual(group.get("matcher"), "Edit|Write")
 
+    def test_config_command_exists(self):
+        p = REPO / "commands" / "config.md"
+        self.assertTrue(p.is_file())
+        self.assertIn("description:", p.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

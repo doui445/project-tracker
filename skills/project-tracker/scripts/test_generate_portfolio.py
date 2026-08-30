@@ -53,6 +53,19 @@ class ConfigLoaderTests(unittest.TestCase):
         (self.cfg / "portfolio.txt").write_text("# only a comment\n\n", encoding="utf-8")
         self.assertIsNone(gp.load_portfolio_target())
 
+    def test_load_portfolio_target_skips_title_line(self):
+        (self.cfg / "portfolio.txt").write_text("title: My stuff\n/tmp/out\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_target(), Path("/tmp/out/PORTFOLIO.html"))
+
+    def test_load_portfolio_title_read_and_default(self):
+        self.assertEqual(gp.load_portfolio_title(), "My projects")
+        (self.cfg / "portfolio.txt").write_text("/tmp/out\ntitle:  Foo bar \n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_title(), "Foo bar")
+
+    def test_load_scopes_expands_tilde(self):
+        (self.cfg / "scopes.txt").write_text("~/foo\n$HOME/bar\n", encoding="utf-8")
+        self.assertEqual(gp.load_scopes(), [self.home / "foo", self.home / "bar"])
+
 
 class ParseFrontmatterTests(unittest.TestCase):
     def test_parses_flat_fields_and_list(self):
@@ -331,6 +344,21 @@ class BuildPageTests(unittest.TestCase):
         html = gp.build_page([], generated_at="2026-08-30 12:00")
         self.assertIn("No tracked projects yet.", html)
 
+    def test_build_page_uses_given_title(self):
+        html = gp.build_page(
+            [{"project": "Z", "status": "active", "last_updated": "2026-08-23", "_path": "~/x/Z"}],
+            generated_at="2026-08-30 12:00", title="Stuff <x> & things",
+        )
+        self.assertIn("Stuff &lt;x&gt; &amp; things", html)
+
+    def test_build_page_default_title_and_no_section_title(self):
+        html = gp.build_page(
+            [{"project": "Z", "status": "active", "last_updated": "2026-08-23", "_path": "~/x/Z"}],
+            generated_at="2026-08-30 12:00",
+        )
+        self.assertIn('<p class="tagline">My projects</p>', html)
+        self.assertNotIn(">My projects</h2>", html)
+
 
 class GroupByCategoryTests(unittest.TestCase):
     def _p(self, name, category=None, last_updated="2026-08-23"):
@@ -362,6 +390,13 @@ class GroupByCategoryTests(unittest.TestCase):
         html = gp.build_page([], generated_at="2026-08-30 12:00")
         self.assertIn("No tracked projects yet.", html)
         self.assertIn('class="grid"', html)
+
+    def test_category_label_is_stripped(self):
+        html = gp.build_page(
+            [self._p("A1", " Perso "), self._p("A2", "Perso")], generated_at="2026-08-30 12:00"
+        )
+        self.assertEqual(html.count('class="category-title"'), 1)
+        self.assertIn('<h3 class="category-title">Perso</h3>', html)
 
 
 class MainTests(unittest.TestCase):
@@ -417,6 +452,15 @@ class MainTests(unittest.TestCase):
         gp.main(["--out", str(out_dir), str(self.scopeA)])
         html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
         self.assertIn("Gamma", html)
+
+    def test_title_from_portfolio_txt(self):
+        out_dir = self.home / "out"
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text(f"{out_dir}\ntitle: My stuff\n", encoding="utf-8")
+        self._status(self.scopeA, "P1", "P1")
+        gp.main([])
+        html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
+        self.assertIn('<p class="tagline">My stuff</p>', html)
 
 
 if __name__ == "__main__":
