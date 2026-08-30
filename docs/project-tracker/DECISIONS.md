@@ -81,3 +81,36 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
   Not the default.
 - **Accepted downside**: `STATUS.md` is rewritten every session → churny diffs
   and possible cross-session conflicts; handled by the skill's collision logic.
+
+## 2026-08-30 — Output language: global default + two overrides, catalogue-driven
+
+- **Context**: v0.4.0 makes the output language (EN/FR) selectable. Where does
+  the setting live, how deep does localisation go, and how does a language
+  change propagate?
+- **Chosen**:
+  - `~/.claude/project-tracker/language.txt` = machine default; `language:`
+    frontmatter key on `STATUS.md` overrides it for one project's tracking
+    files; a `language:` line in `portfolio.txt` overrides it for the
+    portfolio. Reminders always follow the global. The chat always follows
+    the session's conversation language, never a setting.
+  - **Full localisation** of the tracking files (headings + template phrases +
+    prose), driven by a per-language catalogue
+    `skills/project-tracker/references/i18n/<code>.md`. Machine values
+    (frontmatter keys/enums, file names, hook names, `#tracker-sync`, the
+    codes) are never translated.
+  - `generate_portfolio.py` keeps its **own** Python `STRINGS` table — the
+    `.md` catalogue is for Claude at runtime, the Python table for the
+    generator; both carry a same-keys guard test.
+  - A language change on a project with existing content → Claude **proposes a
+    full retranslation**, append-only entries included (dates preserved), with
+    an autonomous subagent review loop (cap 3, surfaces only judgement calls).
+- **Rejected**: a single global setting with no per-project override (a
+  bilingual user with FR and EN projects couldn't mix); a per-project-only
+  setting (re-asked every bootstrap, and the multi-project portfolio still
+  needs one language); freezing a project's language at creation (too rigid);
+  hard-coding EN/FR everywhere with no extension path (adding a 3rd language
+  would touch every file — the catalogue model makes it "add a file").
+- **Accepted downside**: two parity guards to keep in sync (`.md` catalogue +
+  Python table) rather than one source; the retranslation of append-only
+  files is a sanctioned exception to "never rewrite an append-only file".
+- Spec: `_dev-history/specs/2026-08-30-output-language-design.md` (D1–D15).

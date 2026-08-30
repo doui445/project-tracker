@@ -4,30 +4,6 @@ Raw reservoir of every idea/feature envisaged. Never purged — enriched and
 archived. Statuses: `[ ]` to do · `[~]` in progress · `[x]` done · `[-]`
 abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
-## High priority
-
-- [ ] **User-selectable output language (English / French)** — effort M,
-  value ⭐⭐⭐
-  The tracking files and the generated portfolio should follow a language the
-  user picks; for now English or French only. `README.md` is out of scope — it
-  stays in whatever language the user wrote it.
-  Open questions:
-  - Where does the setting live? Machine-global
-    (`~/.claude/project-tracker/language.txt`, same family as
-    `scopes.txt` / `trackignore.txt` / `portfolio.txt`) vs. per-project
-    (`STATUS.md` frontmatter key, e.g. `language: "fr"`) vs. both (global
-    default, per-project override).
-  - How does the skill consume it? A short instruction block near the top of
-    `SKILL.md` selecting the prose language for everything it writes.
-  - How does `generate_portfolio.py` consume it? It already has translatable
-    strings (status labels, tagline, empty states, counts) — needs a small
-    string table keyed by language, read from the config.
-  - Default when unset: English (current behaviour), no migration of existing
-    files.
-  - Interaction with the "French-sweep gate" test — that gate exists to keep
-    the *shipped skill* English; a French *tracking output* is a separate axis
-    and must not trip it.
-
 ## Medium priority
 
 - [ ] **`GLOSSARY.md`: lazy creation + enrichment loop** — effort M,
@@ -84,6 +60,16 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Completed
 
+- [x] **User-selectable output language (English / French)** (0.4.0) —
+  `~/.claude/project-tracker/language.txt` (machine default) + `language:`
+  overrides in `STATUS.md` frontmatter (per project) and `portfolio.txt`
+  (portfolio); reminders follow the global; chat follows the conversation.
+  Per-language catalogue `references/i18n/{en,fr}.md` (+ key-parity guard);
+  a separate Python `STRINGS` table (+ its own guard) localizes
+  `PORTFOLIO.html`. Language change → proposed full retranslation with an
+  autonomous subagent review loop. `/project-tracker:config` gains a
+  "Change the language" action. Default and fallback: `en`. Spec +
+  plan in `_dev-history/{specs,plans}/2026-08-30-output-language*`.
 - [x] **Git release tags** (0.3.1) — retroactive `v0.1.0` / `v0.2.0` /
   `v0.3.0` added at the last commit of each version line; `v0.3.1` tagged on
   release. Tagging folded into the release routine.

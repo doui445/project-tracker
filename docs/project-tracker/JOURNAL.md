@@ -105,3 +105,19 @@ Dated chronological log. Append-only.
   catalogue, localized `generate_portfolio.py`, retranslation + subagent
   review loop, `/project-tracker:config` language action.
 - `phase_model: "superpowers"` recorded; specs/plans stay in `_dev-history/`.
+
+## 2026-08-30 — Output-language feature landed on main (v0.4.0)
+
+- Executed `_dev-history/plans/2026-08-30-output-language.md` via
+  subagent-driven development in an isolated worktree: 10 tasks, one
+  fresh implementer + task review each, an opus whole-branch review, one
+  fix wave (2 Critical + 5 Important + minors) and a scoped re-review.
+- The worst bug the whole-branch review caught: `load_portfolio_target()`
+  ignored the new `language:` reserved key, so a `language:` line above the
+  path in `portfolio.txt` silently redirected `PORTFOLIO.html` into a bogus
+  directory. Fixed with a shared `_RESERVED_PORTFOLIO_PREFIXES` + a
+  regression test writing the `language:` line first.
+- Fast-forwarded to `main`, tagged `v0.4.0`, pushed. 87 portfolio tests +
+  8 manifest + 3 hook suites green on the merged result.
+- `BACKLOG.md`: the output-language item moved to Completed.
+  `DECISIONS.md`: added the D1–D15 rationale entry.

@@ -50,7 +50,11 @@ build workstreams are done:
 
 ### Known gaps
 
-- None currently tracked.
+- Minor, non-blocking (from the v0.4.0 final review): `render_stack_section`
+  still mixes `escape(quote=True/False)` across its own strings (output
+  identical for the current copy); the "French repo → French tracking files"
+  heuristic in `writing-tracking-files.md` is now, strictly read, always
+  overridden by the resolved effective language.
 
 ## Next 3 actions
 
@@ -60,5 +64,6 @@ build workstreams are done:
 2. "Fresh eyes" readability pass (subagent, advisory) after a substantial
    rewrite of README / ARCHITECTURE / GLOSSARY / CLAUDE. See `BACKLOG.md`
    (Medium).
-3. Post-release: fresh-eyes review of the shipped output-language feature
-   against the design spec, then merge/tag/push v0.4.0.
+3. When the user asks to track a folder listed in `trackignore.txt`, offer
+   to un-exclude it + bootstrap rather than leaving a manual edit. See
+   `BACKLOG.md` (Low).
