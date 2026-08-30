@@ -19,6 +19,9 @@ stays the single source of truth — only the prose notes below are added here.
   "various files" or "some issues".
 - **Match the project's voice and language.** If the repo and its `README`
   are in French, the tracking files are too (unless the user set otherwise).
+- **Non-English output** follows `references/i18n/<code>.md` — its section
+  headings and template phrases are authoritative; write free prose in that
+  language. Never translate the machine values it lists.
 - **Link, don't duplicate.** When one file already covers something, point to
   it rather than restating it — restated content drifts out of sync.
 
@@ -230,3 +233,36 @@ without guessing at the jargon. A real project dictionary.
   alphabetically or group by theme. Cross-link related terms.
 - **Never guess a definition.** If you are not sure what a term means here,
   ask the user — a confidently wrong glossary entry is a trap.
+
+## Retranslating on a language change
+
+When a project's effective output language changes (via
+`/project-tracker:config`, project or global level) and its tracking files
+still hold content in the old language:
+
+1. **List** the affected files and **propose** a full retranslation. If the
+   user declines, only new content follows the new language from now on
+   (a mixed state — acceptable); stop here.
+2. For each file, if accepted:
+   - Retranslate: headings and template phrases from
+     `references/i18n/<new-code>.md`, prose translated faithfully. **Append-only
+     files included** — this is the one sanctioned exception to "never rewrite
+     an append-only file": past entries are retranslated in place, **dates and
+     order preserved**.
+   - **Review subagent** on the retranslated file, given: the retranslated
+     file, the original (old-language) file, `references/i18n/<new-code>.md`,
+     and the reader definition for that file (above). It returns a report:
+     omissions, mistranslations, machine values that were altered, and any
+     judgement calls. It does not edit — it reports.
+   - **Loop**: fix the objective findings (omissions, mistranslations, altered
+     machine values), re-run the subagent, silently, until the report is
+     clean. Cap at **3 passes**.
+   - Surface to the user only a genuine **judgement call** (an ambiguous term,
+     a phrasing choice) or, if the cap is hit, the remaining open points.
+3. Report: "retranslated N files, M review passes, clean" or the list of
+   points left for the user to arbitrate.
+4. Rewrite `STATUS.md` with the new `language:` value (or without it, if the
+   change was global). Add a `JOURNAL.md` entry. Offer a commit if `uses_git`.
+
+The subagent is a general-purpose / Explore agent: input = the files above,
+output = a report, no writes.
