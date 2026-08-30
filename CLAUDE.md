@@ -32,6 +32,9 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 
 - **Shipped strings are English.** Prose, comments, messages, generated HTML.
   A "French-sweep" gate guards this — keep test fixtures ASCII/English.
+- The one exception: `skills/project-tracker/references/i18n/fr.md` is
+  deliberately French. Any "is the shipped skill all-English" review whitelists
+  `skills/project-tracker/references/i18n/` except `en.md`.
 - **Never translate machine values**: frontmatter keys and enum values
   (`active`, `"non"`, `"adopté"`, `"leger"`, `"superpowers"`, …), standard
   file names, hook names, `#tracker-sync`.
@@ -84,7 +87,11 @@ is declared stable):
    `git tag -a vX.Y.Z -m "<summary>"`, then
    `git push origin main --follow-tags`.
 
-## Dogfooding note
+## Phases
+
+`phase_model: "superpowers"` — this repo uses the spec → plan flow, but the
+specs and plans live in `_dev-history/{specs,plans}/` (gitignored, French),
+not `docs/superpowers/`. Project preference; existing files are not migrated.
 
 ## Dogfooding note
 
