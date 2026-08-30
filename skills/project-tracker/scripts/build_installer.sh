@@ -30,7 +30,7 @@ SKILLS_EXISTED_BEFORE=0
 [ -d "$SKILLS_ROOT" ] && SKILLS_EXISTED_BEFORE=1
 
 echo "Installing project-tracker into $SKILL_DIR ..."
-mkdir -p "$SKILL_DIR/hooks" "$SKILL_DIR/scripts" "$SKILL_DIR/references" "$SCOPES_DIR"
+mkdir -p "$SKILL_DIR/hooks" "$SKILL_DIR/scripts" "$SKILL_DIR/references" "$SKILL_DIR/references/i18n" "$SCOPES_DIR"
 
 write_b64() {
   # write_b64 <output_path>  (reads base64 on stdin)
@@ -41,8 +41,9 @@ HEADER
 # Every reference file is bundled — globbed rather than listed, so a new
 # references/*.md is picked up automatically.
 FILES=(SKILL.md)
-for ref in "$SKILL_DIR"/references/*.md; do
-  FILES+=("references/$(basename "$ref")")
+for ref in "$SKILL_DIR"/references/*.md "$SKILL_DIR"/references/*/*.md; do
+  [ -f "$ref" ] || continue
+  FILES+=("references/${ref#"$SKILL_DIR"/references/}")
 done
 FILES+=(
   hooks/session_start.sh hooks/test_session_start.sh
