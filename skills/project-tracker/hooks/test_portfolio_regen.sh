@@ -40,10 +40,6 @@ OUT_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_HOME" "$TMP_MARKERS" "$OUT_DIR"' EXIT
 
 mkdir -p "$TMP_HOME/.claude/project-tracker"
-# The hook shells out to the real generate_portfolio.py via
-# $HOME/.claude/skills/project-tracker/... — point that at the repo copy.
-mkdir -p "$TMP_HOME/.claude/skills"
-ln -s "$(cd "$(dirname "$0")/.." && pwd)" "$TMP_HOME/.claude/skills/project-tracker"
 
 SCOPE_ROOT="$TMP_HOME/scope"
 mkdir -p "$SCOPE_ROOT"

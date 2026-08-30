@@ -58,6 +58,7 @@ EOF
 OUT="$(run_hook "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "session-1")"
 assert_contains "$OUT" "additionalContext" "STATUS.md edit, linked -> additionalContext"
 assert_contains "$OUT" "tracked-project" "additionalContext contains the project name"
+assert_contains "$OUT" "references/reminders-sync.md" "additionalContext points at the reference doc"
 
 # Case 2: Write on docs/project-tracker/ROADMAP.md, same project, new session -> same
 OUT="$(run_hook "Write" "$TRACKED/docs/project-tracker/ROADMAP.md" "session-2")"

@@ -47,6 +47,22 @@ when you open a Claude Code session in a tracked folder, and on demand.
 
 ## Install
 
+### As a Claude Code plugin (recommended)
+
+```
+/plugin marketplace add doui445/project-tracker
+/plugin install project-tracker@project-tracker
+```
+
+Restart Claude Code. The plugin bundles the skill and its three hooks
+(`SessionStart` + two `PostToolUse`) — no manual `settings.json` edit.
+
+Third-party marketplaces don't auto-update by default. To pick up a new
+version: `/plugin marketplace update project-tracker` then
+`/plugin update project-tracker` (or set `FORCE_AUTOUPDATE_PLUGINS=1`).
+
+### With the install script (no marketplace)
+
 ```bash
 git clone https://github.com/doui445/project-tracker ~/src/project-tracker
 bash ~/src/project-tracker/install-project-tracker.sh
@@ -55,12 +71,13 @@ bash ~/src/project-tracker/install-project-tracker.sh
 The installer:
 
 - copies the skill to `~/.claude/skills/project-tracker/`
-- registers the two hooks (`SessionStart`, `PostToolUse`) in
+- registers the two `PostToolUse` hooks and the `SessionStart` hook in
   `~/.claude/settings.json` with an idempotent merge
 - creates `~/.claude/project-tracker/scopes.txt` and `trackignore.txt`
 - runs the test suites
 
-Then open a Claude Code session in a folder under one of your scope roots.
+Either way, then open a Claude Code session in a folder under one of your
+scope roots.
 
 ## Configuration
 

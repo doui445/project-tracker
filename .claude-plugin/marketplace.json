@@ -1,0 +1,12 @@
+{
+  "name": "project-tracker",
+  "owner": { "name": "doui445" },
+  "plugins": [
+    {
+      "name": "project-tracker",
+      "source": ".",
+      "description": "Standard markdown project-tracking files, kept current automatically via hooks.",
+      "version": "0.1.0"
+    }
+  ]
+}
