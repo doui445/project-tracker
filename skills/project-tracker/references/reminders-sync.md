@@ -8,6 +8,8 @@ The linking question is asked at bootstrap (step 5) or, for an already-tracked p
 
 If `reminders_list` is absent (question never asked — should normally no longer happen once the detection above has run, but a safety net if this section is reached before) or is `"non"` (declined): skip this section entirely, behaviour unchanged.
 
+Items you create in the Reminders app are written in the machine-global `language.txt` language, not the per-project override.
+
 Otherwise, on every trigger (`PostToolUse` hook, backfill at linking, or an explicit request from the user):
 
 0. Check that `reminders_list` resolves to an existing list (`reminders_lists` action `read`). Two possible failures to tell apart, neither of which must fail the rest of the continuous update:

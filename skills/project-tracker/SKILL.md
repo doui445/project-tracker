@@ -27,6 +27,8 @@ Three possible states:
   - If `backlog_model` is `"adopté"` (or was just auto-recognized above) and the frontmatter has no `phase_model` key at all: check whether files matching `PHASE_N_SPEC.md` already exist in the project — if so, auto-recognize `phase_model: "leger"` without asking (same logic as above). Otherwise, do **not** ask a question here: `phase_model` stays absent until a phase is actually proposed (see `references/backlog-phases.md`, "How phases work").
   - If its frontmatter has **no** `category` key at all: propose a category (offering the values already used by other tracked projects, for reuse), then write it to the `category` frontmatter (the label, or `"non"` if the user declines). Once the key is written, never asked again.
   - If `~/.claude/project-tracker/portfolio.txt` does not exist: ask the user where the unified portfolio should go — offer `~/Desktop`, `~/Documents`, or another folder — and write the chosen **folder** path to `portfolio.txt`. If the user genuinely wants no portfolio, write a comments-only `portfolio.txt` (the hook then stays silent). Once the file exists (path or comments), never asked again — it is machine-global config, not per-project.
+  - If `~/.claude/project-tracker/language.txt` does not exist: ask once which language the tracking files and portfolio should be written in (English / French), and write the code (`en` / `fr`) to `language.txt`. Machine-global config, never asked again.
+  - Otherwise: resolve the effective language and glance at `STATUS.md`. If it is visibly in the other language, offer the full retranslation (see `references/writing-tracking-files.md`, `## Retranslating on a language change`).
   - These checks are independent of one another — ask them one after another rather than all at once in the same message.
   - Then go to "Continuous updates".
 - **Excluded**: the absolute path appears in `~/.claude/project-tracker/trackignore.txt` (an entry equal to a scope root ignores only that exact folder, not the projects inside it) → do nothing, unless the user brings it up explicitly.
@@ -76,6 +78,8 @@ First run `mkdir -p docs/project-tracker/` at the project root, then create the 
 
 If `~/.claude/project-tracker/portfolio.txt` does not exist yet (first tracked project on this machine), ask where the unified portfolio should go — `~/Desktop`, `~/Documents`, or another folder — and write the chosen folder path to `portfolio.txt`, so `PORTFOLIO.html` is generated from this first project. See the `portfolio.txt` bullet under `## Detecting a project's root`.
 
+Likewise, if `~/.claude/project-tracker/language.txt` does not exist, ask once which language the tracking files and portfolio should use (English / French) and write the code to `language.txt`. The bootstrap then creates every file in that language (consult `references/i18n/<code>.md` when it is not `en`). No per-project `language:` key is written at bootstrap — it exists only as an explicit override set later via `/project-tracker:config`.
+
 ## The standard files
 
 Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project root (GitHub/Claude Code auto-discovery); the 7 others in `docs/project-tracker/`:
@@ -98,6 +102,36 @@ How to write each of these well — reader, structure, what belongs and what doe
 
 **These files are committed like any other source** — they are the project's memory, `CHANGELOG.md` / `DECISIONS.md` / `ROADMAP.md` are standard public artifacts, and the concurrent-session safeguard below relies on `git diff` seeing `STATUS.md`. Do not add them to `.gitignore`. The only exception: on a public repo whose `STATUS.md` / `JOURNAL.md` / `BACKLOG.md` would carry genuinely sensitive content (unreleased strategy, client names), those three may be ignored while `CHANGELOG.md` / `DECISIONS.md` / `ROADMAP.md` stay committed — never the default, only on request.
 
+## Output language
+
+Everything the skill *writes into a project's tracking files* follows a
+resolved **effective language**:
+
+1. `language:` in that project's `STATUS.md` frontmatter, if present;
+2. else `~/.claude/project-tracker/language.txt` (machine-global);
+3. else `en`.
+
+`PORTFOLIO.html` follows the `language:` line of `portfolio.txt` if present,
+else `language.txt`, else `en`. Reminders items you create follow
+`language.txt` (global) — never the per-project override. The **chat** (the
+questions you ask, the discussion) always follows the language the user is
+writing in this session — it is not driven by any of these settings.
+
+Supported: `en`, `fr`. Machine values are never translated in any language:
+frontmatter keys and enum values (`status: active|paused|…`, `"non"`,
+`"adopté"`, `"leger"`, `"superpowers"`), file names, hook names,
+`#tracker-sync`, the language codes.
+
+**When the effective language is not `en`:** before creating or rewriting a
+tracking file, read `references/i18n/<code>.md` and use its section headings
+and template phrases verbatim; write all free prose in that language. `en.md`
+holds the English originals.
+
+**When the effective language changed** and the project already has content
+in the old language (you notice it by glancing at `STATUS.md` — `en` vs `fr`
+is unambiguous): propose the full retranslation — see
+`references/writing-tracking-files.md` (`## Retranslating on a language change`).
+
 ### `STATUS.md` frontmatter
 
 ```yaml
@@ -113,15 +147,18 @@ reminders_list: "<Reminders list name>"   # "non" if declined, absent if never a
 category: "<free text>"   # "non" if the user declined a category, absent if never asked
 backlog_model: "adopté"   # automatic at bootstrap; "non" only possible via a declined retrofit; absent only for a project tracked before this feature and not yet retrofitted
 phase_model: "superpowers"   # or "leger"; absent if no phase ever proposed
+language: fr              # en | fr ; absent = inherit language.txt
 ---
 ```
 
 This is the only strictly structured part of any of these files — the rest is free narrative. This frontmatter is what `generate_portfolio.py` consumes for the portfolio (see below): `project`, `status` and `last_updated` are mandatory, without them the project is simply omitted from the portfolio.
 
+`language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
+
 ## Continuous updates
 
 When you judge that you have made a significant change in a session (new feature, important fix, an architecture decision settled):
-1. Re-read `STATUS.md` as it is right now (never a version seen earlier in the session), then rewrite it (state + 3 next actions, frontmatter up to date including `last_updated`).
+1. Re-read `STATUS.md` as it is right now (never a version seen earlier in the session), then rewrite it (state + 3 next actions, frontmatter up to date including `last_updated`). Write it in the project's effective language (see `## Output language`); if that is not `en`, consult `references/i18n/<code>.md` for the headings.
 2. Add a dated entry to `JOURNAL.md` (a real append — do not open the whole file to rewrite it, just add the new entry at the end).
 3. Where relevant: add an entry to `CHANGELOG.md` (shippable change), `DECISIONS.md` (technical choice settled), or `ERRORS.md` (bug resolved) — always by appending, never by rewriting the whole file.
 4. If `uses_git: true` and there are uncommitted changes lying around, point it out and offer a commit (conventional commits message) — never commit/push without explicit confirmation.
@@ -139,7 +176,7 @@ For `JOURNAL.md`, `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md`, `BACKLOG.md`: the
 
 ## Reminders sync
 
-If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, different from `"non"`): see `references/reminders-sync.md` for the trigger (hook + full diff + backfill), the `#tracker-sync` tag, the priority mapping, subtasks, and the consistency safeguard. The linking question itself is asked elsewhere — see `## Bootstrapping a new project` (step 5) and `## Detecting a project's root`.
+If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, different from `"non"`): see `references/reminders-sync.md` for the trigger (hook + full diff + backfill), the `#tracker-sync` tag, the priority mapping, subtasks, and the consistency safeguard. The linking question itself is asked elsewhere — see `## Bootstrapping a new project` (step 5) and `## Detecting a project's root`. Items you create in the Reminders app are written in the machine-global `language.txt` language, not the per-project override.
 
 ## Portfolio
 
