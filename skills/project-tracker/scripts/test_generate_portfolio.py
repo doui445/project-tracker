@@ -57,6 +57,12 @@ class ConfigLoaderTests(unittest.TestCase):
         (self.cfg / "portfolio.txt").write_text("title: My stuff\n/tmp/out\n", encoding="utf-8")
         self.assertEqual(gp.load_portfolio_target(), Path("/tmp/out/PORTFOLIO.html"))
 
+    def test_load_portfolio_target_skips_language_line(self):
+        (self.cfg / "portfolio.txt").write_text("language: fr\n~/Documents\n", encoding="utf-8")
+        self.assertEqual(
+            gp.load_portfolio_target(), self.home / "Documents" / "PORTFOLIO.html"
+        )
+
     def test_load_portfolio_title_read(self):
         (self.cfg / "portfolio.txt").write_text("/tmp/out\ntitle:  Foo bar \n", encoding="utf-8")
         self.assertEqual(gp.load_portfolio_title(), "Foo bar")
@@ -95,6 +101,15 @@ class ConfigLoaderTests(unittest.TestCase):
         self.assertEqual(gp.load_portfolio_language(), "fr")
 
     def test_load_portfolio_language_defaults_to_en(self):
+        self.assertEqual(gp.load_portfolio_language(), "en")
+
+    def test_load_portfolio_language_empty_value_falls_back_to_global(self):
+        (self.cfg / "language.txt").write_text("fr\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text("~/Documents\nlanguage:\n", encoding="utf-8")
+        self.assertEqual(gp.load_portfolio_language(), "fr")
+
+    def test_load_portfolio_language_empty_value_defaults_to_en(self):
+        (self.cfg / "portfolio.txt").write_text("~/Documents\nlanguage:   \n", encoding="utf-8")
         self.assertEqual(gp.load_portfolio_language(), "en")
 
 
@@ -307,6 +322,10 @@ class LocalisationTests(unittest.TestCase):
         html_en = gp.render_stack_section([{"stack": ["Python"]}], gp._strings("en"))
         self.assertIn("Stack &amp; tools", html_en)
         self.assertNotIn("Stack & tools", html_en)
+
+    def test_strings_tables_have_matching_keys(self):
+        for lang in gp.STRINGS:
+            self.assertEqual(set(gp.STRINGS[lang]), set(gp.STRINGS["en"]), lang)
 
 
 class RenderCardTests(unittest.TestCase):
@@ -553,6 +572,18 @@ class MainTests(unittest.TestCase):
         gp.main([])
         html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
         self.assertIn('<p class="tagline">My stuff</p>', html)
+
+    def test_language_from_portfolio_txt(self):
+        # `language:` line written FIRST, before the path — also exercises
+        # C1 (load_portfolio_target must not treat it as the output path).
+        out_dir = self.home / "out"
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text(f"language: fr\n{out_dir}\n", encoding="utf-8")
+        self._status(self.scopeA, "P1", "P1")
+        self.assertEqual(gp.load_portfolio_target(), out_dir / "PORTFOLIO.html")
+        gp.main([])
+        html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
+        self.assertIn('<html lang="fr">', html)
 
 
 if __name__ == "__main__":

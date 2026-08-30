@@ -49,9 +49,15 @@ def load_global_trackignore():
     return [_expand(l.rstrip("/")) for l in _config_lines("trackignore.txt")]
 
 
+# Lines in portfolio.txt that start with one of these prefixes carry
+# configuration, not the output path — every loader skips them so the
+# file is order-independent.
+_RESERVED_PORTFOLIO_PREFIXES = ("title:", "language:")
+
+
 def load_portfolio_target():
     for raw in _config_lines("portfolio.txt"):
-        if raw.startswith("title:"):
+        if raw.startswith(_RESERVED_PORTFOLIO_PREFIXES):
             continue
         p = Path(os.path.abspath(_expand(raw)))  # normalise, no symlink resolution
         return p if p.suffix == ".html" else p / "PORTFOLIO.html"
@@ -83,11 +89,13 @@ def load_language():
 
 
 def load_portfolio_language():
-    """Portfolio language: the 'language:' line of portfolio.txt if present,
-    else the machine-global load_language()."""
+    """Portfolio language: the 'language:' line of portfolio.txt if it carries
+    a non-empty value, else the machine-global load_language()."""
     for raw in _config_lines("portfolio.txt"):
         if raw.startswith("language:"):
-            return _normalise_lang(raw[len("language:"):])
+            value = raw[len("language:"):].strip()
+            if value:
+                return _normalise_lang(value)
     return load_language()
 
 
@@ -341,7 +349,7 @@ def render_card(p, s, today=None):
     color = STATUS_COLORS.get(status_key, _UNKNOWN_STATUS_COLOR)
     label = _status_label(status_key, s)
     stack = p.get("stack", [])
-    stack_html = "".join(f'<span class="tag">{escape(s)}</span>' for s in stack)
+    stack_html = "".join(f'<span class="tag">{escape(tech)}</span>' for tech in stack)
     name = p.get("project", p["_path"])
     repo = p.get("repo", "")
     if not (repo.startswith("http://") or repo.startswith("https://")):
@@ -349,7 +357,7 @@ def render_card(p, s, today=None):
     milestone = escape(p.get("next_milestone", "")) or "—"
     # Normalised (lowercase) for the JS filters (Stack & tools, status)
     # — the display keeps the original case, only this is used for matching.
-    stack_attr = escape(",".join(s.lower() for s in stack))
+    stack_attr = escape(",".join(tech.lower() for tech in stack))
     status_attr = escape(status_key.lower())
 
     last_updated = p.get("last_updated", "?")
@@ -429,7 +437,7 @@ def render_stack_section(projects, s):
     return f"""
 <section class="stack-section">
   <h2 class="section-title">{escape(s["stack_title"])}</h2>
-  <p class="stack-hint">{escape(s["stack_hint"])}</p>
+  <p class="stack-hint">{escape(s["stack_hint"], quote=False)}</p>
   <div class="stack-chips" role="group" aria-label="{escape(s["stack_aria"])}">{chips}</div>
 </section>"""
 

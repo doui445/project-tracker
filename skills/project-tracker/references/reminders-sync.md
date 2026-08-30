@@ -6,9 +6,9 @@ The `#tracker-sync` tag marks a reminder as currently tracked/absorbed by Claude
 
 The linking question is asked at bootstrap (step 5) or, for an already-tracked project that has never had it, as soon as the "Tracked" state is detected (see `## Detecting a project's root` in `SKILL.md`) — never here, and never while waiting for a "Continuous updates" trigger.
 
-If `reminders_list` is absent (question never asked — should normally no longer happen once the detection above has run, but a safety net if this section is reached before) or is `"non"` (declined): skip this section entirely, behaviour unchanged.
-
 Items you create in the Reminders app are written in the machine-global `language.txt` language, not the per-project override.
+
+If `reminders_list` is absent (question never asked — should normally no longer happen once the detection above has run, but a safety net if this section is reached before) or is `"non"` (declined): skip this section entirely, behaviour unchanged.
 
 Otherwise, on every trigger (`PostToolUse` hook, backfill at linking, or an explicit request from the user):
 

@@ -47,6 +47,9 @@ Plus, on top of the files:
   existing one, on request. Never commits or pushes without confirmation.
 - **Optional Apple Reminders sync** (macOS) — links a project to a Reminders
   list and keeps its next actions in sync both ways.
+- **User-selectable EN/FR output** — the tracking files and the portfolio can
+  be written in English or French, set once and overridable per portfolio or
+  per project.
 - **Never guesses** — a field it can't fill stays marked "to fill in" rather
   than invented.
 
@@ -93,17 +96,23 @@ install.
 
 ## Configuration
 
-Up to three files in `~/.claude/project-tracker/`. The plugin/installer creates
-the first two; `portfolio.txt` appears the first time you set a portfolio
-location. In all three, `~` and `$VAR` are expanded and `#` comments are
-ignored.
+Up to four files in `~/.claude/project-tracker/`. The plugin/installer creates
+`scopes.txt` and `trackignore.txt`; `portfolio.txt` appears the first time you
+set a portfolio location, `language.txt` the first time you're asked for an
+output language. In all of them, `~` and `$VAR` are expanded and `#` comments
+are ignored.
 
 - **`scopes.txt`** — one path per line. Everything under these roots gets
   auto-detection.
 - **`trackignore.txt`** — one path per line, to skip. An entry equal to a scope
   root ignores only that exact folder, not the projects inside it.
 - **`portfolio.txt`** — the folder where `PORTFOLIO.html` is written; an
-  optional `title:` line sets its heading (default: "My projects").
+  optional `title:` line sets its heading (default, locale-dependent: "My
+  projects" / "Mes projets"), and an optional `language:` line (`en`/`fr`)
+  overrides the output language for the portfolio only.
+- **`language.txt`** — the machine-global output language for the tracking
+  files and portfolio: `en` or `fr`, default `en`, asked once at first
+  bootstrap.
 
 `/project-tracker:config` (plugin install only) views and changes all of this
 in plain language.

@@ -31,10 +31,18 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 ## Conventions
 
 - **Shipped strings are English.** Prose, comments, messages, generated HTML.
-  A "French-sweep" gate guards this — keep test fixtures ASCII/English.
-- The one exception: `skills/project-tracker/references/i18n/fr.md` is
-  deliberately French. Any "is the shipped skill all-English" review whitelists
-  `skills/project-tracker/references/i18n/` except `en.md`.
+  Keep test fixtures ASCII/English. This is a review discipline (a "French
+  sweep" you run by eye), not an automated in-repo gate.
+- Deliberate French exceptions, whitelisted by any "is the shipped skill
+  all-English" review:
+  - `skills/project-tracker/references/i18n/` except `en.md` (the `fr.md`
+    catalogue and any future non-English catalogue);
+  - the `STRINGS["fr"]` table in
+    `skills/project-tracker/scripts/generate_portfolio.py` (the portfolio's
+    French UI strings);
+  - the French assertions in
+    `skills/project-tracker/scripts/test_generate_portfolio.py` (they check
+    the `fr` rendering).
 - **Never translate machine values**: frontmatter keys and enum values
   (`active`, `"non"`, `"adopté"`, `"leger"`, `"superpowers"`, …), standard
   file names, hook names, `#tracker-sync`.

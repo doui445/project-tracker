@@ -102,6 +102,29 @@ How to write each of these well — reader, structure, what belongs and what doe
 
 **These files are committed like any other source** — they are the project's memory, `CHANGELOG.md` / `DECISIONS.md` / `ROADMAP.md` are standard public artifacts, and the concurrent-session safeguard below relies on `git diff` seeing `STATUS.md`. Do not add them to `.gitignore`. The only exception: on a public repo whose `STATUS.md` / `JOURNAL.md` / `BACKLOG.md` would carry genuinely sensitive content (unreleased strategy, client names), those three may be ignored while `CHANGELOG.md` / `DECISIONS.md` / `ROADMAP.md` stay committed — never the default, only on request.
 
+### `STATUS.md` frontmatter
+
+```yaml
+---
+project: <folder name>   # always the folder's own name
+status: active            # active | paused | blocked | archived
+uses_git: true            # or false depending on the bootstrap choice
+repo: https://github.com/<user>/<repo>   # empty if not applicable
+stack: [Python, FastAPI, ...]
+last_updated: <YYYY-MM-DD>
+next_milestone: "<free text>"
+reminders_list: "<Reminders list name>"   # "non" if declined, absent if never asked
+category: "<free text>"   # "non" if the user declined a category, absent if never asked
+backlog_model: "adopté"   # automatic at bootstrap; "non" only possible via a declined retrofit; absent only for a project tracked before this feature and not yet retrofitted
+phase_model: "superpowers"   # or "leger"; absent if no phase ever proposed
+language: fr              # en | fr ; absent = inherit language.txt
+---
+```
+
+This is the only strictly structured part of any of these files — the rest is free narrative. This frontmatter is what `generate_portfolio.py` consumes for the portfolio (see below): `project`, `status` and `last_updated` are mandatory, without them the project is simply omitted from the portfolio.
+
+`language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
+
 ## Output language
 
 Everything the skill *writes into a project's tracking files* follows a
@@ -132,29 +155,6 @@ in the old language (you notice it by glancing at `STATUS.md` — `en` vs `fr`
 is unambiguous): propose the full retranslation — see
 `references/writing-tracking-files.md` (`## Retranslating on a language change`).
 
-### `STATUS.md` frontmatter
-
-```yaml
----
-project: <folder name>   # always the folder's own name
-status: active            # active | paused | blocked | archived
-uses_git: true            # or false depending on the bootstrap choice
-repo: https://github.com/<user>/<repo>   # empty if not applicable
-stack: [Python, FastAPI, ...]
-last_updated: <YYYY-MM-DD>
-next_milestone: "<free text>"
-reminders_list: "<Reminders list name>"   # "non" if declined, absent if never asked
-category: "<free text>"   # "non" if the user declined a category, absent if never asked
-backlog_model: "adopté"   # automatic at bootstrap; "non" only possible via a declined retrofit; absent only for a project tracked before this feature and not yet retrofitted
-phase_model: "superpowers"   # or "leger"; absent if no phase ever proposed
-language: fr              # en | fr ; absent = inherit language.txt
----
-```
-
-This is the only strictly structured part of any of these files — the rest is free narrative. This frontmatter is what `generate_portfolio.py` consumes for the portfolio (see below): `project`, `status` and `last_updated` are mandatory, without them the project is simply omitted from the portfolio.
-
-`language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
-
 ## Continuous updates
 
 When you judge that you have made a significant change in a session (new feature, important fix, an architecture decision settled):
@@ -180,13 +180,13 @@ If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, differe
 
 ## Portfolio
 
-A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself** — except once, with the user's approval, right after they change the portfolio folder or title via `/project-tracker:config` (the regeneration hook only fires on `STATUS.md` writes). If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
+A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself** — except once, with the user's approval, right after they change the portfolio folder, title or language via `/project-tracker:config` (the regeneration hook only fires on `STATUS.md` writes). If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
 
-`portfolio.txt` holds the output **folder** on its first non-comment line (a line ending in `.html` is taken as an explicit file path instead); `~`/`$VAR` are expanded. An optional `title:` line anywhere in the file sets the portfolio heading (default: "My projects"). Both are edited via `/project-tracker:config`, never written by this skill directly.
+`portfolio.txt` holds the output **folder** on its first line that is neither a `title:` nor a `language:` line (a line ending in `.html` is taken as an explicit file path instead); `~`/`$VAR` are expanded. An optional `title:` line anywhere in the file sets the portfolio heading (default, locale-dependent: "My projects" / "Mes projets"); an optional `language:` line (`en`/`fr`) overrides the portfolio's output language. All three are edited via `/project-tracker:config`, never written by this skill directly.
 
 Projects are grouped into sections by the `category` frontmatter field — uncategorized first, then categories ordered by most recent activity.
 
-To change the portfolio location or title, or any config (scopes, ignored paths, a project's category), the user runs `/project-tracker:config`.
+To change the portfolio location, title or language, or any config (scopes, ignored paths, output language, a project's category), the user runs `/project-tracker:config`.
 
 ## Retrofitting an existing project
 

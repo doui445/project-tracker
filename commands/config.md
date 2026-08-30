@@ -13,7 +13,7 @@ Show the user the current project-tracker configuration, then help them change i
 2. Ask what they want to change. Handle:
    - **Add / remove a scope** → edit `scopes.txt`
    - **Ignore / un-ignore a path** → edit `trackignore.txt` (absolute path; an entry equal to a scope root ignores only that exact folder, not the projects inside it)
-   - **Move the portfolio** → set the first non-`title:` line of `portfolio.txt` to the new folder
+   - **Move the portfolio** → set the first line that is neither a `title:` nor a `language:` line of `portfolio.txt` to the new folder
    - **Rename the portfolio title** → set or replace the `title:` line in `portfolio.txt`
    - **Change a project's category** → edit the `category` frontmatter of that project's `STATUS.md`
    - **Change the language** — three levels:
