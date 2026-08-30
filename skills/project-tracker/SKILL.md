@@ -94,6 +94,8 @@ Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project 
 
 Optional (created only if requested at bootstrap step 7, in `docs/project-tracker/`): `ARCHITECTURE.md`, `GLOSSARY.md`.
 
+How to write each of these well — reader, structure, what belongs and what does not, worked good/poor examples: see `references/writing-tracking-files.md`. Consult it whenever you create or substantially rewrite one of these files.
+
 ### `STATUS.md` frontmatter
 
 ```yaml

@@ -40,6 +40,8 @@ build workstreams are done:
 - Optional GitHub repo automation via `gh`.
 - Optional Apple Reminders sync (`PostToolUse`, once per session per project).
 - `/project-tracker:config` command (plugin install only).
+- `references/writing-tracking-files.md` gives per-file writing guidance for
+  every standard file; `SKILL.md` points to it.
 - `test_plugin_manifest.py` + the hook/portfolio test suites pass.
 
 ### Known gaps

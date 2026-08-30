@@ -36,3 +36,13 @@ Dated chronological log. Append-only.
   the file table + four capabilities; edge cases (no-git, retrofit, concurrent
   sessions, optional files, frontmatter) collected under a "Details" section.
   Same substance, reordered.
+- New `references/writing-tracking-files.md`: per-file writing guidance for all
+  nine standard files + `ARCHITECTURE.md` / `GLOSSARY.md`. README and CLAUDE.md
+  get good/poor contrasts; STATUS a belongs/doesn't-belong list; the
+  append-only files get structure templates; ROADMAP/BACKLOG defer to
+  `backlog-phases.md` for structure and only add prose notes; ARCHITECTURE
+  also carries a lens for judging the architecture itself; GLOSSARY is framed
+  as a real project dictionary (project meaning + usage context per entry).
+  `SKILL.md` points to it from "The standard files".
+- Fixed a latent bug found on the way: `build_installer.sh` had a hardcoded
+  reference-file list — now globs `references/*.md`.

@@ -38,7 +38,20 @@ write_b64() {
 }
 HEADER
 
-for f in SKILL.md references/reminders-sync.md references/backlog-phases.md hooks/session_start.sh hooks/test_session_start.sh hooks/reminders_sync_trigger.sh hooks/test_reminders_sync_trigger.sh hooks/portfolio_regen.sh hooks/test_portfolio_regen.sh scripts/generate_portfolio.py scripts/test_generate_portfolio.py; do
+# Every reference file is bundled — globbed rather than listed, so a new
+# references/*.md is picked up automatically.
+FILES=(SKILL.md)
+for ref in "$SKILL_DIR"/references/*.md; do
+  FILES+=("references/$(basename "$ref")")
+done
+FILES+=(
+  hooks/session_start.sh hooks/test_session_start.sh
+  hooks/reminders_sync_trigger.sh hooks/test_reminders_sync_trigger.sh
+  hooks/portfolio_regen.sh hooks/test_portfolio_regen.sh
+  scripts/generate_portfolio.py scripts/test_generate_portfolio.py
+)
+
+for f in "${FILES[@]}"; do
   varname=$(echo "$f" | tr '/.' '__')
   {
     echo "cat <<'B64_$varname' | write_b64 \"\$SKILL_DIR/$f\""
