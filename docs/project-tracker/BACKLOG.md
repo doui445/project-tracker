@@ -35,16 +35,20 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   Today `GLOSSARY.md` is created only if the user opts in at bootstrap step 7.
   Change to: not in the unconditional nine, but **created the first time an
   entry earns it** — same "materialise on need" logic as `phase_model` /
-  phases. Triggers:
+  phases. Triggers (any of):
   - the user asks Claude what a *project-specific* term means (jargon, coined
     term, overloaded common word — not general industry vocabulary) → Claude
     answers, then proposes adding it, with the project meaning + where it
     shows up + a usage example;
-  - Claude notices recurring undefined jargon while working.
-  Not two mandatory parts — a single list, thematic grouping only if it grows
-  (guidance already says this). Touches `SKILL.md` (§ Detecting a project's
-  root and bootstrap step 7), `references/writing-tracking-files.md`, and the
-  "nine standard files" framing in `README.md` / `SKILL.md`.
+  - Claude, reading the code or docs (at bootstrap/retrofit or later on),
+    sees the project carries a domain vocabulary of its own → proposes
+    starting the glossary then, with the terms it already spotted;
+  - Claude hits a recurring undefined term while working.
+  Replaces the bootstrap step 7 question ("any domain jargon…?") with
+  Claude's own judgment + a proposal. Single list, thematic grouping only if
+  it grows (guidance already says this). Touches `SKILL.md` (§ Detecting a
+  project's root, bootstrap step 7), `references/writing-tracking-files.md`,
+  and the "nine standard files" framing in `README.md` / `SKILL.md`.
 
 ## Low priority
 
@@ -55,11 +59,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   should offer to remove the `trackignore.txt` line and run the bootstrap,
   rather than leaving the user to edit the file by hand (dogfooding friction,
   2026-08-30).
-
-- [ ] **Hook chattiness in heavy dev sessions** — effort S, value ⭐
-  Every `STATUS.md` write fires `portfolio_regen.sh`; a session that rewrites
-  `STATUS.md` several times regenerates the portfolio each time. By design and
-  cheap, but noisy. Consider a short debounce, or accept as-is and document.
 
 ## Completed
 

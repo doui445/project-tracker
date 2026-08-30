@@ -69,4 +69,10 @@ Dated chronological log. Append-only.
   README drifting into spec. Two remaining threads logged to `BACKLOG.md`:
   `GLOSSARY.md` lazy creation + enrichment loop (medium), and offering to
   un-exclude a `trackignore.txt` folder when the user asks to track it (low).
-  Hook chattiness noted as low / maybe-accept.
+- Correction to the entry above: the "hook chattiness / chatty by design"
+  note was wrong. Checked the hooks — `portfolio_regen.sh` throttles to one
+  run per 10s and injects no context (bar the once-per-session
+  unconfigured-portfolio note); `reminders_sync_trigger.sh` fires once per
+  session per project. Not a friction; the BACKLOG item was dropped. The
+  `GLOSSARY.md` trigger list also gained "Claude spots a domain vocabulary
+  while reading the code/docs → proposes the glossary then".
