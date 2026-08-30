@@ -4,30 +4,6 @@ Raw reservoir of every idea/feature envisaged. Never purged — enriched and
 archived. Statuses: `[ ]` to do · `[~]` in progress · `[x]` done · `[-]`
 abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
-## Medium priority
-
-- [ ] **"Fresh eyes" readability pass on onboarding files after a substantial
-  rewrite** — effort M, value ⭐⭐
-  After Claude substantially rewrites `README.md` (or `ARCHITECTURE.md` /
-  `GLOSSARY.md` / `CLAUDE.md`), run a review pass before moving on. Motivation:
-  this session took three passes on the README because the spec-drift was only
-  caught after the fact.
-  - **Mechanism:** a subagent (fresh eyes — Claude re-reading what it just
-    wrote sees what it *meant*, not what it wrote), given the new file + the
-    diff + the reader definition and rules from
-    `references/writing-tracking-files.md`. Returns a short list of concrete
-    issues or "reads well". Fallback when subagents aren't available: an
-    inline top-to-bottom re-read against the reader definition.
-  - **Checks:** clear hook up top? target reader finds what they need fast?
-    jargon used before it's introduced? drifted from the file's purpose
-    (README → spec)? concrete enough? over-long anywhere?
-  - **Advisory, never a gate.** Claude decides what to apply and shows the
-    user.
-  - **Trigger:** Claude's judgment — a substantial rewrite/restructure, not a
-    one-line fix. Scope limited to README / ARCHITECTURE / GLOSSARY / CLAUDE.
-  - Touches `SKILL.md` (§ Continuous updates) and
-    `references/writing-tracking-files.md`.
-
 ## Low priority
 
 - [ ] **Excluded project: offer to un-exclude when the user asks to track it**
@@ -40,6 +16,11 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Completed
 
+- [x] **"Fresh eyes" readability pass on onboarding files** (0.6.0) — after a
+  substantial write/rewrite of `README` / `CLAUDE.md` / `ARCHITECTURE.md` /
+  `GLOSSARY.md`, a subagent (inline fallback) reviews it against the file's
+  reader definition; advisory, never a gate; runs at bootstrap and on later
+  rewrites. See `DECISIONS.md` (2026-08-30 — Fresh-eyes readability pass).
 - [x] **`GLOSSARY.md`: lazy creation + enrichment loop** (0.5.0) — dropped
   the bootstrap question; the file is created on first need via a proactive
   first-session check plus in-session triggers (user asks a term's meaning,

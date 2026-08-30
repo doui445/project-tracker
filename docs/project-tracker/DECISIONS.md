@@ -139,3 +139,28 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
   small first-session cost on projects that turn out to have no jargon.
 - `ARCHITECTURE.md` keeps its bootstrap question — complexity is a judgment
   better made up front.
+
+## 2026-08-30 — Fresh-eyes readability pass: subagent, advisory, not a gate
+
+- **Context**: this session took three passes on the `README` because the
+  drift into spec-territory was only caught after the fact. An onboarding
+  file, just written, is read by its author as what they *meant*.
+- **Chosen**: after a substantial write/rewrite of an onboarding file
+  (`README` / `CLAUDE.md` / `ARCHITECTURE.md` / `GLOSSARY.md`), run a
+  readability pass — a subagent given the file + diff + the file's reader
+  definition, returning concrete issues or "reads well". Claude applies what
+  it agrees with and reports one line. Runs at bootstrap and on later
+  rewrites.
+- **Rejected**:
+  - a gate (blocks finishing until clean) — too heavy for advisory polish,
+    and readability is a judgment call, not pass/fail;
+  - inline-only (Claude re-reads its own text) — the whole point is *fresh*
+    eyes; a subagent that never saw the draft is the mechanism. Inline is
+    the fallback when subagents aren't available.
+  - covering `STATUS.md` — rewritten every session, a pass each time is
+    noise. Scope is the onboarding files a stranger or a future Claude
+    reads to orient.
+- **Accepted downside**: one subagent dispatch per substantial onboarding
+  rewrite; the trigger is Claude's judgment, so it can misfire either way.
+- Sibling of the retranslation review loop (2026-08-30 — Output language):
+  same shape, different purpose; both in `writing-tracking-files.md`.

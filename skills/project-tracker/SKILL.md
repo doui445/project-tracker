@@ -81,6 +81,8 @@ If `~/.claude/project-tracker/portfolio.txt` does not exist yet (first tracked p
 
 Likewise, if `~/.claude/project-tracker/language.txt` does not exist, ask once which language the tracking files and portfolio should use (English / French) and write the code to `language.txt`. The bootstrap then creates every file in that language (consult `references/i18n/<code>.md` when it is not `en`). No per-project `language:` key is written at bootstrap — it exists only as an explicit override set later via `/project-tracker:config`.
 
+Once `README.md` (and `ARCHITECTURE.md` / `GLOSSARY.md` if you created them) are written, run the fresh-eyes readability pass on each — see `references/writing-tracking-files.md` (`## The fresh-eyes readability pass`).
+
 ## The standard files
 
 Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project root (GitHub/Claude Code auto-discovery); the 7 others in `docs/project-tracker/`:
@@ -174,6 +176,8 @@ This trigger (judging a change to be "significant") is your own judgment, not a 
 - the user asks what a **project-specific** term means (coined term, jargon, a common word used with a specific local meaning — not a standard industry term): answer, then add it, with the project meaning + where it shows up + a short usage example;
 - a project-specific term keeps coming up undefined while you work.
 Format and what to include/exclude: `references/writing-tracking-files.md` (`## GLOSSARY.md`).
+
+**Onboarding files — fresh-eyes readability pass.** If this session substantially rewrote or restructured an onboarding file (`README.md` / `CLAUDE.md` / `ARCHITECTURE.md` / `GLOSSARY.md` — not a targeted edit), run the fresh-eyes readability pass on it before finishing: `references/writing-tracking-files.md` (`## The fresh-eyes readability pass`). Advisory, never a gate.
 
 ### Collisions between concurrent sessions
 

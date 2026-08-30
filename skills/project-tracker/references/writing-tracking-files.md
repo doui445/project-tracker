@@ -280,3 +280,45 @@ still hold content in the old language:
 
 The subagent is a general-purpose / Explore agent: input = the files above,
 output = a report, no writes.
+
+## The fresh-eyes readability pass
+
+**When.** After you substantially write or rewrite an **onboarding file** —
+`README.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `GLOSSARY.md`. Both the first
+version at bootstrap and a later rewrite / restructure. **Not** for a
+targeted one-line edit, the append-only logs, or `STATUS.md` (rewritten
+every session — a pass each time would be noise). "Substantial" is your
+judgment: a rewrite or a restructure, not a tweak.
+
+**Why.** Right after writing, you re-read what you *meant*, not what you
+wrote. A fresh reader catches the drift (a `README` turning into a spec),
+the jargon used before it's introduced, the buried quick start.
+
+**How.**
+
+1. Dispatch a subagent (general-purpose / Explore) with: the file as just
+   written, the diff (old → new, or "new file" at bootstrap), and the reader
+   definition + rules for that file from the sections above. Ask it to answer
+   concretely:
+   - Does the first sentence tell the reader what this is? Is there a clear
+     hook?
+   - Can the target reader find what they need fast — quick start near the
+     top, essentials before edge cases?
+   - Any jargon used before it is introduced?
+   - Has it drifted from the file's purpose (a `README` → spec, a
+     `CLAUDE.md` → history)?
+   - Concrete enough — real commands and paths, not "various things"?
+   - Over-long anywhere; a section to cut or move?
+   It returns a short list of specific issues (where + what + why) or "reads
+   well". **No writes** — it reports.
+2. **Fallback** (no subagent capability): do the same pass yourself, inline —
+   re-read the file top to bottom against the reader definition, as if you
+   had never seen it.
+3. **Advisory.** Apply the findings you agree with, then give the user a
+   one-line summary ("fresh-eyes pass on `README`: tightened the intro,
+   moved the config detail down" / "reads well"). Never a gate, never
+   blocking.
+
+Sibling of `## Retranslating on a language change` — same shape (a subagent
+judges a file against its reader definition, inline fallback), different
+purpose. This one is a single advisory pass, no loop.

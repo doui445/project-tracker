@@ -164,3 +164,18 @@ Dated chronological log. Append-only.
   Continuous updates), `writing-tracking-files.md`, `references/i18n/{en,fr}.md`
   (glossary.title/intro), `README.md`. `DECISIONS.md` entry added.
 - 89 portfolio + 8 manifest + hook suites green; installer regenerated.
+
+## 2026-08-30 — v0.6.0: fresh-eyes readability pass
+
+- After a substantial write/rewrite of an onboarding file (README /
+  CLAUDE.md / ARCHITECTURE.md / GLOSSARY.md), Claude runs a readability
+  pass: a subagent (inline fallback) checks it against the file's reader
+  definition — clear hook, reachable quick start, jargon-before-intro,
+  drift from purpose, concreteness, over-long sections. Advisory, never a
+  gate. Runs at bootstrap and on later rewrites; STATUS.md is excluded.
+- New `## The fresh-eyes readability pass` section in
+  `writing-tracking-files.md`; `SKILL.md` points to it from the bootstrap
+  flow and `## Continuous updates`. `DECISIONS.md` records the
+  subagent-not-inline / advisory-not-gate choices.
+- 89 portfolio + 8 manifest + hook suites green; installer regenerated.
+- Backlog reservoir is now down to one Low item (trackignore un-exclude).

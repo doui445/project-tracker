@@ -12,6 +12,18 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-08-30
+
+### Added
+- **Fresh-eyes readability pass.** After substantially writing or rewriting
+  an onboarding file (`README.md` / `CLAUDE.md` / `ARCHITECTURE.md` /
+  `GLOSSARY.md`), Claude runs a review pass — a subagent (inline fallback)
+  checks it against the file's reader definition for a clear hook, a
+  reachable quick start, jargon introduced before use, drift from the
+  file's purpose, concreteness, and over-long sections. Advisory, never a
+  gate; runs at bootstrap and on later rewrites. See
+  `references/writing-tracking-files.md`.
+
 ## [0.5.0] — 2026-08-30
 
 ### Changed
