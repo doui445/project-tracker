@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.8.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.9.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -42,7 +42,9 @@ build workstreams are done:
 - Continuous upkeep of `STATUS.md` + append-only logs.
 - Optional GitHub repo automation via `gh`.
 - Optional Apple Reminders sync (`PostToolUse`, once per session per project).
-- `/project-tracker:config` command (plugin install only).
+- `/project-tracker:config` command (plugin install only). The skill itself
+  is `project-tracker:track` (renamed from the redundant
+  `project-tracker:project-tracker` in v0.9.0).
 - `references/writing-tracking-files.md` gives per-file writing guidance for
   every standard file; `SKILL.md` points to it.
 - Output language (EN/FR) selectable via `language.txt` + `language:` overrides;
@@ -61,12 +63,12 @@ build workstreams are done:
 
 ## Next 3 actions
 
-The `BACKLOG.md` reservoir is empty. v0.8.0 came out of the first real test on
-another project (`dogfood-project`) — expect more of that.
+The `BACKLOG.md` reservoir is empty. v0.8.0 and v0.9.0 both came out of the
+first real test setup on another project (`dogfood-project`) — expect more.
 
-1. Finish the `dogfood-project` dogfood run: open a session there on v0.8.0, let
-   the proactive tracking prompt fire, run the bootstrap (French README →
-   the EN/FR flow; `docs/superpowers/` → `phase_model` auto-recognition;
-   domain jargon → the proactive glossary check).
+1. Finish the `dogfood-project` dogfood run: update the plugin to v0.9.0, open a
+   session there, let the proactive tracking prompt fire, run the bootstrap
+   (French README → the EN/FR flow; `docs/superpowers/` → `phase_model`
+   auto-recognition; domain jargon → the proactive glossary check).
 2. Capture whatever that surfaces in `BACKLOG.md`.
 3. Cut the next release once `[Unreleased]` has accumulated something.

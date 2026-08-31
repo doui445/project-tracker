@@ -73,7 +73,7 @@ class PluginManifestTests(unittest.TestCase):
 
     def test_i18n_catalogues_have_matching_keys(self):
         import re
-        i18n = REPO / "skills" / "project-tracker" / "references" / "i18n"
+        i18n = REPO / "skills" / "track" / "references" / "i18n"
         key_re = re.compile(r"^- ([a-z0-9_.]+):", re.MULTILINE)
         en = key_re.findall((i18n / "en.md").read_text(encoding="utf-8"))
         fr = key_re.findall((i18n / "fr.md").read_text(encoding="utf-8"))

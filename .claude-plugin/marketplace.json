@@ -6,7 +6,7 @@
       "name": "project-tracker",
       "source": ".",
       "description": "Standard markdown project-tracking files, kept current automatically via hooks.",
-      "version": "0.8.0"
+      "version": "0.9.0"
     }
   ]
 }

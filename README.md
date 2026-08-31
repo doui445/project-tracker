@@ -86,7 +86,7 @@ git clone https://github.com/doui445/project-tracker ~/src/project-tracker
 bash ~/src/project-tracker/install-project-tracker.sh
 ```
 
-The installer copies the skill to `~/.claude/skills/project-tracker/`,
+The installer copies the skill to `~/.claude/skills/track/`,
 registers the three hooks in `~/.claude/settings.json` with an idempotent
 merge, creates `scopes.txt` and `trackignore.txt`, and runs the test suites.
 The `/project-tracker:config` command is only available with the plugin
@@ -154,7 +154,7 @@ in plain language.
   ```
 
 The full behaviour specification lives in
-[`skills/project-tracker/SKILL.md`](skills/project-tracker/SKILL.md).
+[`skills/track/SKILL.md`](skills/track/SKILL.md).
 
 ## License
 

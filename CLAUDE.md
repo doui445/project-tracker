@@ -8,25 +8,25 @@ Instructions for Claude working in this repo. This repo **is** the
 A Claude Code plugin that bootstraps and maintains nine standard Markdown
 tracking files for projects under configured scope roots, manages GitHub repo
 creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
-`skills/project-tracker/SKILL.md`.
+`skills/track/SKILL.md`.
 
 ## Layout
 
-- `skills/project-tracker/SKILL.md` — the full behaviour specification (source
+- `skills/track/SKILL.md` — the full behaviour specification (source
   of truth for how the skill acts).
-- `skills/project-tracker/references/` — `backlog-phases.md`,
+- `skills/track/references/` — `backlog-phases.md`,
   `reminders-sync.md`, `writing-tracking-files.md`, and `i18n/{en,fr}.md`
   (the output-language catalogue).
-- `skills/project-tracker/hooks/` — `session_start.sh`, `reminders_sync_trigger.sh`,
+- `skills/track/hooks/` — `session_start.sh`, `reminders_sync_trigger.sh`,
   `portfolio_regen.sh` (+ their `test_*.sh`). **Self-relative** — never
   hardcode `~/.claude/...` paths in them.
-- `skills/project-tracker/scripts/` — `generate_portfolio.py` (stdlib only,
+- `skills/track/scripts/` — `generate_portfolio.py` (stdlib only,
   no deps) + `test_generate_portfolio.py`, `build_installer.sh`.
 - `.claude-plugin/{plugin,marketplace.json}`, `hooks/hooks.json` — plugin
   manifests. `test_plugin_manifest.py` at the root validates them.
 - `commands/config.md` — the `/project-tracker:config` command.
 - `install-project-tracker.sh` — generated installer for the no-marketplace
-  path. Regenerate with `skills/project-tracker/scripts/build_installer.sh`,
+  path. Regenerate with `skills/track/scripts/build_installer.sh`,
   never hand-edit.
 - `_dev-history/` — gitignored local specs and plans; keep French, do not ship.
 
@@ -37,13 +37,13 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
   sweep" you run by eye), not an automated in-repo gate.
 - Deliberate French exceptions, whitelisted by any "is the shipped skill
   all-English" review:
-  - `skills/project-tracker/references/i18n/` except `en.md` (the `fr.md`
+  - `skills/track/references/i18n/` except `en.md` (the `fr.md`
     catalogue and any future non-English catalogue);
   - the `STRINGS["fr"]` table in
-    `skills/project-tracker/scripts/generate_portfolio.py` (the portfolio's
+    `skills/track/scripts/generate_portfolio.py` (the portfolio's
     French UI strings);
   - the French assertions in
-    `skills/project-tracker/scripts/test_generate_portfolio.py` (they check
+    `skills/track/scripts/test_generate_portfolio.py` (they check
     the `fr` rendering).
 - **Never translate machine values**: frontmatter keys and enum values
   (`active`, `"non"`, `"adopté"`, `"leger"`, `"superpowers"`, …), standard
@@ -59,11 +59,11 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 
 ```bash
 python3 -m unittest test_plugin_manifest
-python3 -m unittest discover -s skills/project-tracker/scripts -p 'test_*.py'
-bash skills/project-tracker/hooks/test_session_start.sh
-bash skills/project-tracker/hooks/test_reminders_sync_trigger.sh
-bash skills/project-tracker/hooks/test_portfolio_regen.sh
-bash skills/project-tracker/scripts/build_installer.sh   # regenerate the installer after skill changes
+python3 -m unittest discover -s skills/track/scripts -p 'test_*.py'
+bash skills/track/hooks/test_session_start.sh
+bash skills/track/hooks/test_reminders_sync_trigger.sh
+bash skills/track/hooks/test_portfolio_regen.sh
+bash skills/track/scripts/build_installer.sh   # regenerate the installer after skill changes
 ```
 
 ## Git / GitHub
@@ -89,7 +89,7 @@ is declared stable):
 1. Bump `version` in **both** `.claude-plugin/plugin.json` and
    `.claude-plugin/marketplace.json` — kept equal, `test_plugin_manifest.py`
    enforces it.
-2. Regenerate the installer: `bash skills/project-tracker/scripts/build_installer.sh`.
+2. Regenerate the installer: `bash skills/track/scripts/build_installer.sh`.
 3. In `docs/project-tracker/CHANGELOG.md`: rename `[Unreleased]` to
    `[X.Y.Z] — YYYY-MM-DD`, add a fresh empty `[Unreleased]` above it.
    Update `STATUS.md` (version, next actions), append to `JOURNAL.md`, move

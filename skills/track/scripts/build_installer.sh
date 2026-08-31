@@ -22,7 +22,7 @@ cat > "$OUT" <<'HEADER'
 # Usage: bash install-project-tracker.sh
 set -euo pipefail
 
-SKILL_DIR="$HOME/.claude/skills/project-tracker"
+SKILL_DIR="$HOME/.claude/skills/track"
 SCOPES_DIR="$HOME/.claude/project-tracker"
 SETTINGS_FILE="$HOME/.claude/settings.json"
 SKILLS_ROOT="$HOME/.claude/skills"

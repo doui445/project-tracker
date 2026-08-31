@@ -100,7 +100,7 @@ if [ ! -f "$PORTFOLIO_FILE" ]; then
   touch "$MARKER" 2>/dev/null || true
   python3 -c '
 import json
-print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": "project-tracker: portfolio output location not configured - invoke the project-tracker skill and propose an output folder to the user (see SKILL.md ## Portfolio)."}}))
+print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": "project-tracker: portfolio output location not configured - invoke the project-tracker:track skill and propose an output folder to the user (see SKILL.md ## Portfolio)."}}))
 '
   exit 0
 fi

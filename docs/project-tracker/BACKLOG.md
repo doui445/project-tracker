@@ -48,4 +48,4 @@ here as they surface from real use._
 Cycle: start a phase (pick coherent items, group them) → track progress
 (`[~]`) → archive on closure (`[x]`, then move to a **Completed** section at
 the bottom of this file). Phases are proposed, never automatic — see
-`skills/project-tracker/references/backlog-phases.md`.
+`skills/track/references/backlog-phases.md`.

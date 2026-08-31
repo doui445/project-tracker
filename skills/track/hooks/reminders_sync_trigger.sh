@@ -120,7 +120,7 @@ import json, os
 name = os.environ.get("CTX_PROJECT_NAME", "")
 ref_path = os.environ.get("CTX_REF_PATH", "")
 msg = ("STATUS.md/ROADMAP.md for " + name +
-       " was just modified - invoke the project-tracker skill "
+       " was just modified - invoke the project-tracker:track skill "
        "(if not already done this session) then check the Reminders "
        "sync (full diff, see " + ref_path + ") before ending this "
        "turn.")

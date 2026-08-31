@@ -12,6 +12,17 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-08-31
+
+### Changed
+- **The skill is renamed `track`** — invoked `project-tracker:track` instead
+  of the redundant `project-tracker:project-tracker`. `skills/project-tracker/`
+  → `skills/track/`; `hooks.json`, the installer and the doc paths follow.
+  The plugin name (`project-tracker`), the `/project-tracker:config` command,
+  the `~/.claude/project-tracker/` config dir and the `docs/project-tracker/`
+  output folder are all unchanged. If you ever typed
+  `/project-tracker:project-tracker`, use `/project-tracker:track` now.
+
 ## [0.8.0] — 2026-08-31
 
 ### Changed

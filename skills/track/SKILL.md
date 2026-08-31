@@ -1,5 +1,5 @@
 ---
-name: project-tracker
+name: track
 description: Bootstraps and keeps up to date a standard set of markdown tracking files (README, ROADMAP, STATUS, JOURNAL, CHANGELOG, CLAUDE, DECISIONS, ERRORS, BACKLOG) for projects under the scopes defined in ~/.claude/project-tracker/scopes.txt, manages GitHub repo creation, and regenerates PORTFOLIO.html. Use it at the start of a session in a project under those scopes, after a significant change, or explicitly on request.
 ---
 

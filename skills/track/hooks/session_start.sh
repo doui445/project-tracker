@@ -78,8 +78,8 @@ if [ -n "$STATUS_FILE" ]; then
   printf '%s\n' "$FM" | grep -q '^category:'       || MISSING="$MISSING category"
   [ -f "$HOME/.claude/project-tracker/portfolio.txt" ] || MISSING="$MISSING portfolio.txt(global)"
   echo "[project-tracker] Session opened in a tracked project ($ROOT)."
-  [ -n "$MISSING" ] && echo "Not yet configured -> invoke the project-tracker skill and ask about:$MISSING"
-  echo "Invoke the project-tracker skill: compare last_updated (frontmatter below) with the last real activity (latest git commit if uses_git=true, otherwise file modification dates) and propose an update if needed. Do not write anything without checking the current state of the files first."
+  [ -n "$MISSING" ] && echo "Not yet configured -> invoke the project-tracker:track skill and ask about:$MISSING"
+  echo "Invoke the project-tracker:track skill: compare last_updated (frontmatter below) with the last real activity (latest git commit if uses_git=true, otherwise file modification dates) and propose an update if needed. Do not write anything without checking the current state of the files first."
   echo "--- STATUS.md frontmatter ---"
   printf '%s\n' "$FM" | head -c 4000
   echo
@@ -87,7 +87,7 @@ if [ -n "$STATUS_FILE" ]; then
 fi
 
 echo "[project-tracker] UNTRACKED project in this folder ($CWD) — scope $SCOPE_ROOT."
-echo "This is the session's opening move. Before anything else, invoke the project-tracker skill and ask the user — as a selectable multiple-choice question (AskUserQuestion), not prose — whether to track this project:"
+echo "This is the session's opening move. Before anything else, invoke the project-tracker:track skill and ask the user — as a selectable multiple-choice question (AskUserQuestion), not prose — whether to track this project:"
 echo "  - \"Yes, set it up\"      -> run the bootstrap questions, then create the standard files."
 echo "  - \"No, don't ask again\" -> add \"$CWD\" as a line in $IGNORE_FILE (create the file if needed). Stop."
 echo "  - \"Not now\"             -> do nothing; this prompt returns next session in this folder."

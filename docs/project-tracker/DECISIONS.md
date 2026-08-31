@@ -190,3 +190,31 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
 - **Accepted downside**: a user who opens a session in a new folder purely to
   do one quick unrelated thing gets one extra multiple-choice prompt first
   ("Not now" dismisses it).
+
+## 2026-08-31 — The skill is named `track`, not `project-tracker`
+
+- **Context**: a plugin's skill is invoked `plugin:skill`. Every other
+  plugin names its skills by function (`superpowers:brainstorming`,
+  `claude-code-java:git-commit`). This plugin's single skill was named
+  `project-tracker`, same as the plugin → `project-tracker:project-tracker`,
+  redundant and ugly.
+- **Chosen**: rename the skill to `track` → `project-tracker:track`.
+  `skills/project-tracker/` → `skills/track/`, `SKILL.md` `name: track`,
+  `hooks.json` / `build_installer.sh` / doc paths updated. Earlier entries in
+  this file still reference the old `skills/project-tracker/` path — that was
+  correct when written.
+- **Rejected**:
+  - splitting the plugin into several skills (`bootstrap` / `update` /
+    `sync` / `portfolio`) — they are facets of one workflow on the same
+    `STATUS.md` / frontmatter / conventions, chained within a session;
+    splitting means duplicating the "resolve the root / read the frontmatter
+    / resolve the language" preamble or a shared core every sub-skill loads
+    (the monolith with extra indirection), plus inter-skill orchestration.
+  - `bootstrap` / `setup` as the name — too narrow; the skill also does
+    continuous upkeep, the portfolio, retrofit.
+- **Accepted downside**: `/project-tracker:project-tracker` stops working
+  (a `0.x` breaking change, called out in the changelog). A script-install's
+  old `~/.claude/skills/project-tracker/` is orphaned on the next install.
+- **Unchanged**: the plugin name, `/project-tracker:config`, the
+  `~/.claude/project-tracker/` config dir, the `docs/project-tracker/` output
+  namespace.

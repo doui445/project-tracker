@@ -231,3 +231,18 @@ Dated chronological log. Append-only.
   `README.md` Quick start reworded. `DECISIONS.md` records the choice.
 - Plugin updated to v0.7.1 on this machine before the test; v0.8.0 tagged.
 - 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.
+
+## 2026-08-31 — v0.9.0: skill renamed to `track`
+
+- Prompted by the ugly `project-tracker:project-tracker` invocation. The
+  single skill is now `track` → `project-tracker:track`.
+  `skills/project-tracker/` → `skills/track/` (git mv), `SKILL.md`
+  `name: track`, `hooks.json` / `build_installer.sh` / `test_plugin_manifest.py`
+  / `CLAUDE.md` / `README.md` / `commands/config.md` path refs updated, hook
+  messages name `project-tracker:track` precisely.
+- Considered and rejected splitting the plugin into multiple skills — it is
+  one coherent workflow (see `DECISIONS.md`).
+- Unchanged: plugin name, `/project-tracker:config`, `~/.claude/project-tracker/`
+  config dir, `docs/project-tracker/` output namespace. Historical
+  `DECISIONS.md` entries keep the old `skills/project-tracker/` path.
+- 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.
