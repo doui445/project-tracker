@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.7.1**. The four
+`project-tracker` is a published Claude Code plugin at **v0.8.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -35,7 +35,8 @@ build workstreams are done:
 ### What works
 
 - `SessionStart` hook detects tracked / new / excluded projects within the
-  `scopes.txt` roots.
+  `scopes.txt` roots. On a **new** project it makes Claude open the session
+  with a selectable **Yes / No / Not now** tracking prompt, automatically.
 - Bootstrap creates the nine standard files plus optional
   `ARCHITECTURE.md` / `GLOSSARY.md`.
 - Continuous upkeep of `STATUS.md` + append-only logs.
@@ -60,12 +61,12 @@ build workstreams are done:
 
 ## Next 3 actions
 
-The `BACKLOG.md` reservoir is empty — every planned item has shipped
-(v0.4.0 → v0.7.1). No queued work.
+The `BACKLOG.md` reservoir is empty. v0.8.0 came out of the first real test on
+another project (`dogfood-project`) — expect more of that.
 
-1. Let the next themes surface from real use / dogfooding, and add them to
-   `BACKLOG.md` as they come up.
-2. Install the plugin somewhere and use it on a fresh project — the
-   proactive glossary check, the fresh-eyes pass and the EN/FR flow have
-   only been exercised on this repo.
+1. Finish the `dogfood-project` dogfood run: open a session there on v0.8.0, let
+   the proactive tracking prompt fire, run the bootstrap (French README →
+   the EN/FR flow; `docs/superpowers/` → `phase_model` auto-recognition;
+   domain jargon → the proactive glossary check).
+2. Capture whatever that surfaces in `BACKLOG.md`.
 3. Cut the next release once `[Unreleased]` has accumulated something.

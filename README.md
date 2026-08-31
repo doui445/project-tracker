@@ -21,8 +21,9 @@ Restart Claude Code, then tell it which folders to watch — either run
 directly (one path per line, e.g. `~/code`).
 
 Now open a session in any project under one of those folders. If it's new,
-Claude offers to set it up (a handful of questions — goal, stack, git); if it's
-already tracked, Claude picks up where the files left off.
+Claude opens with a **yes / no / not-now** prompt to track it (then a handful of
+questions — goal, stack, git); if it's already tracked, Claude picks up where
+the files left off.
 
 ## What you get
 

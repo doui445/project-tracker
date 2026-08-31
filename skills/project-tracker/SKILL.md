@@ -45,8 +45,11 @@ When you are invoked via the `SessionStart` hook reminder, it already tells you 
 
 A sequence of questions, one at a time, never an assumption:
 
-1. *"This folder isn't tracked yet — shall I set up tracking?"*
-   - If no → add the folder's absolute path to `~/.claude/project-tracker/trackignore.txt` (create the file if it doesn't exist). End of flow, no justification required.
+1. **On an untracked project this is the session's opening move — asked automatically, before responding to anything else. The user never has to request it.** (An *excluded* project stays silent — tracking there starts only if the user raises it, see the **Excluded** bullet under `## Detecting a project's root`.) Ask via `AskUserQuestion` (selectable choices, not prose):
+   *"This folder isn't tracked. Set up project-tracker here?"*
+   - **Yes, set it up** → continue to step 2.
+   - **No, don't ask again** → add the folder's absolute path to `~/.claude/project-tracker/trackignore.txt` (create the file if it doesn't exist). End of flow, no justification required.
+   - **Not now** → write nothing. The `SessionStart` hook asks again next session in this folder.
 2. *"The project's goal in a few words?"* → will feed the README intro and the first STATUS.md.
 3. *"Tech stack?"*
 4. *"How do you want to handle git?"* — three options to offer:

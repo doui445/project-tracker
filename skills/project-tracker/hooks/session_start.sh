@@ -86,6 +86,10 @@ if [ -n "$STATUS_FILE" ]; then
   exit 0
 fi
 
-echo "[project-tracker] No tracking detected in this folder ($CWD), scope $SCOPE_ROOT."
-echo "Invoke the project-tracker skill and start the bootstrap: first ask whether this folder should be tracked (otherwise add its absolute path to $IGNORE_FILE), then ask the bootstrap questions before creating the standard files."
+echo "[project-tracker] UNTRACKED project in this folder ($CWD) — scope $SCOPE_ROOT."
+echo "This is the session's opening move. Before anything else, invoke the project-tracker skill and ask the user — as a selectable multiple-choice question (AskUserQuestion), not prose — whether to track this project:"
+echo "  - \"Yes, set it up\"      -> run the bootstrap questions, then create the standard files."
+echo "  - \"No, don't ask again\" -> add \"$CWD\" as a line in $IGNORE_FILE (create the file if needed). Stop."
+echo "  - \"Not now\"             -> do nothing; this prompt returns next session in this folder."
+echo "Do not wait for the user to bring it up — the question is asked automatically."
 exit 0

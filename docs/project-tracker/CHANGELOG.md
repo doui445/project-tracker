@@ -12,6 +12,17 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-08-31
+
+### Changed
+- **Untracked project → the tracking question is asked automatically.** The
+  `SessionStart` hook on a new folder now instructs Claude to open the
+  session with a selectable **Yes / No, don't ask again / Not now** prompt
+  (`AskUserQuestion`), instead of a passive "not tracked" note the user had
+  to act on. "No" adds the folder to `trackignore.txt`; "Not now" writes
+  nothing and the prompt returns next session. Excluded folders are
+  unchanged — silent unless the user raises it.
+
 ## [0.7.1] — 2026-08-31
 
 ### Fixed

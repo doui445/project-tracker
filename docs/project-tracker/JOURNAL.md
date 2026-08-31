@@ -216,3 +216,18 @@ Dated chronological log. Append-only.
 - The repo-audit fixes from `[Unreleased]` shipped as a patch: `JOURNAL.md`
   home-path genericised, `ROADMAP.md` / `CLAUDE.md` unstaled, `README.md`
   tidied. No behaviour change. `v0.7.1` tagged and pushed.
+
+## 2026-08-31 — v0.8.0: proactive tracking prompt
+
+- First real dogfood attempt on another project surfaced this: on an
+  untracked folder the `SessionStart` hook only injected a passive "not
+  tracked" note — Claude didn't open with the question, and asked in prose
+  when it did.
+- Fix: the hook's new-project message is now an explicit opening-move
+  instruction — invoke the skill and ask, before anything else, via
+  `AskUserQuestion`: **Yes, set it up** / **No, don't ask again**
+  (→ `trackignore.txt`) / **Not now** (→ nothing, re-asked next session).
+  `SKILL.md § Bootstrapping` step 1 and `test_session_start.sh` updated;
+  `README.md` Quick start reworded. `DECISIONS.md` records the choice.
+- Plugin updated to v0.7.1 on this machine before the test; v0.8.0 tagged.
+- 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.

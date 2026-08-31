@@ -164,3 +164,29 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
   rewrite; the trigger is Claude's judgment, so it can misfire either way.
 - Sibling of the retranslation review loop (2026-08-30 — Output language):
   same shape, different purpose; both in `writing-tracking-files.md`.
+
+## 2026-08-31 — Untracked project: ask automatically, with selectable choices
+
+- **Context**: on a new folder under a scope, the `SessionStart` hook injected
+  a "not tracked — invoke the skill and ask" note. In practice Claude treated
+  it as background context and often didn't open with the question, and when
+  it did it was prose. Dogfooding: the user wanted the question *put to them*,
+  not something they had to request.
+- **Chosen**: the hook message is now an explicit opening-move instruction —
+  invoke the skill and ask, before anything else, via `AskUserQuestion`:
+  **Yes, set it up** / **No, don't ask again** (→ `trackignore.txt`) /
+  **Not now** (→ nothing, re-asked next session).
+- **Rejected**:
+  - a two-option Yes/No — no graceful "later"; a user mid-task would be forced
+    to either commit or permanently exclude.
+  - keeping the "user must ask" model for untracked projects — the whole point
+    is that the tool surfaces itself; making the user remember to ask defeats
+    it. (The *excluded* state keeps "only if the user raises it" — that
+    silence is deliberate, see 2026-08-31 — un-exclude on request... actually
+    2026-08-30 — v0.7.0.)
+  - a hook that runs the bootstrap directly — hooks are deterministic and
+    can't hold a conversation; the question and everything after it stay in
+    the skill.
+- **Accepted downside**: a user who opens a session in a new folder purely to
+  do one quick unrelated thing gets one extra multiple-choice prompt first
+  ("Not now" dismisses it).

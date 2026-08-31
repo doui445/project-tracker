@@ -67,11 +67,15 @@ mkdir -p "$TRACKED/subdir/deep"
 OUT="$(run_hook "$TRACKED/subdir/deep")"
 assert_contains "$OUT" "tracked project" "subfolder of a tracked project -> finds the root"
 
-# Case 4: cwd within the scope, not tracked, not ignored -> bootstrap reminder
+# Case 4: cwd within the scope, not tracked, not ignored -> proactive tracking prompt
 NEW="$SCOPE_ROOT/new-project"
 mkdir -p "$NEW"
 OUT="$(run_hook "$NEW")"
-assert_contains "$OUT" "No tracking detected" "new folder -> bootstrap reminder"
+assert_contains "$OUT" "UNTRACKED project" "new folder -> untracked flag"
+assert_contains "$OUT" "AskUserQuestion" "new folder -> selectable-choice question"
+assert_contains "$OUT" "Yes, set it up" "new folder -> yes option"
+assert_contains "$OUT" "No, don't ask again" "new folder -> no option"
+assert_contains "$OUT" "Not now" "new folder -> not-now option"
 
 # Case 5: cwd within the scope, not tracked, but in the global trackignore.txt -> silence
 IGNORED="$SCOPE_ROOT/ignored-project"
@@ -183,7 +187,7 @@ DOCS_NO_PT="$SCOPE_ROOT/docs-without-project-tracker"
 mkdir -p "$DOCS_NO_PT/docs"
 echo "notes" > "$DOCS_NO_PT/docs/notes.md"
 OUT="$(run_hook "$DOCS_NO_PT")"
-assert_contains "$OUT" "No tracking detected" "docs/ without project-tracker/ -> not tracked, bootstrap reminder"
+assert_contains "$OUT" "UNTRACKED project" "docs/ without project-tracker/ -> not tracked, prompt shown"
 
 # Case 12 (new): an entry in trackignore.txt equal to a scope root ignores
 # ONLY that exact folder -- the projects inside it are still detected.
@@ -224,7 +228,7 @@ mkdir -p "$TILDE_SCOPE/proj"
 printf '%s\n~/tildescope\n' "$SCOPE_ROOT" > "$TMP_HOME/.claude/project-tracker/scopes.txt"
 : > "$TMP_HOME/.claude/project-tracker/trackignore.txt"
 OUT="$(run_hook "$TILDE_SCOPE/proj")"
-assert_contains "$OUT" "No tracking detected" "~ scope entry -> resolved, folder seen as new"
+assert_contains "$OUT" "UNTRACKED project" "~ scope entry -> resolved, folder seen as new"
 
 if [ "$FAIL" -eq 1 ]; then
   echo "Some tests failed."
