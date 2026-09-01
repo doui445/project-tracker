@@ -5,7 +5,7 @@ uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
 last_updated: 2026-09-01
-next_milestone: "Backlog empty — next themes from real use / dogfooding"
+next_milestone: "Dogfood run on dogfood-project (v0.11.0)"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.10.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.11.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).

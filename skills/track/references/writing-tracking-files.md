@@ -254,9 +254,12 @@ When a project's effective output language changes (via
 `/project-tracker:config`, project or global level) and its tracking files
 still hold content in the old language:
 
-1. **List** the affected files and **propose** a full retranslation. If the
-   user declines, only new content follows the new language from now on
-   (a mixed state — acceptable); stop here.
+1. **List** the affected files and **propose** a full retranslation, in plain
+   terms: *"The tracking files are written in `<old>` but the language is now
+   `<new>`. Retranslate all of them now, or leave them and only write new
+   content in `<new>` from here on?"*
+   - **Retranslate now** *(recommended unless the files are very large)* → step 2.
+   - **Leave them** → a mixed state, acceptable; stop here.
 2. For each file, if accepted:
    - Retranslate: headings and template phrases from
      `references/i18n/<new-code>.md`, prose translated faithfully. **Append-only

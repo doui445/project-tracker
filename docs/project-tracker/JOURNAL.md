@@ -258,3 +258,14 @@ Dated chronological log. Append-only.
 - Also updated the "don't over-edit tracking files" habit (memory) — this
   release batched the doc updates into one pass.
 - 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.
+
+## 2026-09-01 — v0.11.0: plain-language questions
+
+- `SKILL.md` gains `## Asking questions` (assume the answerer isn't a power
+  user: plain wording, one line per option on what it changes, a
+  context-based **(recommended)** hint). Every question reworded to match:
+  bootstrap git/Reminders/category/ARCHITECTURE, first-run portfolio/language/
+  console-view, the phase + superpowers + backlog-model prompts (in
+  `backlog-phases.md`), retranslation (`writing-tracking-files.md`), the
+  un-exclude prompt.
+- 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.

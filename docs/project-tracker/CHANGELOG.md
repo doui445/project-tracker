@@ -12,6 +12,17 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-09-01
+
+### Changed
+- **Every question the skill asks is now written for a non-technical user.**
+  New `## Asking questions` principle in `SKILL.md` (plain language; one line
+  per option on what it changes; a context-based **(recommended)** hint). The
+  bootstrap questions (git handling, Reminders, category, `ARCHITECTURE.md`),
+  the first-run config questions (portfolio location, language, console
+  view), the phase / `superpowers` / backlog-model prompts, retranslation and
+  the un-exclude prompt are all reworded to match.
+
 ## [0.10.0] — 2026-09-01
 
 ### Added

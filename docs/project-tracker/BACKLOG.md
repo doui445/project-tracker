@@ -6,15 +6,15 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Open
 
-- [ ] **Plain-language pass on every question the skill asks** — effort M,
-  value ⭐⭐. Go through each question (bootstrap Q1–Q7, the first-run config
-  questions, backlog/phase-model adoption, GLOSSARY proposal, retranslation,
-  console view, un-exclude, retrofit): phrase it for a non-technical user;
-  where a choice has consequences, say in one line what each option changes;
-  add a **(recommended)** hint to the option that fits the detected context.
-  Touches `SKILL.md`, `references/backlog-phases.md`. Raised 2026-09-01.
+_Empty — nothing queued._
 
 ## Completed
+
+- [x] **Plain-language pass on every question the skill asks** (0.11.0) — new
+  `## Asking questions` principle (plain wording, per-option effect, a
+  context-based **(recommended)** hint) + every bootstrap / first-run /
+  phase / retranslation / un-exclude question reworded to match. `SKILL.md`,
+  `references/backlog-phases.md`, `references/writing-tracking-files.md`.
 
 - [x] **Excluded project: offer to un-exclude when the user asks to track it**
   (0.7.0) — when the user asks to track a `trackignore.txt`-excluded folder,
