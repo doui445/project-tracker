@@ -35,6 +35,14 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 - **Shipped strings are English.** Prose, comments, messages, generated HTML.
   Keep test fixtures ASCII/English. This is a review discipline (a "French
   sweep" you run by eye), not an automated in-repo gate.
+- **No real names or personal data anywhere in the repo** — including the
+  self-tracking files under `docs/project-tracker/`, which are committed and
+  public. When a note needs to refer to one of the user's other projects,
+  use a generic placeholder ("a dogfood project", "an external project", "a
+  git sub-repo"), never the actual name, folder path, or Reminders-list name.
+  `doui445` (the GitHub handle in the manifests and URLs) is the sole
+  exception. Run this "names sweep" by eye alongside the French sweep before
+  every commit.
 - Deliberate French exceptions, whitelisted by any "is the shipped skill
   all-English" review:
   - `skills/track/references/i18n/` except `en.md` (the `fr.md`
