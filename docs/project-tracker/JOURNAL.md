@@ -301,3 +301,14 @@ Discussion off that run. Added to `BACKLOG.md` (Open):
 
 Decision: hold the next release until 3–4 solid items have accumulated, then
 ship one larger update with a single migration pass for tracked projects.
+
+## 2026-09-01 — Repo privacy: names sweep + history scrub
+
+- New `CLAUDE.md` convention: **no real project names or personal data
+  anywhere in the repo**, self-tracking files included — generic placeholders
+  only (`doui445` in the manifests is the sole exception). Run this "names
+  sweep" by eye alongside the French sweep before every commit.
+- One pre-existing leak (a project folder name in `STATUS.md`, present across
+  the v0.8.0–v0.11.0 line) scrubbed from **all git history** with
+  `git-filter-repo`, then force-pushed. `main` + tags v0.8.0/v0.9.0/v0.10.0/
+  v0.11.0 were rewritten. A pre-rewrite backup bundle was kept.
