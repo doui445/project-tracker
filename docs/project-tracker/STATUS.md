@@ -4,7 +4,7 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-09-01
+last_updated: 2026-09-02
 next_milestone: "Design the nested-tracking model (umbrella project + git sub-repos)"
 reminders_list: "Project tracker"
 category: "Skill Claude"
@@ -71,13 +71,18 @@ build workstreams are done:
 The first external dogfood run happened (v0.11.0 plugin): bootstrap ran on a
 parent folder (French, a category, a linked Reminders list, `uses_git: false`
 because the git repo sits in a sub-folder), nine files created. It surfaced
-one backlog item.
+two backlog items and a privacy pass (names sweep + history scrub, done this
+session). Decision: **no release yet** — let `BACKLOG.md` accumulate ~3–4
+solid items, then ship one larger update whose migration pass re-prompts
+already-tracked projects once. Installed users are unaffected until then (the
+plugin cache is pinned to the `version` field; the next bump distributes the
+scrubbed history).
 
-1. Brainstorm + design the **nested-tracking model** — an umbrella project
-   whose git sub-repos each get a repo-facing micro-tracked subset. See
-   `BACKLOG.md` (Open). Big enough to warrant its own phase/spec.
-2. Keep capturing findings from ongoing external dogfood use in `BACKLOG.md`.
-   Two items queued so far (nested tracking, portfolio detail sub-pages).
-3. Hold the next release until ~3–4 solid items have accumulated, then ship
-   one larger update with a single migration / re-prompt pass for
-   already-tracked projects.
+1. Brainstorm + write a spec for the **nested-tracking model** — an umbrella
+   project whose git sub-repos each get a repo-facing micro-tracked subset,
+   plus the migration / re-prompt path for existing tracked projects. See
+   `BACKLOG.md` (Open). Big enough for its own phase.
+2. Design the **portfolio detail sub-pages** (second queued item) — likely
+   folds into the same release. See `BACKLOG.md` (Open).
+3. Keep capturing findings from ongoing external dogfood use in `BACKLOG.md`;
+   cut the batched release once ~3–4 items are ready.
