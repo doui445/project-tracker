@@ -6,8 +6,13 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Open
 
-_Empty — every planned item has shipped (v0.4.0 → v0.7.0). Add new ideas
-here as they surface from real use._
+- [ ] **Plain-language pass on every question the skill asks** — effort M,
+  value ⭐⭐. Go through each question (bootstrap Q1–Q7, the first-run config
+  questions, backlog/phase-model adoption, GLOSSARY proposal, retranslation,
+  console view, un-exclude, retrofit): phrase it for a non-technical user;
+  where a choice has consequences, say in one line what each option changes;
+  add a **(recommended)** hint to the option that fits the detected context.
+  Touches `SKILL.md`, `references/backlog-phases.md`. Raised 2026-09-01.
 
 ## Completed
 
