@@ -269,3 +269,35 @@ Dated chronological log. Append-only.
   `backlog-phases.md`), retranslation (`writing-tracking-files.md`), the
   un-exclude prompt.
 - 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.
+
+## 2026-09-01 — First external dogfood run: nested-tracking gap
+
+First real dogfood of the v0.11.0 plugin, on an external project.
+
+- Bootstrap ran on a **parent** folder (user's deliberate choice), French, a
+  category, a linked Reminders list, `uses_git: false`. Nine standard files
+  created.
+- The proactive prompts (tracking, console-view, language) fired as designed;
+  no friction reported on the bootstrap flow itself.
+- **Gap surfaced:** the parent is *one* project, but the shipped code lives in
+  a git sub-repo that is what gets pushed to GitHub. The skill has no model
+  for micro-tracking such a sub-repo (repo-facing `README`, optional
+  `ARCHITECTURE.md`, `CHANGELOG.md`) while the parent chaperones it and
+  reports its progress. The git hooks only ever look at the tracked root, so
+  with the parent at `uses_git: false` the collision diff / commit offer /
+  staleness checks don't reach the sub-repo. Captured in `BACKLOG.md` (Open),
+  to be brainstormed before building.
+
+## 2026-09-01 — Planning: two more backlog items
+
+Discussion off that run. Added to `BACKLOG.md` (Open):
+- **Portfolio detail sub-page per project** — click through from
+  `PORTFOLIO.html` to a per-project page (STATUS + current ROADMAP phase +
+  recent JOURNAL + latest CHANGELOG + a GitHub link with the mark), instead
+  of jumping to GitHub.
+- Note on the nested-tracking item: a second project is an intended user of
+  that model; the migration/re-prompt path for already-tracked projects is
+  part of the item's scope.
+
+Decision: hold the next release until 3–4 solid items have accumulated, then
+ship one larger update with a single migration pass for tracked projects.

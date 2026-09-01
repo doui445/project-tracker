@@ -5,7 +5,7 @@ uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
 last_updated: 2026-09-01
-next_milestone: "Dogfood run on dogfood-project (v0.11.0)"
+next_milestone: "Design the nested-tracking model (umbrella project + git sub-repos)"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -61,16 +61,23 @@ build workstreams are done:
 
 ### Known gaps
 
-- None tracked.
+- **Nested tracking not supported.** A dogfood run set tracking on a parent
+  folder that is one project with a git sub-repo underneath; the skill has no
+  model for lightly micro-tracking such sub-repos while the parent chaperones
+  them. Captured in `BACKLOG.md` (Open).
 
 ## Next 3 actions
 
-The `BACKLOG.md` reservoir is empty. v0.8.0–v0.10.0 all came out of the first
-real test setup on another project (`dogfood-project`) — expect more.
+The first external dogfood run happened (v0.11.0 plugin): bootstrap ran on a
+parent folder (French, a category, a linked Reminders list, `uses_git: false`
+because the git repo sits in a sub-folder), nine files created. It surfaced
+one backlog item.
 
-1. Finish the `dogfood-project` dogfood run: update the plugin to v0.10.0, open a
-   session there, let the proactive tracking prompt + console-view question
-   fire, run the bootstrap (French README → EN/FR flow; `docs/superpowers/` →
-   `phase_model` auto-recognition; domain jargon → the glossary check).
-2. Capture whatever that surfaces in `BACKLOG.md`.
-3. Cut the next release once `[Unreleased]` has accumulated something.
+1. Brainstorm + design the **nested-tracking model** — an umbrella project
+   whose git sub-repos each get a repo-facing micro-tracked subset. See
+   `BACKLOG.md` (Open). Big enough to warrant its own phase/spec.
+2. Keep capturing findings from ongoing external dogfood use in `BACKLOG.md`.
+   Two items queued so far (nested tracking, portfolio detail sub-pages).
+3. Hold the next release until ~3–4 solid items have accumulated, then ship
+   one larger update with a single migration / re-prompt pass for
+   already-tracked projects.
