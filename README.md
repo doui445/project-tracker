@@ -94,11 +94,10 @@ install.
 
 ## Configuration
 
-Up to four files in `~/.claude/project-tracker/`. The plugin/installer creates
-`scopes.txt` and `trackignore.txt`; `portfolio.txt` appears the first time you
-set a portfolio location, `language.txt` the first time you're asked for an
-output language. In all of them, `~` and `$VAR` are expanded and `#` comments
-are ignored.
+Up to five files in `~/.claude/project-tracker/`. The plugin/installer creates
+`scopes.txt` and `trackignore.txt`; `portfolio.txt`, `language.txt` and
+`prefs.txt` each appear the first time the matching question is asked. In all
+of them, `~` and `$VAR` are expanded and `#` comments are ignored.
 
 - **`scopes.txt`** — one path per line. Everything under these roots gets
   auto-detection.
@@ -111,6 +110,10 @@ are ignored.
 - **`language.txt`** — the machine-global output language for the tracking
   files and portfolio: `en` or `fr`, default `en`, asked once at first
   bootstrap.
+- **`prefs.txt`** — machine preferences. Today just `console_view:` — since
+  the skill rewrites several files per session, it offers once to fold Claude
+  Code's transcript to the condensed "chat" view (everywhere, only in tracked
+  projects, or not at all).
 
 `/project-tracker:config` (plugin install only) views and changes all of this
 in plain language.

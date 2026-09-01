@@ -218,3 +218,25 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
 - **Unchanged**: the plugin name, `/project-tracker:config`, the
   `~/.claude/project-tracker/` config dir, the `docs/project-tracker/` output
   namespace.
+
+## 2026-09-01 — The skill offers to fold the console view (three scopes)
+
+- **Context**: dogfooding on another project, the transcript filled with the
+  edit diffs of every tracking-file write. Claude Code has no setting to hide
+  just edit diffs; `defaultView: "chat"` folds all tool activity and is read
+  at session start (a mid-session toggle can't work — the diffs render as the
+  writes happen).
+- **Chosen**: ask once per machine (`prefs.txt` absent = ask), three scopes:
+  `chat-global` (`~/.claude/settings.json`), `chat-local` (the project's
+  `.claude/settings.local.json`, gitignored, re-applied at each new tracked
+  project's bootstrap), or `full` (nothing). `prefs.txt` `console_view:` is
+  both the record and the "already asked" marker.
+- **Rejected**: setting it globally without asking (too invasive — a
+  project-tracking skill changing a global display mode); toggling the
+  setting around each write (doesn't apply live, and flip-flops
+  `settings.json`); a two-option yes/no (the per-project scope is the
+  surgical answer and worth offering).
+- **Accepted downside**: the skill now (with consent) writes to
+  `~/.claude/settings.json` or a project's `.claude/settings.local.json` — the
+  first time it touches anything outside `docs/project-tracker/` + the root
+  `README`/`CLAUDE.md`.

@@ -4,7 +4,7 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-08-31
+last_updated: 2026-09-01
 next_milestone: "Backlog empty — next themes from real use / dogfooding"
 reminders_list: "Project tracker"
 category: "Skill Claude"
@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.9.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.10.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -55,6 +55,8 @@ build workstreams are done:
   onboarding-file write/rewrite.
 - An excluded folder the user asks to track is offered an un-exclude +
   bootstrap.
+- Console-view preference asked once per machine (`prefs.txt`
+  `console_view:`), to fold the transcript's edit-diff noise.
 - `test_plugin_manifest.py` + the hook/portfolio test suites pass.
 
 ### Known gaps
@@ -63,12 +65,12 @@ build workstreams are done:
 
 ## Next 3 actions
 
-The `BACKLOG.md` reservoir is empty. v0.8.0 and v0.9.0 both came out of the
-first real test setup on another project (`dogfood-project`) — expect more.
+The `BACKLOG.md` reservoir is empty. v0.8.0–v0.10.0 all came out of the first
+real test setup on another project (`dogfood-project`) — expect more.
 
-1. Finish the `dogfood-project` dogfood run: update the plugin to v0.9.0, open a
-   session there, let the proactive tracking prompt fire, run the bootstrap
-   (French README → the EN/FR flow; `docs/superpowers/` → `phase_model`
-   auto-recognition; domain jargon → the proactive glossary check).
+1. Finish the `dogfood-project` dogfood run: update the plugin to v0.10.0, open a
+   session there, let the proactive tracking prompt + console-view question
+   fire, run the bootstrap (French README → EN/FR flow; `docs/superpowers/` →
+   `phase_model` auto-recognition; domain jargon → the glossary check).
 2. Capture whatever that surfaces in `BACKLOG.md`.
 3. Cut the next release once `[Unreleased]` has accumulated something.

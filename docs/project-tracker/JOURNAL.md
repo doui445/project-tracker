@@ -246,3 +246,15 @@ Dated chronological log. Append-only.
   config dir, `docs/project-tracker/` output namespace. Historical
   `DECISIONS.md` entries keep the old `skills/project-tracker/` path.
 - 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.
+
+## 2026-09-01 — v0.10.0: console-view preference
+
+- The transcript diff-noise from the skill's per-session file writes: it now
+  asks once per machine to fold Claude Code's view to "chat" —
+  Everywhere / Only in tracked projects / No — recorded in `prefs.txt`
+  (`console_view:`). New `## Console view preference` section in `SKILL.md`;
+  bootstrap + detection wired; `/project-tracker:config` gains the action;
+  `DECISIONS.md` records the settings-file-writing choice.
+- Also updated the "don't over-edit tracking files" habit (memory) — this
+  release batched the doc updates into one pass.
+- 8 manifest + 89 portfolio + 3 hook suites green; installer regenerated.

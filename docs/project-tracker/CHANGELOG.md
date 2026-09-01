@@ -12,6 +12,17 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-09-01
+
+### Added
+- **Console-view preference.** The skill rewrites several files a session,
+  filling the transcript with edit diffs. It now asks once per machine
+  whether to fold Claude Code's view to the condensed "chat" mode —
+  **Everywhere** (`~/.claude/settings.json`), **Only in tracked projects**
+  (each project's `.claude/settings.local.json`, gitignored), or **No**. The
+  answer lives in `~/.claude/project-tracker/prefs.txt` (`console_view:`),
+  changeable via `/project-tracker:config`.
+
 ## [0.9.0] — 2026-08-31
 
 ### Changed

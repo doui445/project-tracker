@@ -30,6 +30,7 @@ Three possible states:
   - If `~/.claude/project-tracker/portfolio.txt` does not exist: ask the user where the unified portfolio should go — offer `~/Desktop`, `~/Documents`, or another folder — and write the chosen **folder** path to `portfolio.txt`. If the user genuinely wants no portfolio, write a comments-only `portfolio.txt` (the hook then stays silent). Once the file exists (path or comments), never asked again — it is machine-global config, not per-project.
   - If `~/.claude/project-tracker/language.txt` does not exist: ask once which language the tracking files and portfolio should be written in (English / French), and write the code (`en` / `fr`) to `language.txt`. Machine-global config, never asked again.
   - Otherwise: resolve the effective language and glance at `STATUS.md`. If it is visibly in the other language, offer the full retranslation (see `references/writing-tracking-files.md`, `## Retranslating on a language change`).
+  - If `~/.claude/project-tracker/prefs.txt` does not exist: ask once about the console view — see `## Console view preference` below — and write `prefs.txt`. Machine-global, never asked again. If `prefs.txt` says `console_view: chat-local` and the current project has no `.claude/settings.local.json` setting `defaultView`, apply it now (see that section).
   - These checks are independent of one another — ask them one after another rather than all at once in the same message.
   - Then go to "Continuous updates".
 - **Excluded**: the folder is ignored via `~/.claude/project-tracker/trackignore.txt` — either its own absolute path is a line there (an entry equal to a scope root ignores only that exact folder, not the projects inside it), or a non-scope-root ancestor is. → do nothing, unless the user brings it up explicitly.
@@ -87,6 +88,8 @@ First run `mkdir -p docs/project-tracker/` at the project root, then create the 
 If `~/.claude/project-tracker/portfolio.txt` does not exist yet (first tracked project on this machine), ask where the unified portfolio should go — `~/Desktop`, `~/Documents`, or another folder — and write the chosen folder path to `portfolio.txt`, so `PORTFOLIO.html` is generated from this first project. See the `portfolio.txt` bullet under `## Detecting a project's root`.
 
 Likewise, if `~/.claude/project-tracker/language.txt` does not exist, ask once which language the tracking files and portfolio should use (English / French) and write the code to `language.txt`. The bootstrap then creates every file in that language (consult `references/i18n/<code>.md` when it is not `en`). No per-project `language:` key is written at bootstrap — it exists only as an explicit override set later via `/project-tracker:config`.
+
+And if `~/.claude/project-tracker/prefs.txt` does not exist, ask the console-view question once (see `## Console view preference`) and write `prefs.txt`.
 
 Once `README.md` (and `ARCHITECTURE.md` / `GLOSSARY.md` if you created them) are written, run the fresh-eyes readability pass on each — see `references/writing-tracking-files.md` (`## The fresh-eyes readability pass`).
 
@@ -167,6 +170,36 @@ holds the English originals.
 in the old language (you notice it by glancing at `STATUS.md` — `en` vs `fr`
 is unambiguous): propose the full retranslation — see
 `references/writing-tracking-files.md` (`## Retranslating on a language change`).
+
+## Console view preference
+
+This skill rewrites several Markdown files per session, which fills the
+transcript with edit diffs. Asked once per machine (when `prefs.txt` is
+absent — see `## Detecting a project's root`), never again:
+
+> *"project-tracker updates several tracking files each session — that fills
+> the transcript with edit diffs. Fold Claude Code's view to the condensed
+> 'chat' mode? It hides tool activity (reversible in `/config`, and `Ctrl+O`
+> toggles it live)."*
+
+Offer three choices, via `AskUserQuestion`:
+
+- **Everywhere** → merge `"defaultView": "chat"` into `~/.claude/settings.json`
+  (read it first, never clobber). Write `console_view: chat-global` to
+  `~/.claude/project-tracker/prefs.txt`.
+- **Only in tracked projects** → in the current project, merge
+  `{"defaultView": "chat"}` into `.claude/settings.local.json` (create it if
+  missing) and make sure `.claude/settings.local.json` is in that project's
+  `.gitignore`. Write `console_view: chat-local` to `prefs.txt`. On every
+  later bootstrap of a new tracked project, apply the same local setting
+  there (checked in `## Detecting a project's root`).
+- **No** → write `console_view: full` to `prefs.txt`; mention `/config` and
+  `Ctrl+O` once, then drop it.
+
+`prefs.txt` is machine-global config (same family as `scopes.txt` /
+`portfolio.txt` / `language.txt`): `key: value` per line, `#` comments. Its
+existence is the "already asked" signal. Changed later via
+`/project-tracker:config`.
 
 ## Continuous updates
 
