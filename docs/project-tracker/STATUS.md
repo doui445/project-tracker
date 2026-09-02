@@ -68,21 +68,26 @@ build workstreams are done:
 
 ## Next 3 actions
 
-The first external dogfood run happened (v0.11.0 plugin): bootstrap ran on a
-parent folder (French, a category, a linked Reminders list, `uses_git: false`
-because the git repo sits in a sub-folder), nine files created. It surfaced
-two backlog items and a privacy pass (names sweep + history scrub, done this
-session). Decision: **no release yet** — let `BACKLOG.md` accumulate ~3–4
-solid items, then ship one larger update whose migration pass re-prompts
-already-tracked projects once. Installed users are unaffected until then (the
-plugin cache is pinned to the `version` field; the next bump distributes the
-scrubbed history).
+Still **no release**; the plan holds — let `BACKLOG.md` fill, then ship one
+larger update whose migration pass re-prompts already-tracked projects once.
+Installed users are unaffected until the next `version` bump (which also
+distributes the scrubbed history).
 
-1. Brainstorm + write a spec for the **nested-tracking model** — an umbrella
-   project whose git sub-repos each get a repo-facing micro-tracked subset,
-   plus the migration / re-prompt path for existing tracked projects. See
-   `BACKLOG.md` (Open). Big enough for its own phase.
-2. Design the **portfolio detail sub-pages** (second queued item) — likely
-   folds into the same release. See `BACKLOG.md` (Open).
-3. Keep capturing findings from ongoing external dogfood use in `BACKLOG.md`;
-   cut the batched release once ~3–4 items are ready.
+The backlog has grown well past the ~3–4 threshold. Beyond nested tracking and
+the portfolio detail sub-pages, a **2026-09-02 design/branding research pass**
+(23 videos, distilled in `_dev-history/research/`) fed three spec-worthy items:
+the new **`project-tracker:design` skill** (N2 file model now frozen —
+`FOUNDATIONS` / `STRATEGY` / `DESIGN` / a separate `design/DECISIONS`, plus
+brand-tier files), **project-tracker's own brand/visual identity (DA)**, and a
+**public website**. Plus two small items: move `_dev-history/` to a gitignored
+`docs/superpowers/`, and make the skill log every discussion.
+
+1. Decide the **batched release's scope and order** — which items ship
+   together, which need their own spec → plan cycle first (nested tracking and
+   the design capability both do).
+2. When ready, spec the **nested-tracking model** — still the migration-bearing
+   centrepiece (umbrella project + micro-tracked git sub-repos + the re-prompt
+   path). See `BACKLOG.md` (Open).
+3. The **DA spec** (prerequisite for the website) can start independently
+   whenever — `_dev-history/research/2026-09-02-design-branding-SYNTHESE.md`
+   § 5 is the pre-brief.

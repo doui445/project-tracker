@@ -365,3 +365,32 @@ website ones. Full detail in `BACKLOG.md` (**Design as a tracked dimension**).
   tracked projects; portfolio surfacing a project's DA.
 - Also raised, its own small task: move `_dev-history/` to a gitignored
   `docs/superpowers/` (the `superpowers` default path). Backlog item added.
+
+## 2026-09-02 — Design/branding research pass (23 videos)
+
+Research only — nothing built. The user fed 23 YouTube videos on brand strategy,
+logo design, visual identity, personal branding, marketing, product psychology,
+design thinking, layout, and presentation. Broken down one by one into
+`_dev-history/research/2026-09-02-design-branding-videos.md` (gitignored, FR,
+detail + source per video), then distilled into
+`_dev-history/research/2026-09-02-design-branding-SYNTHESE.md` (context-free
+rules, multi-validated points ranked by convergence, contradictions with
+resolutions, and concrete implications for the three specs).
+
+- Feeds the **Brand / visual identity (DA)** and **Design as a tracked
+  dimension** backlog items (and the website spec).
+- Cardinal finding: the whole corpus independently converges on
+  project-tracker's own thesis — *a strategy/identity that isn't written down
+  doesn't exist*. Strongest single takeaway: **differentiation / anti-conformity
+  is the core** (~11 videos).
+- The "logo shouldn't please you" vs the planned A/B mechanic **tension is
+  resolved**: options are framed by the strategy and evaluated against an
+  adjective rubric signed *before* seeing the work, plus targeted questions —
+  never "which do you prefer?".
+- Design-skill N2 workflow and the website "Why" page structure are sketched
+  in the synthèse; to formalise when the DA spec starts.
+- Follow-up same day: the **N2 file model is now frozen** — `FOUNDATIONS.md`
+  (durable character sheet) + `STRATEGY.md` (revisable map) split out along
+  the strategy-vs-branding line, `DESIGN.md`, a **separate**
+  `design/DECISIONS.md`, and `VOICE.md` / `logo.md` / `applications.md` /
+  `assets.md` at brand tier. Detail in SYNTHÈSE § 5; BACKLOG item updated.

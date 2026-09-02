@@ -27,28 +27,44 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     sessions** — same discipline as glossary enrichment, needs a clear
     trigger. Synergy with the "log every discussion" item above.
   - **N2 — a new skill `project-tracker:design`.** Full direction under
-    `docs/project-tracker/design/`: `PRODUCT.md` (positioning, non-goals,
-    differentiators, naming, voice) + `DESIGN.md` (OKLCH tokens + semantic
-    roles, type scale, spacing, motion, iconography, component conventions,
-    do/don't), `VOICE.md` split off at brand tier, plus `logo.md` /
-    `applications.md` for the brand layer. Triggered by: explicit request,
-    a UI being built (the portfolio counts), or "this is a brand" declared
-    at bootstrap (asked, not detected — likely a `kind:` frontmatter key).
-  - **Brand layer = superset** of the product DA (progressive ladder
-    `IDENTITY` → `PRODUCT` + `DESIGN` → enriched + `brand/` assets +
-    `VOICE`), not a separate track. `DESIGN.md` splits by section when it
-    grows, like `ARCHITECTURE.md`.
+    `docs/project-tracker/design/`. **File model FROZEN 2026-09-02** (from
+    the 23-video research pass — full detail in
+    `_dev-history/research/2026-09-02-design-branding-SYNTHESE.md` § 5):
+    - `FOUNDATIONS.md` — *durable* character sheet: the brand's purpose
+      (why→how→what), personality/values/vision + archetype, core emotion,
+      brand story (StoryBrand: customer = hero, brand = guide, an enemy),
+      tone essence.
+    - `STRATEGY.md` — *revised, like STATUS.md*: objectives, personas (demo +
+      psychographic + emotional starting state, revisited periodically),
+      competitive landscape + mapping + the gap, differentiators, positioning
+      statement, the "mechanism", non-goals.
+    - `DESIGN.md` — visual system (universe/concept + rationale, adjective
+      sliders, colour = 5 layers + jobs + OKLCH + saturation/contrast
+      register + rationale, type, grid/layout + temporal-flow notes, motion,
+      iconography, component conventions, signature treatments, stylistic
+      latitude, do/don't). Splits by section when it grows.
+    - `DECISIONS.md` — **separate** from the project's main `DECISIONS.md`;
+      3P structure (tried → why rejected → chosen); heritage notes for rebrands.
+    - Brand-tier: `VOICE.md` (detaches from `FOUNDATIONS.md`), `logo.md`,
+      `applications.md`, `assets.md`, plus `brand/` (binaries at repo root).
+    Triggered by: explicit request, a UI being built (the portfolio counts),
+    or "this is a brand" declared at bootstrap (a `kind:` frontmatter key).
+  - **Brand layer = superset** (progressive ladder: N1 `IDENTITY` →
+    N2 product `FOUNDATIONS` + `STRATEGY` + `DESIGN` + `DECISIONS` →
+    N2 brand + `VOICE` + `logo.md` + `applications.md` + `assets.md` +
+    `brand/`), not a separate track.
   - `track` keeps the always-on N1, the detection, and the hand-off to
     `design`. New `DECISIONS.md` entry — revisits the 2026-08-31 "one
     coherent workflow / no skill split": one workflow to *track*, a new
     entry point to *create*.
   - **Anti-duplication rule** (cousin of "never guess"): a fact lives in
-    exactly one file. `IDENTITY.md` is the seed; once `PRODUCT.md` /
-    `DESIGN.md` exist it keeps only name + one-liner + tier + pointers.
-    Voice lives in `PRODUCT.md` until brand tier / until it grows, then
-    moves wholesale to `VOICE.md`. Colour/type: `DESIGN.md` only. The exact
-    per-file content inventory is **parked** — the user is researching
-    design/brand practice first, then we finalise it.
+    exactly one file. `FOUNDATIONS` = the why + who we are; `STRATEGY` =
+    where we play + against whom; `DESIGN` = visual only; `VOICE` = verbal;
+    `IDENTITY` = the seed (keeps only name + tagline + one-liner + tier +
+    pointers once `design/` exists). Colour/type: `DESIGN.md` only.
+  - Still to define when the spec starts: the N2 workflow itself (research →
+    strategy → 2 named art directions → logo → … → presentation with an
+    adjective rubric + targeted questions), sketched in SYNTHÈSE § 5.
 
   **Tool integration.** The creative work is delegated to installed design
   skills (`impeccable`, `ui-ux-pro-max`, `dataviz`, `apple-design`,
@@ -127,6 +143,10 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   whether to re-skin `PORTFOLIO.html` to match (touches
   `generate_portfolio.py` + its `STRINGS` table); use the `impeccable` skill
   as the execution tool. Prerequisite for the **Public website** item below.
+  A 23-video research pass (2026-09-02) is distilled in
+  `_dev-history/research/2026-09-02-design-branding-SYNTHESE.md` — § 5 sketches
+  this spec's shape (constraint→identity, the "reduce" visual pole, the enemy
+  for the "Why" page, and `design/{FOUNDATIONS,STRATEGY}.md` content).
 
 - [ ] **Public website** (L, ⭐⭐) — surfaced 2026-09-02, **depends on the
   brand / visual identity item above.** A marketing + docs site for the
