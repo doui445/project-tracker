@@ -312,3 +312,25 @@ ship one larger update with a single migration pass for tracked projects.
   the v0.8.0–v0.11.0 line) scrubbed from **all git history** with
   `git-filter-repo`, then force-pushed. `main` + tags v0.8.0/v0.9.0/v0.10.0/
   v0.11.0 were rewritten. A pre-rewrite backup bundle was kept.
+
+## 2026-09-02 — Discussion: a public website for the plugin
+
+Brainstorm only — nothing built, no design validated. Outcome captured as two
+linked `BACKLOG.md` items (Open): **Brand / visual identity ("DA")** and
+**Public website**, the DA to be spec'd first.
+
+- Agreed shape: an Astro site with bespoke design in a `site/` sub-folder of
+  this repo (own `package.json`; the plugin root stays dependency-free — the
+  "no deps" rule scopes to the shipped plugin, to be recorded in
+  `DECISIONS.md` when built). Host: Cloudflare Pages, free,
+  `project-tracker.pages.dev` to start. Goal: marketing + docs.
+- User's firm constraints: visually striking (at least as clean as
+  `impeccable.style`) and 100% free for now. Nothing else fixed.
+- Visual direction left open (leaning technical/terminal and/or
+  marketing/lively), to settle during the DA spec. i18n via a languages
+  dropdown (en + fr, extensible). Analytics: Cloudflare Web Analytics
+  (free, cookieless) or none — decide in the spec.
+- Two process notes from the user, to fold into the skill's behaviour:
+  every discussion should be logged even when the idea is later dropped
+  (a backlog item to make that explicit in `SKILL.md`); and this session
+  made a second avoidable edit to `BACKLOG.md` — batch tracking-file writes.

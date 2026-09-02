@@ -6,6 +6,73 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Open
 
+- [ ] **Skill: log every discussion, even ideas later abandoned** (S, ⭐⭐) —
+  surfaced 2026-09-02. The user wants the skill to always record a design /
+  scoping discussion in the tracking files (`JOURNAL.md`, and `BACKLOG.md`
+  for anything actionable) *at the time it happens* — even when no decision
+  is made and even if the idea is dropped later. Nothing said in a session
+  should be lost because it wasn't validated. Make this explicit in
+  `SKILL.md` (`## Continuous updates` / the journaling guidance): a
+  substantive discussion is itself a trackable project event. Small edit,
+  no i18n impact beyond wording.
+
+- [ ] **Brand / visual identity (the project's "DA")** (M, ⭐⭐) — surfaced by
+  the website discussion (2026-09-02). Prerequisite for the public website:
+  the user wants that site "at least as clean as impeccable.style" and holds
+  that a tool site's polish reflects on the skill's author. Today the
+  project's identity is implicit and scattered across `SKILL.md` /
+  `CLAUDE.md`. This item produces a durable identity the website, the
+  generated `PORTFOLIO.html`, the `README`, and screenshots all share:
+  likely a `PRODUCT.md` (who it's for, the problem, what it explicitly is
+  *not* — not a task manager, not a Jira, the calm/terse voice, positioning)
+  and a `DESIGN.md` (name / wordmark / logo, OKLCH palette, type scale,
+  fonts, spacing, motion principles). Gets its **own spec → plan →
+  implementation cycle, done before the website spec.** Open design
+  questions for that brainstorm: do `PRODUCT.md` / `DESIGN.md` live at repo
+  root or under `docs/`; does the public name stay `project-tracker` or
+  gain a product name; visual direction leans **B** (technical / dense /
+  terminal / dark, e.g. `bun.sh`, `ghostty`) and/or **C** (marketing /
+  lively, before/after, animation, like impeccable) — not yet decided;
+  whether to re-skin `PORTFOLIO.html` to match (touches
+  `generate_portfolio.py` + its `STRINGS` table); use the `impeccable` skill
+  as the execution tool. Prerequisite for the **Public website** item below.
+
+- [ ] **Public website** (L, ⭐⭐) — surfaced 2026-09-02, **depends on the
+  brand / visual identity item above.** A marketing + docs site for the
+  plugin. Firm constraints from the user: visually striking, at least as
+  clean as `impeccable.style`; **100% free** for now (nothing else is
+  fixed). Established in the discussion:
+  - **Astro**, bespoke design (same stack impeccable uses: static, hand-written
+    CSS). Lives in a `site/` sub-folder of **this repo** with its own
+    `package.json`, so the plugin at the root stays dependency-free — needs a
+    `DECISIONS.md` entry recording that the "no deps" rule scopes to the
+    *shipped plugin*, not the site. Keep `site/` out of the generated
+    installer (`build_installer.sh`) and the plugin manifests.
+  - **Host: Cloudflare Pages** — free, `project-tracker.pages.dev` subdomain
+    to start (clean subdomain, unlike a `github.io/project-tracker` subpath);
+    a paid custom domain can be added later with no migration. GitHub Pages
+    was the fallback; Vercel rejected (third-party account, free tier is
+    non-commercial-only, features unneeded for a static site).
+  - **Pages (not fixed):** landing (pitch; before/after — nine hand-kept files
+    → one generated `PORTFOLIO.html`; screenshot or GIF; install one-liner);
+    "how it works" (the flow, and the questions the skill asks); a detailed
+    install guide; docs (the nine standard files explained, hooks,
+    `/project-tracker:config`, phase model, backlog model); changelog
+    generated from `CHANGELOG.md`; an optional "Philosophy / Why" page (flat
+    Markdown over an app, "never guess" — gives the site character); repo link
+    visible everywhere.
+  - **Docs generated from the canonical Markdown** via Astro content
+    collections — single source of truth, one PR changes behaviour + docs
+    together.
+  - **i18n:** a languages **dropdown button** (options unfold below), not a
+    binary en/fr toggle — so more languages stay cheap to add later. Ships
+    with en + fr. Tension to resolve in the spec: the repo convention is
+    "shipped strings are English" — site copy is probably authored EN + FR,
+    generated docs may lag behind in fr.
+  - **Analytics:** optional. Cloudflare Web Analytics (free, cookieless, no
+    consent banner) or none at all — decide in the spec.
+  - Use the `impeccable` skill for the visual execution.
+
 - [ ] **Nested tracking: an umbrella project with lightly-tracked git
   sub-repos** (L, ⭐⭐⭐) — surfaced by a dogfood run (2026-09-01). The user
   deliberately set up tracking on a *parent* folder that holds **one
