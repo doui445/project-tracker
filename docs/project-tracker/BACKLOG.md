@@ -16,6 +16,97 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   substantive discussion is itself a trackable project event. Small edit,
   no i18n impact beyond wording.
 
+- [ ] **Design as a tracked dimension (new `project-tracker:design` skill)**
+  (L, ⭐⭐⭐) — surfaced 2026-09-02. Give the plugin the ability to own a
+  project's design / brand direction, the way it owns state and progress.
+  Two tiers:
+  - **N1 — always-on, in `track`.** One light file
+    `docs/project-tracker/IDENTITY.md` (name + working name, one-liner,
+    audience, 3–5 tone adjectives + a "not this" list, which tier is
+    active, pointers to N2 files). Filled **passively during normal
+    sessions** — same discipline as glossary enrichment, needs a clear
+    trigger. Synergy with the "log every discussion" item above.
+  - **N2 — a new skill `project-tracker:design`.** Full direction under
+    `docs/project-tracker/design/`: `PRODUCT.md` (positioning, non-goals,
+    differentiators, naming, voice) + `DESIGN.md` (OKLCH tokens + semantic
+    roles, type scale, spacing, motion, iconography, component conventions,
+    do/don't), `VOICE.md` split off at brand tier, plus `logo.md` /
+    `applications.md` for the brand layer. Triggered by: explicit request,
+    a UI being built (the portfolio counts), or "this is a brand" declared
+    at bootstrap (asked, not detected — likely a `kind:` frontmatter key).
+  - **Brand layer = superset** of the product DA (progressive ladder
+    `IDENTITY` → `PRODUCT` + `DESIGN` → enriched + `brand/` assets +
+    `VOICE`), not a separate track. `DESIGN.md` splits by section when it
+    grows, like `ARCHITECTURE.md`.
+  - `track` keeps the always-on N1, the detection, and the hand-off to
+    `design`. New `DECISIONS.md` entry — revisits the 2026-08-31 "one
+    coherent workflow / no skill split": one workflow to *track*, a new
+    entry point to *create*.
+  - **Anti-duplication rule** (cousin of "never guess"): a fact lives in
+    exactly one file. `IDENTITY.md` is the seed; once `PRODUCT.md` /
+    `DESIGN.md` exist it keeps only name + one-liner + tier + pointers.
+    Voice lives in `PRODUCT.md` until brand tier / until it grows, then
+    moves wholesale to `VOICE.md`. Colour/type: `DESIGN.md` only. The exact
+    per-file content inventory is **parked** — the user is researching
+    design/brand practice first, then we finalise it.
+
+  **Tool integration.** The creative work is delegated to installed design
+  skills (`impeccable`, `ui-ux-pro-max`, `dataviz`, `apple-design`,
+  `emil-design-eng`, the animation family), the way phase plans are
+  delegated to `superpowers`. Never a hard-coded priority list.
+  - Per-category prefs in `~/.claude/project-tracker/prefs.txt`, flat keys
+    `design_skills_<category>:` (categories: identity, screens, charts,
+    animation), up to **2 skills each**.
+  - Asked **lazily, per category**, the first time that category's work
+    comes up — one `AskUserQuestion`: installed matching skills, then the
+    curated suggestion ("install & use …") if absent, then "none / handle
+    inline" at the bottom; pick 2 max; a one-line explanation of the
+    category. Curated catalogue in `skills/design/references/design-skills.md`
+    (i18n'd, deliberately tiny, advisory, dismissible, flags "you already
+    have X which does similar").
+  - The plugin **can** run the install command on an explicit yes; Claude
+    Code built-ins (`dataviz`) need no install.
+  - Routing: identity → `impeccable` (brand mode); screens → `ui-ux-pro-max`;
+    charts → `dataviz`; nothing installed → inline.
+  - **A/B**: both skills on the first significant task of a category → user
+    picks a favourite → then only the favourite, the other on "show me an
+    alternative". Favourite is **per project** (global `design_skills_*`
+    order = default, per-project frontmatter override, changeable on
+    request), same cascade as `language`. Only meaningful when 2 are set.
+
+  **Assets.** Binaries (`logo.svg`, `favicon`, `og.png`, fonts) in
+  `brand/` at the **repo root**, not under `docs/`. `design` frames the
+  specs first (`logo.md`); can propose the design tool for actual logo
+  work, user chooses. Version in a public repo: SVG logos / favicon / OG
+  image — yes; fonts only if the licence permits redistribution (skill
+  **warns**, prefers CDN/package); no heavy rasters or design-source files
+  (`.fig` / `.ai` / `.sketch` / `.psd`). Track them with a **light
+  inventory** (`design/assets.md`: file → purpose, spec, status), which
+  `design` reconciles whenever it touches `brand/`.
+
+  **Open / spec-level:** whether the 7 standard files + `IDENTITY.md` move
+  to `docs/project-tracker/track/` for symmetry with `design/`
+  (recommendation: **no** — the detection path is deeply wired into hooks /
+  retrofit / every tracked project; keep the core at the namespace root,
+  only `design/` is a subfolder); i18n of the new files (headings only,
+  like the others); migration / re-prompt for already-tracked projects
+  (reuse the retro-question infra, cf. the nested-tracking item); whether
+  `PORTFOLIO.html` surfaces a project's DA (a card in its own palette, a
+  design status) — resist scope creep, likely v2. **Decompose the spec**:
+  N1 + tool-integration mechanism first (small, immediately useful), N2 in
+  its own spec.
+
+- [ ] **Move `_dev-history/` to a gitignored `docs/superpowers/`** (S, ⭐) —
+  surfaced 2026-09-02. Today specs/plans live in `_dev-history/{specs,plans}/`
+  (gitignored, French) — a custom path chosen to avoid touching a
+  `docs/superpowers/` the repo doesn't otherwise use. The user now prefers
+  to align on the `superpowers` skill's **default** path
+  (`docs/superpowers/specs/`), still gitignored for privacy. Small
+  migration: move the files, add `docs/superpowers/` to `.gitignore` (with
+  a comment explaining why it's ignored while `docs/project-tracker/` is
+  committed), simplify `CLAUDE.md` § Phases, add a `DECISIONS.md` entry
+  revising the 2026-08-30 "specs/plans stay in `_dev-history/`" choice.
+
 - [ ] **Brand / visual identity (the project's "DA")** (M, ⭐⭐) — surfaced by
   the website discussion (2026-09-02). Prerequisite for the public website:
   the user wants that site "at least as clean as impeccable.style" and holds

@@ -334,3 +334,34 @@ linked `BACKLOG.md` items (Open): **Brand / visual identity ("DA")** and
   every discussion should be logged even when the idea is later dropped
   (a backlog item to make that explicit in `SKILL.md`); and this session
   made a second avoidable edit to `BACKLOG.md` — batch tracking-file writes.
+
+## 2026-09-02 — Discussion: design as a tracked dimension
+
+Brainstorm only — nothing built. A third spec-worthy item alongside the two
+website ones. Full detail in `BACKLOG.md` (**Design as a tracked dimension**).
+
+- **Two tiers.** N1: one light always-on `IDENTITY.md` (name, one-liner,
+  audience, tone, active tier, pointers), filled passively during normal
+  sessions, owned by `track`. N2: a **new skill `project-tracker:design`**
+  under `docs/project-tracker/design/` (`PRODUCT.md` + `DESIGN.md`,
+  `VOICE.md` at brand tier, `logo.md` / `applications.md` for the brand
+  layer). Triggered by explicit request, a UI being built (the portfolio
+  counts), or "this is a brand" declared at bootstrap.
+- Brand layer = **superset** of the product DA, progressive ladder.
+- `track` keeps N1 + detection + hand-off. New `DECISIONS.md` entry —
+  revisits the 2026-08-31 "one coherent workflow": one workflow to track,
+  a new entry point to create.
+- **Tool integration** (delegate creative work to installed design skills,
+  like phase plans go to `superpowers`): per-category prefs
+  (`design_skills_<category>:`, 2 max), asked lazily per category, curated
+  suggestion catalogue, install-on-yes. A/B = both on the first task →
+  favourite → alternative on request; favourite is per project.
+- **Assets**: binaries in `brand/` at the repo root; light inventory in
+  `design/assets.md`; version SVG/favicon/OG, fonts only if the licence
+  allows, no heavy sources.
+- **Parked**: exact per-file content inventory (user is researching first).
+  **Open**: whether the standard files move under
+  `docs/project-tracker/track/` (recommendation: no); i18n; migration of
+  tracked projects; portfolio surfacing a project's DA.
+- Also raised, its own small task: move `_dev-history/` to a gitignored
+  `docs/superpowers/` (the `superpowers` default path). Backlog item added.
