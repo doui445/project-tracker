@@ -256,3 +256,49 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
   small migration); committing `docs/superpowers/` (specs are French and
   working notes, not a shipped artefact).
 - Revises the 2026-08-30 entry's "existing files are not migrated" note.
+
+## 2026-09-03 — Core tracking files stay at the `docs/project-tracker/` root
+
+- **Context**: the planned `project-tracker:design` skill puts its output in a
+  `docs/project-tracker/design/` subfolder. Question: for symmetry, move the
+  seven non-root standard files + `IDENTITY.md` into a
+  `docs/project-tracker/track/` subfolder too?
+- **Chosen**: **no**. The core files stay flat; only `design/` (an optional
+  extension) nests. The asymmetry mirrors a real hierarchy — the standard
+  files *are* the plugin's deliverable, not "one skill's output among
+  several".
+- **Rejected**: the `track/` subfolder — cost aside it still loses (deeper
+  everyday path, `project-tracker/track/` stutters, the namespace name already
+  encodes "track"); with cost it is a deep migration (the
+  `docs/project-tracker/STATUS.md` detection is wired into the hooks, retrofit
+  and every tracked project). A hypothetical third skill can nest without
+  disturbing the core, exactly like `design/`.
+
+## 2026-09-03 — `kind:` frontmatter key for the design capability
+
+- **Chosen**: `kind: tool | app | library | brand` in `STATUS.md` frontmatter
+  — one key, four values. Drives the logo strategy (tool/library → a
+  descriptive mark is fine; app/brand → abstract/memorable) and which DA tier
+  the `design` skill proposes; `brand` triggers the full brand layer.
+- **Rejected**: two booleans `has_ui` + `is_brand` (simpler to test, less
+  expressive — the tool/library vs app distinction matters for logo advice);
+  a `personal` value (the personal-branding case is covered by `brand` +
+  the maker being the subject, no separate enum needed yet).
+
+## 2026-09-03 — The accumulated work ships as several `0.x` releases
+
+- **Context**: nested tracking, the `design` capability (N1 + N2), portfolio
+  detail sub-pages and small riders had piled up. Tempting to ship one large
+  release, even to call it `1.0`.
+- **Chosen**: a sequence — **v0.12.0** = nested tracking + its reusable
+  re-prompt infra + portfolio sub-pages + "skill logs every discussion";
+  **v0.13.0** = the `design` skill, reusing that infra; **v1.0.0** later, a
+  deliberate small release that only declares stability. The DA / website work
+  runs in parallel (docs + a `PORTFOLIO.html` re-skin, no plugin bump).
+- **Rejected**: one big batch (new skill + migration + portfolio landing at
+  once = a large bug surface, and it entangles the `design` skill with nested
+  tracking's migration); calling that batch `1.0` (semver `1.0` means
+  "stable, won't break casually" — the opposite of shipping a brand-new skill
+  and a migration mechanism).
+- `0.x` minor bumps are cheap; the single-migration-pass benefit is soft (N1
+  `IDENTITY.md` fills passively, the N2 opt-in can be lazy).

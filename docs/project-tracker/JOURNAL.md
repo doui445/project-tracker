@@ -394,3 +394,28 @@ resolutions, and concrete implications for the three specs).
   the strategy-vs-branding line, `DESIGN.md`, a **separate**
   `design/DECISIONS.md`, and `VOICE.md` / `logo.md` / `applications.md` /
   `assets.md` at brand tier. Detail in SYNTHÈSE § 5; BACKLOG item updated.
+
+## 2026-09-03 — Decisions round: the open items closed
+
+Nothing built. A Q&A pass closed the items parked over the last two days.
+
+- **`_dev-history/` → gitignored `docs/superpowers/`** — done (`git mv`,
+  `.gitignore` comment, `CLAUDE.md` § Phases, `DECISIONS.md`). The research
+  notes + synthèse now live at `docs/superpowers/research/`.
+- **DA decisions** (for project-tracker's own identity): keep the name
+  **`project-tracker`**; the **"reduce" visual pole** (Muji / Apple); a
+  **tool brand with a light personal touch**; **re-skin `PORTFOLIO.html`** as
+  part of the DA work; portfolio surfacing a project's DA is **v2**.
+- **Design capability**: `kind: tool | app | library | brand`; the core
+  tracking files **stay at the `docs/project-tracker/` root** (no `track/`
+  subfolder); new design files get the **same headings-only i18n** as the
+  standard ones; N2 workflow still to spec.
+- **Release plan**: not one big batch, not `1.0`. **v0.12.0** = nested
+  tracking + reusable re-prompt infra + portfolio sub-pages + the small
+  "log every discussion" rider; **v0.13.0** = the `design` skill, reusing
+  that infra; **v1.0.0** later, deliberate. DA + website run in parallel,
+  no plugin bump. Recorded in `DECISIONS.md`.
+- **Site analytics**: Cloudflare Web Analytics.
+- `STATUS.md` next-actions, `ROADMAP.md` (v0.8–v0.11 backfilled + current
+  focus) updated. Two new Reminders created for the release-scope decision
+  (now settled) and the DA spec.

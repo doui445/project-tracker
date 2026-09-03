@@ -4,8 +4,8 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-09-02
-next_milestone: "Design the nested-tracking model (umbrella project + git sub-repos)"
+last_updated: 2026-09-03
+next_milestone: "v0.12.0 — nested-tracking model + reusable re-prompt infra + portfolio sub-pages"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -68,26 +68,24 @@ build workstreams are done:
 
 ## Next 3 actions
 
-Still **no release**; the plan holds — let `BACKLOG.md` fill, then ship one
-larger update whose migration pass re-prompts already-tracked projects once.
-Installed users are unaffected until the next `version` bump (which also
-distributes the scrubbed history).
+Still **no release**. The release plan is now set (see `DECISIONS.md`, 2026-09-03):
 
-The backlog has grown well past the ~3–4 threshold. Beyond nested tracking and
-the portfolio detail sub-pages, a **2026-09-02 design/branding research pass**
-(23 videos, distilled in `docs/superpowers/research/`) fed three spec-worthy items:
-the new **`project-tracker:design` skill** (N2 file model now frozen —
-`FOUNDATIONS` / `STRATEGY` / `DESIGN` / a separate `design/DECISIONS`, plus
-brand-tier files), **project-tracker's own brand/visual identity (DA)**, and a
-**public website**. Plus two small items: move `_dev-history/` to a gitignored
-`docs/superpowers/`, and make the skill log every discussion.
+- **v0.12.0** — nested tracking + its **reusable re-prompt infra** + the
+  portfolio detail sub-pages + "skill logs every discussion" (small rider).
+  One migration pass for already-tracked projects.
+- **v0.13.0** — the `project-tracker:design` skill (N1 `IDENTITY.md` +
+  tool integration + N2 under `docs/project-tracker/design/`), reusing the
+  v0.12 infra. N2 file model is frozen; workflow still to spec.
+- **v1.0.0** — later, a deliberate small release that only declares stability.
+- In parallel (no plugin bump): project-tracker's **own brand/visual identity
+  (DA)** — docs + a `PORTFOLIO.html` re-skin — then the **public website**.
 
-1. Decide the **batched release's scope and order** — which items ship
-   together, which need their own spec → plan cycle first (nested tracking and
-   the design capability both do).
-2. When ready, spec the **nested-tracking model** — still the migration-bearing
-   centrepiece (umbrella project + micro-tracked git sub-repos + the re-prompt
-   path). See `BACKLOG.md` (Open).
-3. The **DA spec** (prerequisite for the website) can start independently
-   whenever — `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md`
-   § 5 is the pre-brief.
+1. Spec the **nested-tracking model** — the v0.12.0 centrepiece: umbrella
+   project + micro-tracked git sub-repos + the reusable re-prompt path for
+   existing tracked projects. See `BACKLOG.md` (Open). Big enough for its own
+   spec → plan phase.
+2. The **DA spec** can start independently whenever — pre-brief in
+   `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5
+   (name kept, "reduce" visual pole, tool brand + light personal touch,
+   re-skin `PORTFOLIO.html`).
+3. Keep capturing dogfood findings in `BACKLOG.md`.

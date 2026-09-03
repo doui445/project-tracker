@@ -14,7 +14,8 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   should be lost because it wasn't validated. Make this explicit in
   `SKILL.md` (`## Continuous updates` / the journaling guidance): a
   substantive discussion is itself a trackable project event. Small edit,
-  no i18n impact beyond wording.
+  no i18n impact beyond wording. **Rides v0.12.0** (small rider on the
+  nested-tracking release).
 
 - [ ] **Design as a tracked dimension (new `project-tracker:design` skill)**
   (L, ⭐⭐⭐) — surfaced 2026-09-02. Give the plugin the ability to own a
@@ -48,7 +49,10 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     - Brand-tier: `VOICE.md` (detaches from `FOUNDATIONS.md`), `logo.md`,
       `applications.md`, `assets.md`, plus `brand/` (binaries at repo root).
     Triggered by: explicit request, a UI being built (the portfolio counts),
-    or "this is a brand" declared at bootstrap (a `kind:` frontmatter key).
+    or "this is a brand" declared at bootstrap via the **`kind:` frontmatter
+    key** — decided: `kind: tool | app | library | brand` (one key, four
+    values; drives the logo strategy and the DA tier proposed; `brand`
+    triggers the full brand layer).
   - **Brand layer = superset** (progressive ladder: N1 `IDENTITY` →
     N2 product `FOUNDATIONS` + `STRATEGY` + `DESIGN` + `DECISIONS` →
     N2 brand + `VOICE` + `logo.md` + `applications.md` + `assets.md` +
@@ -62,9 +66,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     where we play + against whom; `DESIGN` = visual only; `VOICE` = verbal;
     `IDENTITY` = the seed (keeps only name + tagline + one-liner + tier +
     pointers once `design/` exists). Colour/type: `DESIGN.md` only.
-  - Still to define when the spec starts: the N2 workflow itself (research →
-    strategy → 2 named art directions → logo → … → presentation with an
-    adjective rubric + targeted questions), sketched in SYNTHÈSE § 5.
 
   **Tool integration.** The creative work is delegated to installed design
   skills (`impeccable`, `ui-ux-pro-max`, `dataviz`, `apple-design`,
@@ -100,17 +101,24 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   inventory** (`design/assets.md`: file → purpose, spec, status), which
   `design` reconciles whenever it touches `brand/`.
 
-  **Open / spec-level:** whether the 7 standard files + `IDENTITY.md` move
-  to `docs/project-tracker/track/` for symmetry with `design/`
-  (recommendation: **no** — the detection path is deeply wired into hooks /
-  retrofit / every tracked project; keep the core at the namespace root,
-  only `design/` is a subfolder); i18n of the new files (headings only,
-  like the others); migration / re-prompt for already-tracked projects
-  (reuse the retro-question infra, cf. the nested-tracking item); whether
-  `PORTFOLIO.html` surfaces a project's DA (a card in its own palette, a
-  design status) — resist scope creep, likely v2. **Decompose the spec**:
-  N1 + tool-integration mechanism first (small, immediately useful), N2 in
-  its own spec.
+  **Decided 2026-09-03:**
+  - **No `docs/project-tracker/track/` subfolder** — the core files stay
+    flat at the namespace root, only `design/` nests (see `DECISIONS.md`).
+  - **i18n**: same as the standard files — section headings in
+    `references/i18n/{en,fr}.md`, content in the project's language.
+  - **`PORTFOLIO.html` surfacing a project's DA**: **v2**, after the
+    portfolio detail sub-pages item — not part of this spec.
+  - **Migration / re-prompt** for already-tracked projects: reuse the
+    re-prompt infra built with nested tracking (v0.12.0). N1 `IDENTITY.md`
+    fills passively (no re-prompt); the N2 opt-in can be lazy.
+  - **Ships as v0.13.0**, reusing that infra. Its own spec → plan cycle.
+
+  **Still to define in the spec**: the N2 workflow itself (research →
+  strategy → 2 named art directions → logo → … → presentation with an
+  adjective rubric + targeted questions — sketched in
+  `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5);
+  the exact category list + question wording for tool integration; the
+  curated `design-skills.md` catalogue contents.
 
 - [ ] **Brand / visual identity (the project's "DA")** (M, ⭐⭐) — surfaced by
   the website discussion (2026-09-02). Prerequisite for the public website:
@@ -119,23 +127,30 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   project's identity is implicit and scattered across `SKILL.md` /
   `CLAUDE.md`. This item produces a durable identity the website, the
   generated `PORTFOLIO.html`, the `README`, and screenshots all share:
-  likely a `PRODUCT.md` (who it's for, the problem, what it explicitly is
-  *not* — not a task manager, not a Jira, the calm/terse voice, positioning)
-  and a `DESIGN.md` (name / wordmark / logo, OKLCH palette, type scale,
-  fonts, spacing, motion principles). Gets its **own spec → plan →
-  implementation cycle, done before the website spec.** Open design
-  questions for that brainstorm: do `PRODUCT.md` / `DESIGN.md` live at repo
-  root or under `docs/`; does the public name stay `project-tracker` or
-  gain a product name; visual direction leans **B** (technical / dense /
-  terminal / dark, e.g. `bun.sh`, `ghostty`) and/or **C** (marketing /
-  lively, before/after, animation, like impeccable) — not yet decided;
-  whether to re-skin `PORTFOLIO.html` to match (touches
-  `generate_portfolio.py` + its `STRINGS` table); use the `impeccable` skill
-  as the execution tool. Prerequisite for the **Public website** item below.
-  A 23-video research pass (2026-09-02) is distilled in
-  `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` — § 5 sketches
-  this spec's shape (constraint→identity, the "reduce" visual pole, the enemy
-  for the "Why" page, and `design/{FOUNDATIONS,STRATEGY}.md` content).
+  applying the frozen file model to project-tracker itself:
+  `docs/project-tracker/design/{FOUNDATIONS,STRATEGY,DESIGN}.md` (+ a
+  `design/DECISIONS.md`). Gets its **own spec → plan → implementation
+  cycle, before the website spec** but **in parallel with the plugin
+  releases** — no plugin version bump (docs + a `PORTFOLIO.html` re-skin).
+
+  **Decided 2026-09-03:**
+  - **Name**: keep **`project-tracker`** — descriptive is a feature for a
+    dev tool; renaming a published marketplace plugin is costly.
+  - **Visual direction**: the **"reduce" pole** (Muji / Apple: calm,
+    restraint, air, near-monochrome) over "express" — coherent with the
+    plugin's ethos (plain Markdown, terminal, never guess, stdlib only:
+    the constraints *are* the identity).
+  - **Brand type**: a **tool brand with a light personal touch** (a small
+    maker's note on the "Why" page), not maker-forward personal branding.
+  - **Re-skin `PORTFOLIO.html`**: **yes**, as part of this work — once
+    `DESIGN.md` exists, apply its tokens to `generate_portfolio.py` + the
+    `STRINGS` table.
+  - Still open for the spec: the enemy for the "Why" page (context loss /
+    re-explaining every session), the concept/mood, the palette, the type.
+    `impeccable` is the execution tool.
+
+  Prerequisite for the **Public website** item below. Pre-brief:
+  `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5.
 
 - [ ] **Public website** (L, ⭐⭐) — surfaced 2026-09-02, **depends on the
   brand / visual identity item above.** A marketing + docs site for the
@@ -169,9 +184,12 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     with en + fr. Tension to resolve in the spec: the repo convention is
     "shipped strings are English" — site copy is probably authored EN + FR,
     generated docs may lag behind in fr.
-  - **Analytics:** optional. Cloudflare Web Analytics (free, cookieless, no
-    consent banner) or none at all — decide in the spec.
+  - **Analytics:** **Cloudflare Web Analytics** (decided 2026-09-03 — free,
+    cookieless, no consent banner, one script; publishing blind otherwise).
   - Use the `impeccable` skill for the visual execution.
+  - **Visual direction / concept**: settled by the DA spec — the "reduce"
+    pole, so the site is calm and restrained, not the loud impeccable
+    register.
 
 - [ ] **Nested tracking: an umbrella project with lightly-tracked git
   sub-repos** (L, ⭐⭐⭐) — surfaced by a dogfood run (2026-09-01). The user
@@ -202,7 +220,9 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   frontmatter key to mark "nested model seen / declined". Build the re-prompt
   mechanism as reusable infra, not a one-off. The user also wants this model
   applied to a second project later, and will feed back on it — a second real
-  user of the feature.
+  user of the feature. **Targets v0.12.0** — the migration-bearing
+  centrepiece; the reusable re-prompt infra built here is reused by the
+  `design` capability (v0.13.0).
 
 - [ ] **Portfolio: a detail sub-page per project** (M, ⭐⭐) — requested
   2026-09-01. Today `PORTFOLIO.html` is a single aggregated page; the user
@@ -217,7 +237,8 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   is stdlib-only and has no MD renderer today); the `STRINGS` en/fr table must
   cover the new labels; keep v1 minimal (render existing content, resist
   charts/history creep). Pairs with nested tracking — a sub-page could list a
-  project's git sub-repos and their micro-tracking state.
+  project's git sub-repos and their micro-tracking state. **Ships in
+  v0.12.0** alongside nested tracking (thematically linked, no migration).
 
 ## Completed
 
