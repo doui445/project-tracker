@@ -75,7 +75,7 @@ distributes the scrubbed history).
 
 The backlog has grown well past the ~3–4 threshold. Beyond nested tracking and
 the portfolio detail sub-pages, a **2026-09-02 design/branding research pass**
-(23 videos, distilled in `_dev-history/research/`) fed three spec-worthy items:
+(23 videos, distilled in `docs/superpowers/research/`) fed three spec-worthy items:
 the new **`project-tracker:design` skill** (N2 file model now frozen —
 `FOUNDATIONS` / `STRATEGY` / `DESIGN` / a separate `design/DECISIONS`, plus
 brand-tier files), **project-tracker's own brand/visual identity (DA)**, and a
@@ -89,5 +89,5 @@ brand-tier files), **project-tracker's own brand/visual identity (DA)**, and a
    centrepiece (umbrella project + micro-tracked git sub-repos + the re-prompt
    path). See `BACKLOG.md` (Open).
 3. The **DA spec** (prerequisite for the website) can start independently
-   whenever — `_dev-history/research/2026-09-02-design-branding-SYNTHESE.md`
+   whenever — `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md`
    § 5 is the pre-brief.

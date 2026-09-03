@@ -29,7 +29,7 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   - **N2 — a new skill `project-tracker:design`.** Full direction under
     `docs/project-tracker/design/`. **File model FROZEN 2026-09-02** (from
     the 23-video research pass — full detail in
-    `_dev-history/research/2026-09-02-design-branding-SYNTHESE.md` § 5):
+    `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5):
     - `FOUNDATIONS.md` — *durable* character sheet: the brand's purpose
       (why→how→what), personality/values/vision + archetype, core emotion,
       brand story (StoryBrand: customer = hero, brand = guide, an enemy),
@@ -112,17 +112,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   N1 + tool-integration mechanism first (small, immediately useful), N2 in
   its own spec.
 
-- [ ] **Move `_dev-history/` to a gitignored `docs/superpowers/`** (S, ⭐) —
-  surfaced 2026-09-02. Today specs/plans live in `_dev-history/{specs,plans}/`
-  (gitignored, French) — a custom path chosen to avoid touching a
-  `docs/superpowers/` the repo doesn't otherwise use. The user now prefers
-  to align on the `superpowers` skill's **default** path
-  (`docs/superpowers/specs/`), still gitignored for privacy. Small
-  migration: move the files, add `docs/superpowers/` to `.gitignore` (with
-  a comment explaining why it's ignored while `docs/project-tracker/` is
-  committed), simplify `CLAUDE.md` § Phases, add a `DECISIONS.md` entry
-  revising the 2026-08-30 "specs/plans stay in `_dev-history/`" choice.
-
 - [ ] **Brand / visual identity (the project's "DA")** (M, ⭐⭐) — surfaced by
   the website discussion (2026-09-02). Prerequisite for the public website:
   the user wants that site "at least as clean as impeccable.style" and holds
@@ -144,7 +133,7 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   `generate_portfolio.py` + its `STRINGS` table); use the `impeccable` skill
   as the execution tool. Prerequisite for the **Public website** item below.
   A 23-video research pass (2026-09-02) is distilled in
-  `_dev-history/research/2026-09-02-design-branding-SYNTHESE.md` — § 5 sketches
+  `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` — § 5 sketches
   this spec's shape (constraint→identity, the "reduce" visual pole, the enemy
   for the "Why" page, and `design/{FOUNDATIONS,STRATEGY}.md` content).
 
@@ -232,6 +221,13 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Completed
 
+- [x] **Move `_dev-history/` to a gitignored `docs/superpowers/`** (2026-09-03)
+  — `git mv` to the `superpowers` skill's default path, kept gitignored
+  (French, working notes); research notes alongside in
+  `docs/superpowers/research/`. `.gitignore` comment + `CLAUDE.md` § Phases
+  simplified + `DECISIONS.md` entry (revises the 2026-08-30 custom-path
+  choice).
+
 - [x] **Plain-language pass on every question the skill asks** (0.11.0) — new
   `## Asking questions` principle (plain wording, per-option effect, a
   context-based **(recommended)** hint) + every bootstrap / first-run /
@@ -262,7 +258,7 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   `PORTFOLIO.html`. Language change → proposed full retranslation with an
   autonomous subagent review loop. `/project-tracker:config` gains a
   "Change the language" action. Default and fallback: `en`. Spec +
-  plan in `_dev-history/{specs,plans}/2026-08-30-output-language*`.
+  plan in `docs/superpowers/{specs,plans}/2026-08-30-output-language*`.
 - [x] **Git release tags** (0.3.1) — retroactive `v0.1.0` / `v0.2.0` /
   `v0.3.0` added at the last commit of each version line; `v0.3.1` tagged on
   release. Tagging folded into the release routine.

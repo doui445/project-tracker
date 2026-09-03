@@ -2,7 +2,7 @@
 
 Why each structural choice, and what was rejected. Append-only. Full
 rationale for the pre-2026-08-30 entries lives in the local (gitignored)
-`_dev-history/specs/`.
+`docs/superpowers/specs/`.
 
 ## 2026-08-27 — Tracking files live in `docs/project-tracker/`, not the project root
 
@@ -113,7 +113,7 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
 - **Accepted downside**: two parity guards to keep in sync (`.md` catalogue +
   Python table) rather than one source; the retranslation of append-only
   files is a sanctioned exception to "never rewrite an append-only file".
-- Spec: `_dev-history/specs/2026-08-30-output-language-design.md` (D1–D15).
+- Spec: `docs/superpowers/specs/2026-08-30-output-language-design.md` (D1–D15).
 
 ## 2026-08-30 — `GLOSSARY.md` is lazily created, not asked at bootstrap
 
@@ -240,3 +240,19 @@ rationale for the pre-2026-08-30 entries lives in the local (gitignored)
   `~/.claude/settings.json` or a project's `.claude/settings.local.json` — the
   first time it touches anything outside `docs/project-tracker/` + the root
   `README`/`CLAUDE.md`.
+
+## 2026-09-03 — Local specs/plans move to a gitignored `docs/superpowers/`
+
+- **Context**: 2026-08-30 chose a custom `_dev-history/{specs,plans}/` path to
+  avoid touching a `docs/superpowers/` the repo otherwise didn't use. That
+  meant special-casing the path everywhere the `superpowers` skill assumes its
+  default.
+- **Chosen**: `git mv` the folder to `docs/superpowers/` (the skill's default),
+  keep it **gitignored** for privacy (French, unpolished), research notes
+  alongside in `docs/superpowers/research/`. `.gitignore` carries a comment
+  explaining why it is ignored while `docs/project-tracker/` is committed.
+  `CLAUDE.md` § Phases simplified.
+- **Rejected**: keeping the custom path (the convention-alignment is worth the
+  small migration); committing `docs/superpowers/` (specs are French and
+  working notes, not a shipped artefact).
+- Revises the 2026-08-30 entry's "existing files are not migrated" note.

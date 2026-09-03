@@ -1,4 +1,9 @@
 __pycache__/
 *.pyc
 .DS_Store
-/_dev-history/
+
+# Local dev artefacts: specs, plans and research notes.
+# Kept out of the repo (French, unpolished); the shipped tracking files
+# under docs/project-tracker/ are committed. This is the superpowers
+# skill's default path — `phase_model: superpowers` writes here.
+/docs/superpowers/

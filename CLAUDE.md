@@ -28,7 +28,8 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 - `install-project-tracker.sh` — generated installer for the no-marketplace
   path. Regenerate with `skills/track/scripts/build_installer.sh`,
   never hand-edit.
-- `_dev-history/` — gitignored local specs and plans; keep French, do not ship.
+- `docs/superpowers/` — gitignored local specs, plans and research notes;
+  keep French, do not ship.
 
 ## Conventions
 
@@ -110,9 +111,11 @@ is declared stable):
 
 ## Phases
 
-`phase_model: "superpowers"` — this repo uses the spec → plan flow, but the
-specs and plans live in `_dev-history/{specs,plans}/` (gitignored, French),
-not `docs/superpowers/`. Project preference; existing files are not migrated.
+`phase_model: "superpowers"` — this repo uses the spec → plan flow. Specs and
+plans live in `docs/superpowers/{specs,plans}/` (the skill's default path),
+kept **gitignored** and in French; research notes sit alongside in
+`docs/superpowers/research/`. Only the shipped tracking files under
+`docs/project-tracker/` are committed.
 
 ## Dogfooding note
 
