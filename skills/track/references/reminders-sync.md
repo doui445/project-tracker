@@ -1,6 +1,6 @@
 # Reminders sync
 
-Referenced from `SKILL.md` (`## Detecting a project's root`, `## Bootstrapping a new project` step 5, `## Continuous updates` step 5).
+Referenced from `SKILL.md` (`## Detecting a project's root`, `## Bootstrapping a new project` step 5, `## Continuous updates` step 6).
 
 The `#tracker-sync` tag marks a reminder as currently tracked/absorbed by Claude in the tracking files — set both on a reminder the user writes and on a reminder Claude creates, once its scope has been discussed and reflected in `STATUS.md`/`ROADMAP.md`. A reminder without this tag is a raw capture not yet seen by Claude. This `#` is the Reminders app's native display — in the `tags`/`addTags`/`filterTags` parameters of the `reminders_tasks` tool, the tag is passed without the `#` (`"tracker-sync"`), like the thematic tags (`#ROI` → `"ROI"`, etc.).
 
