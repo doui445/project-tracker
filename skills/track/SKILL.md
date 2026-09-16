@@ -357,6 +357,8 @@ A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` a
 
 Projects are grouped into sections by the `category` frontmatter field — uncategorized first, then categories ordered by most recent activity.
 
+The `subprojects:` frontmatter key (`## Sub-projects`) is not rendered by the portfolio yet — `generate_portfolio.py` reads past it without error or effect on the existing output. Surfacing sub-projects on the portfolio is a separate, later piece of work.
+
 To change the portfolio location, title or language, or any config (scopes, ignored paths, output language, a project's category), the user runs `/project-tracker:config`.
 
 ## Retrofitting an existing project
