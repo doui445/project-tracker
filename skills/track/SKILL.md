@@ -18,6 +18,38 @@ Assume the person answering is not a Claude Code power user. Every question you 
 - **Recommend.** Mark one option **(recommended)** and base it on what you can see (the repo has a git remote, the `README` is in French, other tracked projects use a "Work" category, …). If nothing in the context points one way, say "no strong default" instead of a fake recommendation.
 - Keep it to the decision at hand. One question per message; don't stack the bootstrap questions into one wall.
 
+## Staying in the background
+
+The skill's own bookkeeping should be invisible whenever there is nothing for
+the user to decide or act on — the conversation stays focused on the user's
+real topic, not on the tracker's housekeeping. Concretely:
+
+- The session-opening staleness check (`last_updated` vs. real activity, see
+  `## Continuous updates`) is silent when the files are current. Never say
+  "the tracking files are up to date", "everything is current" or the
+  equivalent — that's the default, expected state, not news worth a line.
+  Speak up only when there is an actual proposal (files are stale → offer an
+  update) or a real question to ask (see `## Detecting a project's root`).
+- Same principle for any other purely-confirmatory check with nothing to
+  report: do it, don't narrate it.
+- This never applies to something the user needs to see or decide: a
+  proposed update, a question, a commit offer, a collision between sessions,
+  a glossary term added — all stay exactly as spec'd elsewhere. And file
+  writes themselves can't be hidden (their diff shows in the transcript
+  regardless) — that's fine; the point is not to add spoken narration on top
+  of silent, nothing-to-report checks.
+
+## Retroactive frontmatter questions
+
+A recurring shape, used by `backlog_model`, `phase_model`, `category`, `glossary` (all in `## Detecting a project's root`) and `nested_model` (`## Sub-projects`): a frontmatter key that starts **absent** (never checked), gets resolved once by a signal-driven check, and — once genuinely answered — is **never asked again** automatically (changeable only on the user's explicit later request).
+
+1. **Absent key** — the check has never run for this project.
+2. **Signal detected** (a file pattern, an existing convention, a nested marker) — either auto-recognize silently, but only when the signal is unambiguous proof of an existing choice already made outside the skill (e.g. `ROADMAP.md` already referencing a `BACKLOG.md`), or **propose** and wait for an answer — never silently decide.
+3. **One question, grouped if there are multiple candidates** at once — never one question per candidate (see `## Asking questions`).
+4. **Write the answer, never ask again automatically.** A declined answer is recorded (typically `"non"`), not left absent, so the check doesn't re-run every session for nothing. An absent key after a check has run only makes sense when the check is meant to stay ongoing rather than one-time (see `## Sub-projects` for why `nested_model` is written even when nothing was adopted).
+
+Any future retroactive key — including ones a skill built on `track` adds later (e.g. a `kind:` key) — follows this same shape rather than inventing its own.
+
 ## Scope
 
 The file `~/.claude/project-tracker/scopes.txt` lists the covered roots. The `SessionStart` hook already only fires within that scope — but if the user invokes you explicitly in a folder outside any scope:
@@ -148,12 +180,21 @@ backlog_model: "adopté"   # automatic at bootstrap; "non" only possible via a d
 phase_model: "superpowers"   # or "leger"; absent if no phase ever proposed
 language: fr              # en | fr ; absent = inherit language.txt
 glossary: "non"           # "non" = proactive glossary scan declined; absent = not yet checked; unset once GLOSSARY.md exists
+subprojects:               # absent = no sub-projects; see ## Sub-projects
+  - name: "<folder name>"
+    path: "<path relative to this project's root>"
+    tracked: true           # true = has its own README/CHANGELOG/(ARCHITECTURE)/DECISIONS/ERRORS; false = just listed
+    git: true               # true if it has its own, fully independent git repo — no relation to this project's git
+    status: active          # active | archived
+nested_model: "non"         # "non" = the one-time migration check has run for this project; absent = not yet run
 ---
 ```
 
 This is the only strictly structured part of any of these files — the rest is free narrative. This frontmatter is what `generate_portfolio.py` consumes for the portfolio (see below): `project`, `status` and `last_updated` are mandatory, without them the project is simply omitted from the portfolio.
 
 `language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
+
+`subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` only needs to not choke on the `subprojects` key (see `## Portfolio`), it does not render it yet.
 
 ## Output language
 
