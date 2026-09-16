@@ -142,6 +142,27 @@ class ParseFrontmatterTests(unittest.TestCase):
     def test_returns_none_without_frontmatter(self):
         self.assertIsNone(gp.parse_frontmatter("No frontmatter here.\n"))
 
+    def test_ignores_indented_nested_list_lines(self):
+        text = (
+            "---\n"
+            "project: Example\n"
+            "status: active\n"
+            "subprojects:\n"
+            "  - name: \"api\"\n"
+            "    path: \"api\"\n"
+            "    tracked: true\n"
+            "    git: true\n"
+            "    status: archived\n"
+            "last_updated: 2026-08-23\n"
+            "---\n"
+            "Body.\n"
+        )
+        data = gp.parse_frontmatter(text)
+        self.assertEqual(data["status"], "active")
+        self.assertEqual(data["last_updated"], "2026-08-23")
+        self.assertNotIn("tracked", data)
+        self.assertNotIn("- name", data)
+
 
 class CollectProjectsTests(unittest.TestCase):
     def setUp(self):
@@ -234,6 +255,17 @@ class CollectProjectsTests(unittest.TestCase):
         self._write_status("ProjGood", "---\nproject: Good\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
         projects, warnings = self._collect()
         self.assertEqual([p["project"] for p in projects], ["Good"])
+        self.assertEqual(warnings, [])
+
+    def test_project_status_unaffected_by_nested_subprojects_list(self):
+        self._write_status(
+            "ProjWithSubs",
+            "---\nproject: ProjWithSubs\nstatus: active\nlast_updated: 2026-08-23\n"
+            "subprojects:\n  - name: \"api\"\n    path: \"api\"\n    tracked: true\n"
+            "    git: true\n    status: archived\n---\nOk.\n",
+        )
+        projects, warnings = self._collect()
+        self.assertEqual(projects[0]["status"], "active")
         self.assertEqual(warnings, [])
 
 

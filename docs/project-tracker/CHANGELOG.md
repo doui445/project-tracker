@@ -12,6 +12,31 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+### Added
+- **Nested tracking.** A tracked project can now chaperone **sub-projects**:
+  sub-folders that each hold a genuine project of their own, detected via a
+  nested `.git` and attached through the same 3-way choice used for
+  top-level projects. An attached sub-project is either just listed
+  (`tracked: false`) or given its own small file set — `README.md`,
+  `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md` always, plus optional
+  `ARCHITECTURE.md`, all flat at its own root — recorded in the parent's new
+  `subprojects:` frontmatter list. A new `SUBPROJECTS.md` (created on first
+  need, like `GLOSSARY.md`) gives one section per sub-project; the parent's
+  own `STATUS.md`/`JOURNAL.md`/`ROADMAP.md` stay global rather than
+  duplicating sub-project detail. A one-time `nested_model` migration check
+  scans already-tracked projects for pre-existing git sub-repos to offer for
+  attachment. Opening a session inside a `tracked: true` sub-project now
+  loads its files as extra context alongside the parent's; each active,
+  `tracked: true` sub-project gets its own commit-offer / freshness check,
+  independent of the parent's own `uses_git`.
+
+### Changed
+- **The skill stays quiet when there's nothing to report.** New
+  `## Staying in the background` principle in `SKILL.md`: the session-opening
+  staleness check no longer announces "tracking files are up to date" —
+  silence is the default, and the skill speaks up only for an actual
+  proposal, question, or something the user needs to see.
+
 ## [0.11.0] — 2026-09-01
 
 ### Changed

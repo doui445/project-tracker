@@ -419,3 +419,85 @@ Nothing built. A Q&A pass closed the items parked over the last two days.
 - `STATUS.md` next-actions, `ROADMAP.md` (v0.8–v0.11 backfilled + current
   focus) updated. Two new Reminders created for the release-scope decision
   (now settled) and the DA spec.
+
+## 2026-09-14 — Discussion: Obsidian integration
+
+Brainstorm only — nothing built, no decision. The user asked what Obsidian
+is/does/a vault means, and whether it could fit project-tracker.
+
+- Obsidian = local-first Markdown note app; a **vault** is just a plain
+  folder of `.md` files it manages (plus a `.obsidian/` config subfolder).
+  No proprietary format, no cloud lock-in — the standard tracking files are
+  already vault-compatible as-is, zero changes needed. Confirmed
+  `https://obsidian.md` is the real site.
+- Assessed as a complement, not a replacement: project-tracker automates
+  generation/upkeep of the tracking files plus the GitHub/portfolio side,
+  none of which Obsidian does. Obsidian would only add an optional
+  reading/linking/graph layer on top.
+- Integration angles raised, none decided: (a) zero-effort — just document
+  the vault-compatibility; (b) ship an optional, gitignored `.obsidian/`
+  config template so a scope root opens cleanly as a vault (opt-in, never a
+  dependency); (c) cross-link tracking files with `[[wikilinks]]` for the
+  graph/backlinks — flagged as in tension with the plain-Markdown/
+  no-lock-in ethos, since wikilinks aren't standard Markdown and don't
+  render as links on GitHub. Leaning against (c) unless a strong case
+  emerges. Captured in `BACKLOG.md` (Open) for a future real brainstorm.
+- Process note: from this session on, discussion logging to JOURNAL/BACKLOG
+  is automatic (no permission asked), batched to one entry per concluded
+  topic rather than per exchange — recorded in memory.
+
+## 2026-09-15 — Skill stays quiet when there's nothing to report
+
+The user noticed a chatter pattern: at session start Claude was announcing
+"tracking files are up to date" every time, even when there was nothing to
+act on. Broader ask: the skill's own bookkeeping should run as
+transparently as possible, so the conversation stays focused on the user's
+real topic — file edits can't be hidden, but spoken narration around
+nothing-to-report checks can.
+
+- Agreed and implemented directly (small, low-risk doc change, no need for a
+  separate spec/plan). New `## Staying in the background` section in
+  `SKILL.md`: the session-opening staleness check is silent when files are
+  current; the skill speaks up only for an actual proposal, question, or
+  something the user needs to see or decide — everything already spec'd
+  elsewhere (proposed updates, bootstrap/detection questions, commit offers,
+  collisions, glossary additions) is unaffected.
+- `CHANGELOG.md` `[Unreleased]` entry added (this is a behaviour change, so
+  it rides the next minor release — no version bump today).
+
+## 2026-09-16 — Nested tracking shipped
+
+Built per the spec/plan at
+`docs/superpowers/{specs,plans}/2026-09-16-nested-tracking*.md`, across seven
+tasks, all committed and reviewed clean:
+
+- `subprojects:` / `nested_model:` frontmatter keys, plus a general
+  `## Retroactive frontmatter questions` principle covering every frontmatter
+  key that follows this absent → signal-detected → resolved-once shape
+  (`backlog_model`, `phase_model`, `category`, `glossary`, and now
+  `nested_model`).
+- The new `## Sub-projects` section: what a sub-project is, its two states
+  (`tracked: false` / `tracked: true`), the fixed flat file set for a tracked
+  one (`README.md`, `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md` always, plus
+  optional `ARCHITECTURE.md`), and the new `SUBPROJECTS.md` as a third
+  optional file, created on first need.
+- Detection/attachment reusing the existing 3-way bootstrap choice, plus the
+  one-time `nested_model` migration check for projects tracked before this
+  feature existed.
+- Dual-context loading for a session opened inside a tracked sub-project, a
+  git/freshness check matrix per active sub-project (with and without its
+  own git), and an anti-duplication principle keeping the parent's
+  `STATUS.md`/`JOURNAL.md`/`ROADMAP.md` global once sub-projects exist.
+- `references/writing-tracking-files.md` guidance for `SUBPROJECTS.md` and
+  sub-project-scoped files.
+- Along the way, a real bug surfaced and got fixed in
+  `generate_portfolio.py`'s `parse_frontmatter`: it read the new nested
+  `subprojects:` YAML list line-by-line as if it were flat top-level
+  frontmatter, so an indented `status: archived` inside a sub-project entry
+  could silently override the project's own top-level `status:`. Fixed
+  (skip indented lines) with two regression tests; full suite now 91/91.
+- Full verification sweep (all five test suites, names/French sweep) green;
+  installer regenerated and committed. This entry plus the matching
+  `CHANGELOG.md`/`BACKLOG.md`/`STATUS.md` updates close out the feature.
+  Not yet released — bundled into v0.12.0 alongside the still-open portfolio
+  sub-page item and the "log every discussion" rider.

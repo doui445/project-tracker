@@ -207,13 +207,19 @@ def _status_label(status_key, s):
 
 
 def parse_frontmatter(text):
+    """Line-based, top-level-only: an indented line (e.g. an item inside a
+    nested list like `subprojects:`) is skipped rather than misread as a
+    top-level key — this parser does not understand nested YAML structures,
+    it only needs to not corrupt the flat scalar keys around them."""
     m = FRONTMATTER_RE.match(text)
     if not m:
         return None
     data = {}
     for line in m.group(1).splitlines():
+        if line.startswith((" ", "\t")):
+            continue
         line = line.rstrip()
-        if not line or line.lstrip().startswith("#") or ":" not in line:
+        if not line or line.startswith("#") or ":" not in line:
             continue
         key, _, value = line.partition(":")
         key = key.strip()

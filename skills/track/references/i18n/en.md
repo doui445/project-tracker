@@ -93,6 +93,14 @@ by theme).
 - glossary.title: GLOSSARY — {project}
 - glossary.intro: Terms specific to this project, and what they mean here.
 
+## SUBPROJECTS.md
+
+Optional, created on first need (one prose section per sub-project, no fixed
+headings beyond the sub-project names).
+
+- subprojects.title: SUBPROJECTS — {project}
+- subprojects.intro: The sub-projects attached to this project: why each one exists, where it stands, and where its own files live.
+
 ## Shared
 
 - shared.to_fill_in: to fill in

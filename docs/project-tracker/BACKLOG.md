@@ -191,39 +191,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     pole, so the site is calm and restrained, not the loud impeccable
     register.
 
-- [ ] **Nested tracking: an umbrella project with lightly-tracked git
-  sub-repos** (L, ⭐⭐⭐) — surfaced by a dogfood run (2026-09-01). The user
-  deliberately set up tracking on a *parent* folder that holds **one
-  project**, not several: the parent is the global project (full 9 files,
-  sessions always opened here), and the actual shipped units live in
-  versioned sub-folders (an app, later a v2 or a second app) — those are what
-  get pushed to GitHub. Today the skill
-  only knows two cases for a sub-folder (own `STATUS.md` = separate project,
-  never merged / no `STATUS.md` = orphan detail files, consolidated up). This
-  is a third case: the parent's tracking should be able to **chaperone
-  several real sub-projects** and reference their progress, while each git
-  sub-repo gets its own **micro-tracking** — only what belongs in a public
-  repo (a repo-facing `README.md`, optionally `ARCHITECTURE.md`, a
-  `CHANGELOG.md`), committed alongside the code. Open design questions for
-  the eventual brainstorm: which files exactly in a sub-repo and how minimal;
-  how the parent detects/enumerates the sub-repos and shows their state in
-  `STATUS.md` / `ROADMAP.md`; how `uses_git` coexists (parent `false`, child
-  `true`); interaction with the git hooks (collision diff, commit offer,
-  staleness) which currently only look at the tracked root; how this differs
-  from the existing "ignored ancestor / whole-subtree" trade-off (here it is
-  one project, not many). **Migration path** is part of this item: when the
-  feature ships, already-tracked projects must be detected as
-  pre-nested-model and re-prompted — a session opening in an existing tracked
-  parent should offer to scan for git sub-repos and set up their
-  micro-tracking (same shape as the `backlog_model` / `phase_model` /
-  `category` retro-questions on `## Detecting a project's root`). Likely a new
-  frontmatter key to mark "nested model seen / declined". Build the re-prompt
-  mechanism as reusable infra, not a one-off. The user also wants this model
-  applied to a second project later, and will feed back on it — a second real
-  user of the feature. **Targets v0.12.0** — the migration-bearing
-  centrepiece; the reusable re-prompt infra built here is reused by the
-  `design` capability (v0.13.0).
-
 - [ ] **Portfolio: a detail sub-page per project** (M, ⭐⭐) — requested
   2026-09-01. Today `PORTFOLIO.html` is a single aggregated page; the user
   wants to click through to a per-project sub-page for "where I'm at" instead
@@ -240,7 +207,36 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   project's git sub-repos and their micro-tracking state. **Ships in
   v0.12.0** alongside nested tracking (thematically linked, no migration).
 
+- [ ] **Obsidian integration (optional)** (S/M, ⭐) — surfaced 2026-09-14,
+  brainstorm only. The tracking files are plain Markdown, so any scope
+  root already opens as a valid Obsidian vault today with zero changes —
+  first question for the eventual brainstorm is whether project-tracker
+  should do anything at all beyond saying so. Options raised, none decided:
+  - Just document the vault-compatibility (README /
+    `writing-tracking-files.md`) — no code, no risk.
+  - Ship an optional, gitignored `.obsidian/` config template (sensible
+    workspace/graph defaults) so opting in "just works" on a scope root —
+    strictly opt-in, never a dependency of the skill.
+  - Cross-link tracking files with `[[wikilinks]]` to use the graph/
+    backlinks — tension with the plain-Markdown / no-lock-in ethos and with
+    GitHub rendering (wikilinks don't render as links there); leaning
+    against unless a strong case emerges.
+  Low priority, nothing else depends on it; needs a real brainstorm before
+  any of it is built.
+
 ## Completed
+
+- [x] **Nested tracking: an umbrella project with lightly-tracked git
+  sub-repos** (2026-09-16) — a tracked project can now chaperone
+  sub-projects: `subprojects:`/`nested_model:` frontmatter, a `## Sub-projects`
+  section with a fixed flat file set (README/CHANGELOG/DECISIONS/ERRORS
+  always, plus optional ARCHITECTURE) and the new `SUBPROJECTS.md`, detection +
+  attachment reusing the bootstrap 3-way choice plus a one-time migration
+  check for already-tracked projects, dual-context loading and a
+  per-sub-project git/freshness check matrix, and an anti-duplication
+  principle. Spec + plan:
+  `docs/superpowers/{specs,plans}/2026-09-16-nested-tracking*.md`. Not yet
+  released — bundled into v0.12.0.
 
 - [x] **Move `_dev-history/` to a gitignored `docs/superpowers/`** (2026-09-03)
   — `git mv` to the `superpowers` skill's default path, kept gitignored

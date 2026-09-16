@@ -27,6 +27,7 @@ stays the single source of truth — only the prose notes below are added here.
   language. Never translate the machine values it lists.
 - **Link, don't duplicate.** When one file already covers something, point to
   it rather than restating it — restated content drifts out of sync.
+- **A sub-project's own `README.md`/`CHANGELOG.md`/`ARCHITECTURE.md`/`DECISIONS.md`/`ERRORS.md`** (`## Sub-projects` in `SKILL.md`) follow the exact same per-file guidance below as a top-level project's — the reader, structure and voice notes for each file name apply unchanged; only the *set* of files is smaller.
 
 ## `README.md` (project root)
 
@@ -247,6 +248,16 @@ proposed first.
   alphabetically or group by theme. Cross-link related terms.
 - **Never guess a definition.** If you are not sure what a term means here,
   ask the user — a confidently wrong glossary entry is a trap.
+
+## SUBPROJECTS.md
+
+**Reader:** you, or a future Claude session, orienting across the parent's sub-projects at a glance. One section per sub-project:
+
+- Why it exists (one or two sentences) — not a re-explanation of what the parent project already says about itself.
+- Current state, one line — the detail lives in the sub-project's own `CHANGELOG.md`/`DECISIONS.md`, this is a pointer, not a copy.
+- A pointer to its own files (`README.md` etc.) and, if it has one, its repo URL.
+
+Created on first need (`## Sub-projects`), never at bootstrap. Grows by one section per sub-project attached — this is the file allowed to grow with their number, precisely so `STATUS.md`/`JOURNAL.md`/`ROADMAP.md` don't have to.
 
 ## Retranslating on a language change
 

@@ -4,8 +4,8 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-09-03
-next_milestone: "v0.12.0 — nested-tracking model + reusable re-prompt infra + portfolio sub-pages"
+last_updated: 2026-09-16
+next_milestone: "v0.12.0 — portfolio detail sub-pages + \"log every discussion\" rider (nested tracking shipped)"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -59,33 +59,44 @@ build workstreams are done:
   `console_view:`), to fold the transcript's edit-diff noise.
 - `test_plugin_manifest.py` + the hook/portfolio test suites pass.
 
+- Nested tracking: a tracked project can chaperone **sub-projects**
+  (`subprojects:`/`nested_model:` frontmatter, a `## Sub-projects` section,
+  the fixed flat file set for a tracked one, `SUBPROJECTS.md`, detection +
+  one-time migration check, dual-context loading, per-sub-project git/
+  freshness checks, anti-duplication with the parent's own files). Built per
+  `docs/superpowers/{specs,plans}/2026-09-16-nested-tracking*.md`; not yet
+  released. See `BACKLOG.md` (Completed).
+
 ### Known gaps
 
-- **Nested tracking not supported.** A dogfood run set tracking on a parent
-  folder that is one project with a git sub-repo underneath; the skill has no
-  model for lightly micro-tracking such sub-repos while the parent chaperones
-  them. Captured in `BACKLOG.md` (Open).
+- None currently tracked beyond the open `BACKLOG.md` items below.
 
 ## Next 3 actions
 
-Still **no release**. The release plan is now set (see `DECISIONS.md`, 2026-09-03):
+Nested tracking has shipped (committed, tests green, dogfooding docs
+updated); still **no release** — the release plan is set (see
+`DECISIONS.md`, 2026-09-03):
 
-- **v0.12.0** — nested tracking + its **reusable re-prompt infra** + the
-  portfolio detail sub-pages + "skill logs every discussion" (small rider).
-  One migration pass for already-tracked projects.
+- **v0.12.0** — nested tracking (done, unreleased) + the portfolio detail
+  sub-pages + "skill logs every discussion" (small rider). Release once
+  those two remaining items land.
 - **v0.13.0** — the `project-tracker:design` skill (N1 `IDENTITY.md` +
   tool integration + N2 under `docs/project-tracker/design/`), reusing the
-  v0.12 infra. N2 file model is frozen; workflow still to spec.
+  nested-tracking re-prompt infra. N2 file model is frozen; workflow still
+  to spec.
 - **v1.0.0** — later, a deliberate small release that only declares stability.
 - In parallel (no plugin bump): project-tracker's **own brand/visual identity
   (DA)** — docs + a `PORTFOLIO.html` re-skin — then the **public website**.
 
-1. Spec the **nested-tracking model** — the v0.12.0 centrepiece: umbrella
-   project + micro-tracked git sub-repos + the reusable re-prompt path for
-   existing tracked projects. See `BACKLOG.md` (Open). Big enough for its own
-   spec → plan phase.
-2. The **DA spec** can start independently whenever — pre-brief in
+1. **"Log every discussion" rider** (S, ⭐⭐) — small `SKILL.md` edit so a
+   substantive discussion is itself a trackable event, even undecided or
+   later-dropped ideas. See `BACKLOG.md` (Open). Quick enough to fold in
+   before the v0.12.0 release.
+2. **Portfolio: a detail sub-page per project** (M, ⭐⭐) — the other
+   v0.12.0 item; needs its own spec → plan given the open design questions
+   (one HTML file per project vs. client-side routing, a dependency-free
+   Markdown→HTML path). See `BACKLOG.md` (Open).
+3. The **DA spec** can start independently whenever — pre-brief in
    `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5
    (name kept, "reduce" visual pole, tool brand + light personal touch,
    re-skin `PORTFOLIO.html`).
-3. Keep capturing dogfood findings in `BACKLOG.md`.
