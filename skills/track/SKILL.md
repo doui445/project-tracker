@@ -155,9 +155,10 @@ Nine files for each tracked project. `README.md` and `CLAUDE.md` at the project 
 | `docs/project-tracker/ERRORS.md` | Bug encountered → cause → fix, searchable | **Append-only**, every significant resolved bug |
 | `docs/project-tracker/BACKLOG.md` | Raw, complete reservoir of every envisaged idea/feature (effort, perceived value). Never purged, enriched and archived. See `references/backlog-phases.md` | **Append-only** (archiving, never purging) |
 
-Two optional files, both in `docs/project-tracker/`:
+Three optional files, all in `docs/project-tracker/`:
 - `ARCHITECTURE.md` — created at bootstrap (step 7) if the project is complex enough.
 - `GLOSSARY.md` — **created on first need**, not at bootstrap (see `## Detecting a project's root` for the proactive check, `## Continuous updates` for the in-session triggers).
+- `SUBPROJECTS.md` — **created on first need**, the moment a first sub-project is attached (see `## Sub-projects`).
 
 How to write each of these well — reader, structure, what belongs and what does not, worked good/poor examples: see `references/writing-tracking-files.md`. Consult it whenever you create or substantially rewrite one of these files.
 
@@ -195,6 +196,44 @@ This is the only strictly structured part of any of these files — the rest is 
 `language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
 
 `subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` only needs to not choke on the `subprojects` key (see `## Portfolio`), it does not render it yet.
+
+## Sub-projects
+
+A tracked project can chaperone one or more **sub-projects**: sub-folders that each hold a genuine project of their own (an app, a module, a version) — never just any sub-folder used to store something. This is purely an organisational concept of this skill, not a git relationship: a sub-project with its own git repo is a fully independent repo (no submodule, no subtree, no git-level link to the parent), and the parent itself does not need to be a git repo at all — a parent's `uses_git` and a sub-project's own git presence are entirely independent settings.
+
+A sub-project cannot itself have sub-projects (no multi-level nesting).
+
+Renaming or moving a sub-project's folder is not auto-detected — if the user mentions it, update its `path` in `subprojects:` by hand; there is no automatic re-scan for this.
+
+### States
+
+Recorded per sub-project in the parent's `subprojects:` frontmatter list (`### STATUS.md frontmatter`):
+- `tracked: false` — known and listed by the parent (name + path), no files of its own.
+- `tracked: true` — gets the fixed file set below.
+- `status: active` / `archived`, independent of `tracked`. Archiving is never automatic or inferred from a name pattern — always ask explicitly, typically when a replacement appears (e.g. a v2 supersedes a v1): *"`<old>` looks superseded by `<new>` — mark `<old>` as archived?"* An `archived` sub-project is excluded from every check in `## Continuous updates`.
+
+### File set for a tracked sub-project
+
+Fixed, never variable, all at the **root of the sub-project's own folder** — no `docs/` sub-folder at this scale:
+- `README.md`, `CHANGELOG.md` — always.
+- `ARCHITECTURE.md` — optional, the same one-time question as bootstrap step 7 (`## Bootstrapping a new project`).
+- `DECISIONS.md`, `ERRORS.md` — always.
+
+Never the full nine files — a sub-project that needs its own phases/backlog/roadmap has outgrown this model and should become an independent tracked project instead, with a pointer kept from the parent's `SUBPROJECTS.md`.
+
+Committed by default, same rule as every tracking file in this model (`## The standard files`) — the same narrow sensitive-content exception applies, never the default.
+
+No frontmatter of its own: every machine-readable fact (`tracked`/`git`/`status`) lives only in the parent's `subprojects:` list. The sub-project's own `CHANGELOG.md` uses the same dated Keep a Changelog format as every other `CHANGELOG.md` here (`## [X.Y.Z] — YYYY-MM-DD`) — its latest entry date is the freshness reference used in `## Continuous updates`, no extra field needed.
+
+If the sub-project already has some of these files before being attached, reuse them rather than starting fresh — same logic as `## Retrofitting an existing project`.
+
+### GLOSSARY.md stays single
+
+A term specific to a sub-project still goes in the parent's own `docs/project-tracker/GLOSSARY.md` — there is no per-sub-project glossary.
+
+### SUBPROJECTS.md
+
+`docs/project-tracker/SUBPROJECTS.md`, on the **parent** — created on first need, like `GLOSSARY.md`: not asked at bootstrap, created (with a short note that it was) the moment the first sub-project is attached. One prose section per sub-project: why it exists, a current one-line status, a pointer to its own files. This is where sub-project *detail* lives — `STATUS.md`, `JOURNAL.md` and `ROADMAP.md` on the parent never duplicate it (see `## Continuous updates`).
 
 ## Output language
 
