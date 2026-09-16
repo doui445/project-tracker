@@ -478,8 +478,8 @@ tasks, all committed and reviewed clean:
   `nested_model`).
 - The new `## Sub-projects` section: what a sub-project is, its two states
   (`tracked: false` / `tracked: true`), the fixed flat file set for a tracked
-  one (`README.md`, `CHANGELOG.md`, optional `ARCHITECTURE.md`,
-  `DECISIONS.md`, `ERRORS.md`), and the new `SUBPROJECTS.md` as a third
+  one (`README.md`, `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md` always, plus
+  optional `ARCHITECTURE.md`), and the new `SUBPROJECTS.md` as a third
   optional file, created on first need.
 - Detection/attachment reusing the existing 3-way bootstrap choice, plus the
   one-time `nested_model` migration check for projects tracked before this

@@ -229,8 +229,8 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 - [x] **Nested tracking: an umbrella project with lightly-tracked git
   sub-repos** (2026-09-16) — a tracked project can now chaperone
   sub-projects: `subprojects:`/`nested_model:` frontmatter, a `## Sub-projects`
-  section with a fixed flat file set (README/CHANGELOG/optional
-  ARCHITECTURE/DECISIONS/ERRORS) and the new `SUBPROJECTS.md`, detection +
+  section with a fixed flat file set (README/CHANGELOG/DECISIONS/ERRORS
+  always, plus optional ARCHITECTURE) and the new `SUBPROJECTS.md`, detection +
   attachment reusing the bootstrap 3-way choice plus a one-time migration
   check for already-tracked projects, dual-context loading and a
   per-sub-project git/freshness check matrix, and an anti-duplication

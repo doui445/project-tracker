@@ -18,13 +18,13 @@ guidance, no-behaviour-change refactors. The version lives in
   nested `.git` and attached through the same 3-way choice used for
   top-level projects. An attached sub-project is either just listed
   (`tracked: false`) or given its own small file set — `README.md`,
-  `CHANGELOG.md`, optional `ARCHITECTURE.md`, `DECISIONS.md`, `ERRORS.md`,
-  all flat at its own root — recorded in the parent's new `subprojects:`
-  frontmatter list. A new `SUBPROJECTS.md` (created on first need, like
-  `GLOSSARY.md`) gives one section per sub-project; the parent's own
-  `STATUS.md`/`JOURNAL.md`/`ROADMAP.md` stay global rather than duplicating
-  sub-project detail. A one-time `nested_model` migration check scans
-  already-tracked projects for pre-existing git sub-repos to offer for
+  `CHANGELOG.md`, `DECISIONS.md`, `ERRORS.md` always, plus optional
+  `ARCHITECTURE.md`, all flat at its own root — recorded in the parent's new
+  `subprojects:` frontmatter list. A new `SUBPROJECTS.md` (created on first
+  need, like `GLOSSARY.md`) gives one section per sub-project; the parent's
+  own `STATUS.md`/`JOURNAL.md`/`ROADMAP.md` stay global rather than
+  duplicating sub-project detail. A one-time `nested_model` migration check
+  scans already-tracked projects for pre-existing git sub-repos to offer for
   attachment. Opening a session inside an active, tracked sub-project now
   loads its files as extra context alongside the parent's; each active,
   `tracked: true` sub-project gets its own commit-offer / freshness check,
