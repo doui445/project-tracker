@@ -25,7 +25,7 @@ guidance, no-behaviour-change refactors. The version lives in
   own `STATUS.md`/`JOURNAL.md`/`ROADMAP.md` stay global rather than
   duplicating sub-project detail. A one-time `nested_model` migration check
   scans already-tracked projects for pre-existing git sub-repos to offer for
-  attachment. Opening a session inside an active, tracked sub-project now
+  attachment. Opening a session inside a `tracked: true` sub-project now
   loads its files as extra context alongside the parent's; each active,
   `tracked: true` sub-project gets its own commit-offer / freshness check,
   independent of the parent's own `uses_git`.

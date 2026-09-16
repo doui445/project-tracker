@@ -496,8 +496,8 @@ tasks, all committed and reviewed clean:
   frontmatter, so an indented `status: archived` inside a sub-project entry
   could silently override the project's own top-level `status:`. Fixed
   (skip indented lines) with two regression tests; full suite now 91/91.
-- Full verification sweep (all five test suites, installer regen, names/
-  French sweep) came back clean; this entry plus the matching
+- Full verification sweep (all five test suites, names/French sweep) green;
+  installer regenerated and committed. This entry plus the matching
   `CHANGELOG.md`/`BACKLOG.md`/`STATUS.md` updates close out the feature.
   Not yet released — bundled into v0.12.0 alongside the still-open portfolio
   sub-page item and the "log every discussion" rider.
