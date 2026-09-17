@@ -440,6 +440,14 @@ class RenderCardTests(unittest.TestCase):
         self.assertNotIn("freshness", html)
 
 
+class TestCardLinksToSubpage(unittest.TestCase):
+    def test_render_card_links_to_subpage(self):
+        s = gp._strings("en")
+        p = {"project": "demo", "_path": "~/demo", "status": "active", "last_updated": "2026-09-01"}
+        html = gp.render_card(p, s)
+        self.assertIn('href="portfolio/demo.html"', html)
+
+
 class RelativeFreshnessTests(unittest.TestCase):
     def test_today_and_yesterday_have_dedicated_labels(self):
         self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23), gp._strings("en")), ("today", False))
@@ -712,6 +720,16 @@ class MainTests(unittest.TestCase):
         gp.main([])
         html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
         self.assertIn('<html lang="fr">', html)
+
+    def test_changed_flag_only_writes_that_projects_subpage(self):
+        out_dir = self.home / "out"
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text(f"{out_dir}\n", encoding="utf-8")
+        self._status(self.scopeA, "Alpha", "Alpha")
+        self._status(self.scopeA, "Beta", "Beta")
+        gp.main(["--changed", str(self.scopeA / "Alpha")])
+        self.assertTrue((out_dir / "portfolio" / "Alpha.html").is_file())
+        self.assertFalse((out_dir / "portfolio" / "Beta.html").is_file())
 
 
 class TestRenderMarkdownFragment(unittest.TestCase):

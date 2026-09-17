@@ -152,6 +152,7 @@ STRINGS = {
         "card_next_milestone": "Next milestone",
         "card_updated": "Updated",
         "card_aria_open_repo": "Open the {name} repository",
+        "card_view_detail": "Details",
         "uncategorized": "Uncategorized",
         "empty_title": "No tracked projects yet.",
         "empty_body": "Open a Claude Code session in a folder of this scope — the project-tracker skill will offer to track it.",
@@ -193,6 +194,7 @@ STRINGS = {
         "card_next_milestone": "Prochain jalon",
         "card_updated": "Mis à jour",
         "card_aria_open_repo": "Ouvrir le dépôt {name}",
+        "card_view_detail": "Détails",
         "uncategorized": "Sans catégorie",
         "empty_title": "Aucun projet suivi pour l'instant.",
         "empty_body": "Ouvre une session Claude Code dans un dossier de ce périmètre — le skill project-tracker proposera de le suivre.",
@@ -427,6 +429,9 @@ def render_card(p, s, today=None):
         close_tag = "</article>"
         affordance = ""
 
+    slug = p.get("project", "")
+    subpage_link = f'<a class="card-detail" href="portfolio/{_attr(slug)}.html">{_txt(s.get("card_view_detail", "Details"))}</a>' if slug else ""
+
     return f"""
     {open_tag}
       <header class="card-header">
@@ -439,6 +444,7 @@ def render_card(p, s, today=None):
         <div><dt>{_txt(s["card_next_milestone"])}</dt><dd>{milestone}</dd></div>
         <div><dt>{_txt(s["card_updated"])}</dt><dd>{_txt(last_updated)}{freshness_html}</dd></div>
       </dl>
+      {subpage_link}
       {affordance}
     {close_tag}"""
 
@@ -1471,6 +1477,8 @@ def _resolve_out_arg(raw):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     title = None
+    changed_dir = None
+    write_pages = True
     if argv and argv[0] == "--out":
         if len(argv) < 3:
             print("usage: generate_portfolio.py --out <dir|file> <scope_root> [<scope_root>...]", file=sys.stderr)
@@ -1479,8 +1487,21 @@ def main(argv=None):
         scopes = [Path(s) for s in argv[2:]]
         ignore_entries = load_global_trackignore()
         scope_roots = [str(s) for s in scopes]
+        write_pages = False
+    elif argv and argv[0] == "--changed":
+        if len(argv) != 2:
+            print("usage: generate_portfolio.py --changed <project_root>", file=sys.stderr)
+            sys.exit(1)
+        changed_dir = str(Path(argv[1]))
+        target = load_portfolio_target()
+        if target is None:
+            return
+        scopes = load_scopes()
+        ignore_entries = load_global_trackignore()
+        scope_roots = [str(s) for s in scopes]
+        title = load_portfolio_title()
     elif argv:
-        print("usage: generate_portfolio.py [--out <dir|file> <scope_root>...]", file=sys.stderr)
+        print("usage: generate_portfolio.py [--out <dir|file> <scope_root>...] [--changed <project_root>]", file=sys.stderr)
         sys.exit(1)
     else:
         target = load_portfolio_target()
@@ -1501,6 +1522,9 @@ def main(argv=None):
         projects += ps
         warnings += ws
     _write_portfolio(target, projects, warnings, title=title, lang=lang)
+    if write_pages:
+        write_subpages(target, projects, changed_dir=changed_dir)
+        clean_orphan_subpages(target, projects)
 
 
 if __name__ == "__main__":
