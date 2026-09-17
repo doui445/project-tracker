@@ -750,6 +750,15 @@ Project is in good shape.
         self.assertIn("### Details", result)
         self.assertIn("More info here.", result)
 
+    def test_extract_roadmap_current_includes_h3_subsections(self):
+        """Verify that ### headings inside "Phase N — in progress" or "Current focus"
+        sections are NOT treated as boundaries."""
+        body = "## Phase 3 — in progress\n\nBuilding the feature.\n\n### Implementation notes\n\nUse async pattern.\n\n## After Phase 3\n\nignored"
+        result = gp.extract_roadmap_current(body, "en")
+        # Should include the ### subsection and its content
+        self.assertIn("### Implementation notes", result)
+        self.assertIn("Use async pattern.", result)
+
 
 if __name__ == "__main__":
     unittest.main()
