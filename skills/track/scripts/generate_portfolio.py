@@ -152,6 +152,7 @@ STRINGS = {
         "card_next_milestone": "Next milestone",
         "card_updated": "Updated",
         "card_aria_open_repo": "Open the {name} repository",
+        "card_view_detail": "Details",
         "uncategorized": "Uncategorized",
         "empty_title": "No tracked projects yet.",
         "empty_body": "Open a Claude Code session in a folder of this scope — the project-tracker skill will offer to track it.",
@@ -164,6 +165,17 @@ STRINGS = {
         "reset_filters": "Reset filters",
         "filter_empty": "No project matches the filters.",
         "generated_note": "Regenerated automatically by project-tracker.",
+        "subpage_state": "State",
+        "subpage_next_actions": "Next actions",
+        "subpage_current_phase": "Current phase",
+        "subpage_recent_activity": "Recent activity",
+        "subpage_latest_version": "Latest version: {version} ({date})",
+        "subpage_subprojects_title": "Sub-projects",
+        "subpage_subproject_tracked": "tracked",
+        "subpage_subproject_listed": "listed",
+        "subpage_view_repo": "View on GitHub",
+        "subpage_back": "Back to portfolio",
+        "subpage_page_title": "{name} — Portfolio",
     },
     "fr": {
         "html_lang": "fr",
@@ -182,6 +194,7 @@ STRINGS = {
         "card_next_milestone": "Prochain jalon",
         "card_updated": "Mis à jour",
         "card_aria_open_repo": "Ouvrir le dépôt {name}",
+        "card_view_detail": "Détails",
         "uncategorized": "Sans catégorie",
         "empty_title": "Aucun projet suivi pour l'instant.",
         "empty_body": "Ouvre une session Claude Code dans un dossier de ce périmètre — le skill project-tracker proposera de le suivre.",
@@ -194,6 +207,17 @@ STRINGS = {
         "reset_filters": "Réinitialiser les filtres",
         "filter_empty": "Aucun projet ne correspond aux filtres.",
         "generated_note": "Régénéré automatiquement par project-tracker.",
+        "subpage_state": "État",
+        "subpage_next_actions": "Actions suivantes",
+        "subpage_current_phase": "Phase actuelle",
+        "subpage_recent_activity": "Activité récente",
+        "subpage_latest_version": "Dernière version : {version} ({date})",
+        "subpage_subprojects_title": "Sous-projets",
+        "subpage_subproject_tracked": "suivi",
+        "subpage_subproject_listed": "listé",
+        "subpage_view_repo": "Voir sur GitHub",
+        "subpage_back": "Retour au portfolio",
+        "subpage_page_title": "{name} — Portfolio",
     },
 }
 
@@ -295,6 +319,7 @@ def collect_projects(scope_root, ignore_entries, scope_roots):
             warnings.append(f"{status_path}: missing fields {missing}, skipped")
             continue
         data["_path"] = home_relative(proj_dir)
+        data["_dir"] = str(proj_dir)
         data["scope"] = str(scope_root)
         data["category"] = data.get("category", "")
         projects.append(data)
@@ -404,7 +429,18 @@ def render_card(p, s, today=None):
         close_tag = "</article>"
         affordance = ""
 
+    slug = p.get("project", "")
+    subpage_link = f'<a class="card-detail" href="portfolio/{_attr(slug)}.html">{_txt(s.get("card_view_detail", "Details"))}</a>' if slug else ""
+
+    # The sub-page link is a SIBLING of {open_tag}/{close_tag}, never nested
+    # inside it: when a repo exists, open_tag/close_tag is itself an <a>,
+    # and an <a> inside an <a> is invalid HTML5 (the browser silently
+    # closes the outer one, breaking whole-card click-to-repo and leaving
+    # the arrow affordance outside any link). The outer .card-shell div is
+    # the actual grid item; .card keeps data-stack/data-status (the JS
+    # filters select .card[data-stack]/.card[data-status] directly).
     return f"""
+    <div class="card-shell">
     {open_tag}
       <header class="card-header">
         <h2>{_txt(name)}</h2>
@@ -417,7 +453,9 @@ def render_card(p, s, today=None):
         <div><dt>{_txt(s["card_updated"])}</dt><dd>{_txt(last_updated)}{freshness_html}</dd></div>
       </dl>
       {affordance}
-    {close_tag}"""
+    {close_tag}
+    {subpage_link}
+    </div>"""
 
 
 def _empty_state(s):
@@ -426,6 +464,312 @@ def _empty_state(s):
       <p class="empty-title">{_txt(s["empty_title"])}</p>
       <p class="empty-body">{_txt(s["empty_body"])}</p>
     </div>"""
+
+
+_INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_BOLD_RE = re.compile(r"\*\*([^*]+)\*\*")
+_ITALIC_RE = re.compile(r"(?<!\*)\*([^*]+)\*(?!\*)|(?<![\w])_([^_]+)_(?![\w])")
+_ORDERED_ITEM_RE = re.compile(r"^\d+\.\s+(.*)$")
+_UNORDERED_ITEM_RE = re.compile(r"^[-*]\s+(.*)$")
+_HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
+
+
+def _render_rich(raw_chunk):
+    """Links, then bold, then italic, on a chunk guaranteed free of inline
+    code. Link text/URL and the plain text around them are escaped exactly
+    once (via _txt/_attr) before any tag is added, using numbered
+    placeholders so bold/italic never re-enter an already-built <a> tag."""
+    placeholders = []
+
+    def stash(html_piece):
+        placeholders.append(html_piece)
+        return f"\x00{len(placeholders) - 1}\x00"
+
+    def link_sub(m):
+        return stash(f'<a href="{_attr(m.group(2))}">{_txt(m.group(1))}</a>')
+
+    chunk = _LINK_RE.sub(link_sub, raw_chunk)
+    chunk = _txt(chunk)  # escape what's left of the raw text exactly once
+    chunk = _BOLD_RE.sub(lambda m: f"<strong>{m.group(1)}</strong>", chunk)
+    chunk = _ITALIC_RE.sub(lambda m: f"<em>{m.group(1) or m.group(2)}</em>", chunk)
+    for i, piece in enumerate(placeholders):
+        chunk = chunk.replace(f"\x00{i}\x00", piece)
+    return chunk
+
+
+def _render_inline(raw_text):
+    """Renders the targeted inline subset (code, links, bold, italic) of
+    one raw (not yet HTML-escaped) line. Inline code is pulled out first
+    so its content is never touched by the other patterns."""
+    segments = []
+    pos = 0
+    for m in _INLINE_CODE_RE.finditer(raw_text):
+        if m.start() > pos:
+            segments.append(("rich", raw_text[pos:m.start()]))
+        segments.append(("code", m.group(1)))
+        pos = m.end()
+    if pos < len(raw_text) or not segments:
+        segments.append(("rich", raw_text[pos:]))
+    return "".join(
+        f"<code>{_txt(chunk)}</code>" if kind == "code" else _render_rich(chunk)
+        for kind, chunk in segments
+    )
+
+
+def render_markdown_fragment(text):
+    """Minimal Markdown -> HTML for the targeted subset used by the
+    tracking files: headings, bulleted/numbered lists, bold/italic,
+    links, inline code. Not a general-purpose parser -- anything outside
+    this subset (tables, images, multi-line code blocks...) is rendered
+    as plain paragraph text rather than interpreted, since none of it
+    appears in the sections this feeds (see spec D4)."""
+    lines = text.strip("\n").splitlines()
+    html = []
+    list_tag = []  # mutable single-item box so the closures below can write it
+    list_buffer = []
+
+    def flush_list():
+        if list_buffer:
+            items = "".join(f"<li>{_render_inline(i)}</li>" for i in list_buffer)
+            html.append(f"<{list_tag[0]}>{items}</{list_tag[0]}>")
+            list_buffer.clear()
+            list_tag.clear()
+
+    paragraph = []
+
+    def flush_paragraph():
+        if paragraph:
+            html.append(f"<p>{_render_inline(' '.join(paragraph))}</p>")
+            paragraph.clear()
+
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            flush_paragraph()
+            flush_list()
+            continue
+        heading_m = _HEADING_RE.match(line)
+        if heading_m:
+            flush_paragraph()
+            flush_list()
+            level = len(heading_m.group(1))
+            html.append(f"<h{level}>{_render_inline(heading_m.group(2))}</h{level}>")
+            continue
+        ordered_m = _ORDERED_ITEM_RE.match(line)
+        unordered_m = _UNORDERED_ITEM_RE.match(line)
+        if ordered_m or unordered_m:
+            flush_paragraph()
+            tag = "ol" if ordered_m else "ul"
+            if list_tag and list_tag[0] != tag:
+                flush_list()
+            if not list_tag:
+                list_tag.append(tag)
+            list_buffer.append((ordered_m or unordered_m).group(1))
+            continue
+        flush_list()
+        paragraph.append(line)
+    flush_paragraph()
+    flush_list()
+    return "\n".join(html)
+
+
+# Headings the skill already writes verbatim, per
+# skills/track/references/i18n/{en,fr}.md (the source of truth for the
+# wording -- duplicated here only to *recognise* them when reading a
+# project's own files back, never to author new prose).
+SOURCE_HEADINGS = {
+    "en": {
+        "where_it_stands": "Where it stands",
+        "next_actions": "Next 3 actions",
+        "current_focus": "Current focus",
+        "in_progress": re.compile(r"^Phase \d+ — in progress$"),
+    },
+    "fr": {
+        "where_it_stands": "État actuel",
+        "next_actions": "3 prochaines actions",
+        "current_focus": "Focus actuel",
+        "in_progress": re.compile(r"^Phase \d+ — en cours$"),
+    },
+}
+
+
+def _extract_section(body, heading, boundary_includes_h3=False):
+    """Returns the raw Markdown between a top-level (##) heading matching
+    `heading` (exact string, or a compiled pattern for a heading with a
+    variable part like a phase number) and the next boundary -- another ##
+    heading, or also the next ### heading when boundary_includes_h3 is
+    True (used for "Where it stands", whose own "### What works"
+    subsection must not be swept in). None if the heading isn't found."""
+    lines = body.splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        m = re.match(r"^##\s+(.*)$", line)
+        if not m:
+            continue
+        title = m.group(1).strip()
+        matched = title == heading if isinstance(heading, str) else bool(heading.match(title))
+        if matched:
+            start = i + 1
+            break
+    if start is None:
+        return None
+    boundary_re = re.compile(r"^#{2,3}\s") if boundary_includes_h3 else re.compile(r"^##\s")
+    end = len(lines)
+    for j in range(start, len(lines)):
+        if boundary_re.match(lines[j]):
+            end = j
+            break
+    section = "\n".join(lines[start:end]).strip()
+    return section or None
+
+
+def extract_status_overview(status_body, lang):
+    """Extracts the "Where it stands" section from a STATUS.md body,
+    stopping before any ### subsections (e.g., "### What works")."""
+    return _extract_section(status_body, SOURCE_HEADINGS[lang]["where_it_stands"], boundary_includes_h3=True)
+
+
+def extract_status_next_actions(status_body, lang):
+    """Extracts the "Next 3 actions" section from a STATUS.md body."""
+    return _extract_section(status_body, SOURCE_HEADINGS[lang]["next_actions"])
+
+
+def extract_roadmap_current(roadmap_body, lang):
+    """Extracts current work from a ROADMAP.md body. Prefers a
+    "Phase N — in progress" section; if not found, falls back to "Current focus"."""
+    headings = SOURCE_HEADINGS[lang]
+    section = _extract_section(roadmap_body, headings["in_progress"])
+    return section if section is not None else _extract_section(roadmap_body, headings["current_focus"])
+
+
+_JOURNAL_ENTRY_RE = re.compile(r"^##\s+(\d{4}-\d{2}-\d{2})\s+—\s+(.*)$")
+
+
+def extract_journal_recent_entries(journal_body, count=3):
+    """Returns up to `count` most recent entries as [(date, topic, body), ...],
+    most recent first. JOURNAL.md is append-only and chronological (oldest
+    first) -- see 'journal.entry_heading' in references/i18n/{en,fr}.md for
+    the heading format, identical across languages (only the topic text
+    itself is localised)."""
+    entries = []
+    current = None
+    for line in journal_body.splitlines():
+        m = _JOURNAL_ENTRY_RE.match(line)
+        if m:
+            if current:
+                entries.append(current)
+            current = [m.group(1), m.group(2), []]
+        elif current:
+            current[2].append(line)
+    if current:
+        entries.append(current)
+    recent = list(reversed(entries[-count:]))
+    return [(d, t, "\n".join(b).strip()) for d, t, b in recent]
+
+
+_CHANGELOG_VERSION_RE = re.compile(r"^\[(\d+\.\d+\.\d+)\]\s+—\s+(\d{4}-\d{2}-\d{2})$")
+
+
+def extract_changelog_latest_version(changelog_body):
+    """Returns (version, date, body) for the first dated '## [X.Y.Z] —
+    YYYY-MM-DD' heading (Keep a Changelog format, used verbatim regardless
+    of language -- see CHANGELOG.md's own convention in this repo).
+    '## [Unreleased]' never matches. None if no dated version exists yet."""
+    lines = changelog_body.splitlines()
+    for i, line in enumerate(lines):
+        m = re.match(r"^##\s+(.*)$", line.strip())
+        if not m:
+            continue
+        version_m = _CHANGELOG_VERSION_RE.match(m.group(1).strip())
+        if not version_m:
+            continue
+        end = len(lines)
+        for j in range(i + 1, len(lines)):
+            if re.match(r"^##\s", lines[j]):
+                end = j
+                break
+        return version_m.group(1), version_m.group(2), "\n".join(lines[i + 1:end]).strip()
+    return None
+
+
+_SUBPROJECT_ITEM_RE = re.compile(r"^\s*-\s+(.*)$")
+_SUBPROJECT_FIELD_RE = re.compile(r"^\s*([a-z_]+):\s*(.*)$")
+
+
+def parse_subprojects(status_text):
+    """Parses the nested `subprojects:` list from a STATUS.md's frontmatter
+    -- parse_frontmatter() deliberately skips this block (it only
+    understands flat scalar keys), so this is a separate, small parser for
+    the one nested structure the sub-page needs. Returns [] if the key is
+    absent, empty, or the file has no frontmatter at all."""
+    m = FRONTMATTER_RE.match(status_text)
+    if not m:
+        return []
+    lines = m.group(1).splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        if line.strip() == "subprojects:" and not line.startswith((" ", "\t")):
+            start = i + 1
+            break
+    if start is None:
+        return []
+    items = []
+    current = None
+    for line in lines[start:]:
+        if line and not line.startswith((" ", "\t")):
+            break  # back to a top-level key: the nested block is over
+        item_m = _SUBPROJECT_ITEM_RE.match(line)
+        if item_m:
+            if current is not None:
+                items.append(current)
+            current = {}
+            line = "  " + item_m.group(1)  # re-present as a plain field line
+        field_m = _SUBPROJECT_FIELD_RE.match(line)
+        if field_m and current is not None:
+            key, value = field_m.group(1), field_m.group(2).strip().strip('"').strip("'")
+            current[key] = (value == "true") if key in ("tracked", "git") else value
+    if current is not None:
+        items.append(current)
+    return items
+
+
+def latest_subproject_changelog_date(changelog_path):
+    """Reads a sub-project's own CHANGELOG.md and returns the date of its
+    most recent dated version heading, or None if the file is missing or
+    has no recognisable entry -- never guessed."""
+    if not changelog_path.is_file():
+        return None
+    text = changelog_path.read_text(encoding="utf-8", errors="replace")
+    found = extract_changelog_latest_version(text)
+    return found[1] if found else None
+
+
+def render_subprojects_section(subprojects, project_dir, s):
+    """Renders the Sub-projects section: active sub-projects only (spec
+    D9), name + tracked/listed + (if tracked) its own latest CHANGELOG
+    date. Returns "" (section omitted) if there is no active sub-project."""
+    active = [sp for sp in subprojects if sp.get("status") == "active"]
+    if not active:
+        return ""
+    items = []
+    for sp in active:
+        name = sp.get("name", "?")
+        if sp.get("tracked"):
+            changelog_path = project_dir / sp.get("path", "") / "CHANGELOG.md"
+            date_str = latest_subproject_changelog_date(changelog_path)
+            detail = s["subpage_subproject_tracked"]
+            if date_str:
+                detail += f" — {_txt(date_str)}"
+        else:
+            detail = s["subpage_subproject_listed"]
+        items.append(f"<li><strong>{_txt(name)}</strong> — {detail}</li>")
+    return (
+        f'<section class="subpage-subprojects">\n'
+        f'  <h2>{_txt(s["subpage_subprojects_title"])}</h2>\n'
+        f"  <ul>{''.join(items)}</ul>\n"
+        f"</section>"
+    )
 
 
 def render_stats_section(projects, s):
@@ -460,6 +804,223 @@ def render_stack_section(projects, s):
   <p class="stack-hint">{_txt(s["stack_hint"])}</p>
   <div class="stack-chips" role="group" aria-label="{_attr(s["stack_aria"])}">{chips}</div>
 </section>"""
+
+
+# Well-known, MIT-licensed GitHub mark (16x16 viewBox), used verbatim
+# across the web as an inline icon -- no external asset, consistent with
+# the "single self-contained file" rule.
+GITHUB_MARK_SVG = (
+    '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">'
+    '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 '
+    '0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 '
+    '1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 '
+    '0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 '
+    '2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 '
+    '3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">'
+    "</path></svg>"
+)
+
+SUBPAGE_MARKER = "<!-- generated by project-tracker -->"
+
+SUBPAGE_TEMPLATE = """<!doctype html>
+<html lang="{html_lang}">
+<!-- generated by project-tracker -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{page_title}</title>
+<style>
+  :root {{
+    color-scheme: light dark;
+    --bg: oklch(1.000 0.000 0);
+    --surface: oklch(0.972 0.006 293);
+    --border: oklch(0.880 0.010 293);
+    --ink: oklch(0.125 0.018 293);
+    --muted: oklch(0.480 0.012 293);
+    --accent: oklch(0.541 0.245 293);
+    --accent2: oklch(0.705 0.191 42);
+  }}
+  @media (prefers-color-scheme: dark) {{
+    :root {{
+      --bg: oklch(0.170 0.012 293);
+      --surface: oklch(0.220 0.016 293);
+      --border: oklch(0.330 0.016 293);
+      --ink: oklch(0.948 0.005 293);
+      --muted: oklch(0.580 0.008 293);
+      --accent: oklch(0.714 0.148 293);
+      --accent2: oklch(0.750 0.157 42);
+    }}
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }}
+  a {{ color: var(--accent2); }}
+  .back {{ font-size: 0.85rem; display: inline-block; margin-bottom: 1.5rem; }}
+  h1 {{ font-size: 1.5rem; margin: 0 0 1.75rem; letter-spacing: -0.01em; }}
+  section {{ margin: 0 0 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }}
+  section:first-of-type {{ border-top: none; padding-top: 0; }}
+  h2 {{ font-size: 1rem; font-weight: 700; margin: 0 0 0.6rem; }}
+  h3 {{ font-size: 0.9rem; font-weight: 700; margin: 1rem 0 0.4rem; }}
+  p, li {{ font-size: 0.9rem; }}
+  code {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface); padding: 0.1rem 0.3rem; border-radius: 4px; }}
+  .repo-link a {{ display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; text-decoration: none; }}
+  .subpage-subprojects ul {{ padding-left: 1.2rem; margin: 0; }}
+</style>
+</head>
+<body>
+<a class="back" href="../{portfolio_filename}">&#8592; {back_link}</a>
+<h1>{name}</h1>
+{sections}
+{repo_link}
+</body>
+</html>
+"""
+
+
+def build_subpage(project_dir, data, lang, portfolio_filename="PORTFOLIO.html"):
+    """Assembles one project's detail sub-page: State, Next actions,
+    Current phase, Recent activity, Latest version and Sub-projects
+    sections, each omitted when it has nothing to show. Re-reads the
+    project's own tracking files directly from project_dir rather than
+    relying on data already collected for the aggregate portfolio page."""
+    s = _strings(lang)
+    name = data.get("project", "?")
+
+    status_path = project_dir / "docs" / "project-tracker" / "STATUS.md"
+    status_text = status_path.read_text(encoding="utf-8", errors="replace") if status_path.is_file() else ""
+    status_body = FRONTMATTER_RE.sub("", status_text, count=1)
+    overview = extract_status_overview(status_body, lang)
+    next_actions = extract_status_next_actions(status_body, lang)
+
+    roadmap_path = project_dir / "docs" / "project-tracker" / "ROADMAP.md"
+    roadmap_text = roadmap_path.read_text(encoding="utf-8", errors="replace") if roadmap_path.is_file() else ""
+    roadmap_current = extract_roadmap_current(roadmap_text, lang) if roadmap_text else None
+
+    journal_path = project_dir / "docs" / "project-tracker" / "JOURNAL.md"
+    journal_text = journal_path.read_text(encoding="utf-8", errors="replace") if journal_path.is_file() else ""
+    journal_entries = extract_journal_recent_entries(journal_text, count=3) if journal_text else []
+
+    changelog_path = project_dir / "docs" / "project-tracker" / "CHANGELOG.md"
+    changelog_text = changelog_path.read_text(encoding="utf-8", errors="replace") if changelog_path.is_file() else ""
+    latest_version = extract_changelog_latest_version(changelog_text) if changelog_text else None
+
+    subprojects = parse_subprojects(status_text)
+    subprojects_html = render_subprojects_section(subprojects, project_dir, s)
+
+    sections = []
+    if overview:
+        sections.append(f'<section><h2>{_txt(s["subpage_state"])}</h2>{render_markdown_fragment(overview)}</section>')
+    if next_actions:
+        sections.append(f'<section><h2>{_txt(s["subpage_next_actions"])}</h2>{render_markdown_fragment(next_actions)}</section>')
+    if roadmap_current:
+        sections.append(f'<section><h2>{_txt(s["subpage_current_phase"])}</h2>{render_markdown_fragment(roadmap_current)}</section>')
+    if journal_entries:
+        entries_html = "".join(
+            f"<article><h3>{_txt(d)} — {_txt(t)}</h3>{render_markdown_fragment(b)}</article>"
+            for d, t, b in journal_entries
+        )
+        sections.append(f'<section><h2>{_txt(s["subpage_recent_activity"])}</h2>{entries_html}</section>')
+    if latest_version:
+        v, d, body = latest_version
+        heading = _txt(s["subpage_latest_version"].format(version=v, date=d))
+        sections.append(f"<section><h2>{heading}</h2>{render_markdown_fragment(body)}</section>")
+    if subprojects_html:
+        sections.append(subprojects_html)
+
+    repo = data.get("repo", "")
+    repo_html = ""
+    if repo.startswith("http://") or repo.startswith("https://"):
+        repo_html = (
+            f'<p class="repo-link"><a href="{_attr(repo)}">'
+            f'{GITHUB_MARK_SVG}<span>{_txt(s["subpage_view_repo"])}</span></a></p>'
+        )
+
+    return SUBPAGE_TEMPLATE.format(
+        html_lang=_attr(s["html_lang"]),
+        page_title=_txt(s["subpage_page_title"].format(name=name)),
+        portfolio_filename=portfolio_filename,
+        back_link=_txt(s["subpage_back"]),
+        name=_txt(name),
+        sections="\n".join(sections),
+        repo_link=repo_html,
+    )
+
+
+def _project_slug(data):
+    """The project's filename slug for its sub-page -- its `project` key, unchanged."""
+    return data.get("project", "")
+
+
+def _subpage_dir(portfolio_target):
+    """The `portfolio/` directory sitting next to the generated PORTFOLIO.html."""
+    return portfolio_target.parent / "portfolio"
+
+
+def _subpage_path(portfolio_target, slug):
+    """The on-disk path for one project's sub-page, `portfolio/<slug>.html`."""
+    return _subpage_dir(portfolio_target) / f"{slug}.html"
+
+
+def _project_lang(data):
+    """A project's own effective language (spec D6): its `language:`
+    frontmatter override if set, else the machine-global language.txt,
+    else 'en' -- same resolution SKILL.md itself documents."""
+    override = (data.get("language") or "").strip()
+    return _normalise_lang(override) if override else load_language()
+
+
+def write_subpage(portfolio_target, project):
+    """Builds and writes one project's sub-page file, skipping projects
+    with no slug or no known directory."""
+    slug = _project_slug(project)
+    if not slug or not project.get("_dir"):
+        return
+    html = build_subpage(
+        Path(project["_dir"]), project, _project_lang(project),
+        portfolio_filename=portfolio_target.name,
+    )
+    path = _subpage_path(portfolio_target, slug)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html, encoding="utf-8")
+
+
+def write_subpages(portfolio_target, projects, changed_dir=None):
+    """Writes every project's sub-page, or -- when changed_dir is given --
+    only the one project whose _dir matches it (spec D7: the hook already
+    knows which project's STATUS.md just changed)."""
+    for project in projects:
+        if changed_dir is not None and project.get("_dir") != changed_dir:
+            continue
+        write_subpage(portfolio_target, project)
+
+
+def clean_orphan_subpages(portfolio_target, projects):
+    """Deletes any portfolio/*.html with no corresponding currently
+    eligible project (spec D8) -- filename comparison only, cheap enough
+    to run on every regeneration regardless of targeted vs full mode.
+    Only ever deletes files carrying SUBPAGE_MARKER, so a pre-existing
+    unrelated portfolio/ directory of the user's own is left untouched."""
+    directory = _subpage_dir(portfolio_target)
+    if not directory.is_dir():
+        return
+    valid = {f"{_project_slug(p)}.html" for p in projects if _project_slug(p)}
+    for f in directory.glob("*.html"):
+        if f.name in valid:
+            continue
+        try:
+            content = f.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if SUBPAGE_MARKER in content:
+            f.unlink()
+
 
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="{html_lang}">
@@ -629,6 +1190,26 @@ PAGE_TEMPLATE = """<!doctype html>
     .reset-btn:hover {{ color: var(--accent2); }}
   }}
   .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.1rem; }}
+  /* .card-shell is the actual grid item — it wraps .card (the click-to-repo
+     link/article) and .card-detail as siblings, so the sub-page link never
+     nests inside the repo <a>. Entrance animation and stagger live here
+     (they animate the grid item as a whole); .card keeps its own hover/
+     active motion for the click target itself. */
+  .card-shell {{
+    display: block;
+    animation: cardIn 280ms var(--ease) both;
+  }}
+  @keyframes cardIn {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+  }}
+  .card-shell:nth-child(2) {{ animation-delay: 30ms; }}
+  .card-shell:nth-child(3) {{ animation-delay: 60ms; }}
+  .card-shell:nth-child(4) {{ animation-delay: 90ms; }}
+  .card-shell:nth-child(5) {{ animation-delay: 120ms; }}
+  .card-shell:nth-child(6) {{ animation-delay: 150ms; }}
+  .card-shell:nth-child(7) {{ animation-delay: 180ms; }}
+  .card-shell:nth-child(n+8) {{ animation-delay: 210ms; }}
+  .card-shell[hidden] {{ display: none; }}
   .card {{
     display: block;
     position: relative;
@@ -642,20 +1223,7 @@ PAGE_TEMPLATE = """<!doctype html>
     /* only transform is animated (GPU-only); border-color/box-shadow/
        background change instantly on the states below */
     transition: transform 180ms var(--ease);
-    /* staggered entrance — page consulted occasionally, not
-       continuously, so a brief bridge is justified rather than a raw display */
-    animation: cardIn 280ms var(--ease) both;
   }}
-  @keyframes cardIn {{
-    from {{ opacity: 0; transform: translateY(8px); }}
-  }}
-  .card:nth-child(2) {{ animation-delay: 30ms; }}
-  .card:nth-child(3) {{ animation-delay: 60ms; }}
-  .card:nth-child(4) {{ animation-delay: 90ms; }}
-  .card:nth-child(5) {{ animation-delay: 120ms; }}
-  .card:nth-child(6) {{ animation-delay: 150ms; }}
-  .card:nth-child(7) {{ animation-delay: 180ms; }}
-  .card:nth-child(n+8) {{ animation-delay: 210ms; }}
   a.card {{ cursor: pointer; }}
   a.card:active {{
     transform: translateY(-1px) scale(0.985);
@@ -740,7 +1308,18 @@ PAGE_TEMPLATE = """<!doctype html>
   @media (hover: hover) and (pointer: fine) {{
     .chip:not([aria-pressed="true"]):hover {{ border-color: var(--accent); }}
   }}
-  .card[hidden] {{ display: none; }}
+  .card-detail {{
+    display: inline-block;
+    margin: 0.5rem 1.35rem 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+  }}
+  .card-detail:focus-visible {{ outline: 2px solid var(--accent2); outline-offset: 2px; }}
+  @media (hover: hover) and (pointer: fine) {{
+    .card-detail:hover {{ color: var(--accent2); text-decoration: underline; }}
+  }}
   .filter-empty {{
     text-align: center;
     padding: 2.5rem 1.5rem;
@@ -765,7 +1344,8 @@ PAGE_TEMPLATE = """<!doctype html>
   .empty-body {{ font-size: 0.85rem; margin: 0; max-width: 40ch; margin-inline: auto; }}
   .generated {{ font-size: 0.75rem; color: var(--muted); margin-top: 3rem; text-align: center; }}
   @media (prefers-reduced-motion: reduce) {{
-    .card {{ transition: border-color 120ms linear; animation: none !important; }}
+    .card-shell {{ animation: none !important; }}
+    .card {{ transition: border-color 120ms linear; }}
     .card:hover, a.card:active {{ transform: none; }}
     .empty {{ animation: none !important; }}
   }}
@@ -811,12 +1391,14 @@ PAGE_TEMPLATE = """<!doctype html>
       var statusMatch = selectedStatus.size === 0 || selectedStatus.has(status);
       var nameMatch = !searchTerm || name.toLowerCase().indexOf(searchTerm) !== -1;
       var show = techMatch && statusMatch && nameMatch;
-      card.hidden = !show;
+      // hidden toggles on .card-shell (the actual grid item) — .card sits
+      // nested inside it now, alongside the sub-page link.
+      (card.closest('.card-shell') || card).hidden = !show;
       if (show) visible++;
     }});
     document.querySelectorAll('.category-group').forEach(function (grp) {{
       var someVisible = Array.prototype.some.call(
-        grp.querySelectorAll('.card'), function (c) {{ return !c.hidden; }}
+        grp.querySelectorAll('.card-shell'), function (c) {{ return !c.hidden; }}
       );
       grp.hidden = !someVisible;
     }});
@@ -939,6 +1521,8 @@ def _resolve_out_arg(raw):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     title = None
+    changed_dir = None
+    write_pages = True
     if argv and argv[0] == "--out":
         if len(argv) < 3:
             print("usage: generate_portfolio.py --out <dir|file> <scope_root> [<scope_root>...]", file=sys.stderr)
@@ -947,8 +1531,21 @@ def main(argv=None):
         scopes = [Path(s) for s in argv[2:]]
         ignore_entries = load_global_trackignore()
         scope_roots = [str(s) for s in scopes]
+        write_pages = False
+    elif argv and argv[0] == "--changed":
+        if len(argv) != 2:
+            print("usage: generate_portfolio.py --changed <project_root>", file=sys.stderr)
+            sys.exit(1)
+        changed_dir = str(Path(argv[1]))
+        target = load_portfolio_target()
+        if target is None:
+            return
+        scopes = load_scopes()
+        ignore_entries = load_global_trackignore()
+        scope_roots = [str(s) for s in scopes]
+        title = load_portfolio_title()
     elif argv:
-        print("usage: generate_portfolio.py [--out <dir|file> <scope_root>...]", file=sys.stderr)
+        print("usage: generate_portfolio.py [--out <dir|file> <scope_root>...] [--changed <project_root>]", file=sys.stderr)
         sys.exit(1)
     else:
         target = load_portfolio_target()
@@ -969,6 +1566,9 @@ def main(argv=None):
         projects += ps
         warnings += ws
     _write_portfolio(target, projects, warnings, title=title, lang=lang)
+    if write_pages:
+        write_subpages(target, projects, changed_dir=changed_dir)
+        clean_orphan_subpages(target, projects)
 
 
 if __name__ == "__main__":

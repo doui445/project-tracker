@@ -541,3 +541,21 @@ anything actionable, written automatically with no permission asked first.
 `BACKLOG.md` item moved to Completed; `CHANGELOG.md` `[Unreleased]` entry
 added. Rides v0.12.0 alongside nested tracking and the still-open portfolio
 sub-page item.
+
+## 2026-09-17 — Portfolio detail sub-pages shipped
+
+Implemented the last open v0.12.0 item across an 11-task plan (spec/plan
+under `docs/superpowers/{specs,plans}/2026-09-17-portfolio-detail-subpages*.md`).
+`generate_portfolio.py` gained a dependency-free Markdown→HTML fragment
+renderer and `build_subpage()`, writing each tracked project's own
+`portfolio/<project>.html` (state, next actions, current roadmap phase,
+recent journal entries, latest changelog version, a direct GitHub link)
+linked from its card in `PORTFOLIO.html`; a new `--changed <project_root>`
+flag lets a targeted run regenerate only one project's sub-page, with
+orphan sub-pages cleaned up on every run. `portfolio_regen.sh` now passes
+`--changed "$PROJECT_ROOT"` so an ordinary `STATUS.md` edit regenerates
+only that project's sub-page; a manual/config-triggered run still
+regenerates all of them. `SKILL.md` `## Portfolio` documents the new
+behaviour. Full verification sweep (all five test suites, names/French
+sweep) green. `STATUS.md`/`CHANGELOG.md`/`BACKLOG.md` updated; all three
+v0.12.0 code items are now done — only the release routine remains.

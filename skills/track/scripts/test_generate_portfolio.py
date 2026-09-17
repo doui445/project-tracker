@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import unittest.mock
 from datetime import date
+from html.parser import HTMLParser
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -268,6 +269,12 @@ class CollectProjectsTests(unittest.TestCase):
         self.assertEqual(projects[0]["status"], "active")
         self.assertEqual(warnings, [])
 
+    def test_project_carries_its_absolute_dir(self):
+        self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = self._collect()
+        self.assertEqual(warnings, [])
+        self.assertEqual(projects[0]["_dir"], str(self.root / "ProjA"))
+
 
 class AggregateStackTests(unittest.TestCase):
     def test_dedupes_exact_duplicates_and_sorts_case_insensitively(self):
@@ -434,6 +441,54 @@ class RenderCardTests(unittest.TestCase):
         self.assertNotIn("freshness", html)
 
 
+class _AnchorNestingChecker(HTMLParser):
+    """Tracks open tags on a stack to detect an <a> start tag encountered
+    while another <a> is still open. A plain substring check (assertIn on
+    the href) cannot see this: HTML5 forbids nested anchors, and a real
+    browser auto-closes the outer <a> the instant it hits the nested one
+    -- which silently breaks whole-card click-to-repo and strips the
+    click target off everything after the nested link. Only parsing the
+    tag structure catches that."""
+    def __init__(self):
+        super().__init__()
+        self.stack = []
+        self.saw_nested_anchor = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a" and "a" in self.stack:
+            self.saw_nested_anchor = True
+        self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if tag in self.stack:
+            while self.stack and self.stack.pop() != tag:
+                pass
+
+
+class TestCardLinksToSubpage(unittest.TestCase):
+    def test_render_card_links_to_subpage(self):
+        s = gp._strings("en")
+        p = {"project": "demo", "_path": "~/demo", "status": "active", "last_updated": "2026-09-01"}
+        html = gp.render_card(p, s)
+        self.assertIn('href="portfolio/demo.html"', html)
+
+    def test_render_card_with_repo_does_not_nest_anchors(self):
+        # Regression: when a repo is set, open_tag/close_tag make the whole
+        # card one <a href="{repo}">...</a> -- the sub-page link's own <a>
+        # must be a structural sibling of that anchor, never nested inside
+        # it (see _AnchorNestingChecker's docstring for why).
+        s = gp._strings("en")
+        p = {
+            "project": "demo", "_path": "~/demo", "status": "active",
+            "last_updated": "2026-09-01", "repo": "https://example.com/demo",
+        }
+        html = gp.render_card(p, s)
+        self.assertIn('href="portfolio/demo.html"', html)
+        checker = _AnchorNestingChecker()
+        checker.feed(html)
+        self.assertFalse(checker.saw_nested_anchor, "an <a> must never be nested inside another <a>")
+
+
 class RelativeFreshnessTests(unittest.TestCase):
     def test_today_and_yesterday_have_dedicated_labels(self):
         self.assertEqual(gp.relative_freshness("2026-08-23", date(2026, 8, 23), gp._strings("en")), ("today", False))
@@ -454,6 +509,37 @@ class RelativeFreshnessTests(unittest.TestCase):
 
     def test_future_date_returns_none(self):
         self.assertEqual(gp.relative_freshness("2026-09-01", date(2026, 8, 23), gp._strings("en")), (None, False))
+
+
+class TestExtractChangelogLatestVersion(unittest.TestCase):
+    CHANGELOG = """## [Unreleased]
+
+### Added
+- something not yet released
+
+## [0.2.0] — 2026-09-10
+
+### Added
+- feature two
+
+## [0.1.0] — 2026-08-01
+
+### Added
+- feature one
+"""
+
+    def test_skips_unreleased_returns_first_dated(self):
+        version, date_str, body = gp.extract_changelog_latest_version(self.CHANGELOG)
+        self.assertEqual(version, "0.2.0")
+        self.assertEqual(date_str, "2026-09-10")
+        self.assertIn("feature two", body)
+        self.assertNotIn("feature one", body)
+
+    def test_no_dated_version_yet(self):
+        self.assertIsNone(gp.extract_changelog_latest_version("## [Unreleased]\n\n- x\n"))
+
+    def test_empty_changelog(self):
+        self.assertIsNone(gp.extract_changelog_latest_version(""))
 
 
 class SortByRecencyTests(unittest.TestCase):
@@ -564,6 +650,43 @@ class GroupByCategoryTests(unittest.TestCase):
         self.assertIn('<h3 class="category-title">Perso</h3>', html)
 
 
+class TestSubprojectsSection(unittest.TestCase):
+    def test_latest_subproject_changelog_date_reads_first_dated_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            changelog = Path(tmp) / "CHANGELOG.md"
+            changelog.write_text("## [1.0.0] — 2026-05-01\n\n- x\n", encoding="utf-8")
+            self.assertEqual(gp.latest_subproject_changelog_date(changelog), "2026-05-01")
+
+    def test_latest_subproject_changelog_date_missing_file(self):
+        self.assertIsNone(gp.latest_subproject_changelog_date(Path("/nonexistent/CHANGELOG.md")))
+
+    def test_render_subprojects_section_only_active(self):
+        s = gp._strings("en")
+        subprojects = [
+            {"name": "api", "path": "api", "tracked": True, "git": True, "status": "active"},
+            {"name": "old", "path": "old", "tracked": True, "git": True, "status": "archived"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            project_dir = Path(tmp)
+            (project_dir / "api").mkdir()
+            (project_dir / "api" / "CHANGELOG.md").write_text("## [1.0.0] — 2026-05-01\n\n- x\n", encoding="utf-8")
+            html = gp.render_subprojects_section(subprojects, project_dir, s)
+        self.assertIn("api", html)
+        self.assertIn("2026-05-01", html)
+        self.assertNotIn("old", html)
+
+    def test_render_subprojects_section_empty_when_none_active(self):
+        s = gp._strings("en")
+        subprojects = [{"name": "old", "path": "old", "tracked": True, "git": True, "status": "archived"}]
+        self.assertEqual(gp.render_subprojects_section(subprojects, Path("/tmp"), s), "")
+
+    def test_render_subprojects_section_listed_not_tracked(self):
+        s = gp._strings("en")
+        subprojects = [{"name": "notes", "path": "notes", "tracked": False, "git": False, "status": "active"}]
+        html = gp.render_subprojects_section(subprojects, Path("/tmp"), s)
+        self.assertIn(s["subpage_subproject_listed"], html)
+
+
 class MainTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -638,6 +761,372 @@ class MainTests(unittest.TestCase):
         gp.main([])
         html = (out_dir / "PORTFOLIO.html").read_text(encoding="utf-8")
         self.assertIn('<html lang="fr">', html)
+
+    def test_changed_flag_only_writes_that_projects_subpage(self):
+        out_dir = self.home / "out"
+        (self.cfg / "scopes.txt").write_text(f"{self.scopeA}\n", encoding="utf-8")
+        (self.cfg / "portfolio.txt").write_text(f"{out_dir}\n", encoding="utf-8")
+        self._status(self.scopeA, "Alpha", "Alpha")
+        self._status(self.scopeA, "Beta", "Beta")
+        gp.main(["--changed", str(self.scopeA / "Alpha")])
+        self.assertTrue((out_dir / "portfolio" / "Alpha.html").is_file())
+        self.assertFalse((out_dir / "portfolio" / "Beta.html").is_file())
+
+
+class TestRenderMarkdownFragment(unittest.TestCase):
+    def test_paragraph_is_wrapped(self):
+        self.assertEqual(gp.render_markdown_fragment("hello world"), "<p>hello world</p>")
+
+    def test_heading(self):
+        self.assertEqual(gp.render_markdown_fragment("## Title"), "<h2>Title</h2>")
+
+    def test_unordered_list(self):
+        html = gp.render_markdown_fragment("- one\n- two")
+        self.assertEqual(html, "<ul><li>one</li><li>two</li></ul>")
+
+    def test_ordered_list(self):
+        html = gp.render_markdown_fragment("1. first\n2. second")
+        self.assertEqual(html, "<ol><li>first</li><li>second</li></ol>")
+
+    def test_bold_and_italic(self):
+        html = gp.render_markdown_fragment("**bold** and *italic* and _also italic_")
+        self.assertEqual(html, "<p><strong>bold</strong> and <em>italic</em> and <em>also italic</em></p>")
+
+    def test_intraword_underscores_not_treated_as_italic(self):
+        html = gp.render_markdown_fragment("The next_milestone field and the last_updated field")
+        self.assertNotIn("<em>", html)
+        self.assertIn("next_milestone", html)
+        self.assertIn("last_updated", html)
+
+    def test_inline_code_not_interpreted(self):
+        html = gp.render_markdown_fragment("use `a*b*c` literally")
+        self.assertEqual(html, "<p>use <code>a*b*c</code> literally</p>")
+
+    def test_link(self):
+        html = gp.render_markdown_fragment("see [the docs](https://example.com/x?a=1&b=2)")
+        self.assertEqual(
+            html,
+            '<p>see <a href="https://example.com/x?a=1&amp;b=2">the docs</a></p>',
+        )
+
+    def test_html_in_source_is_escaped(self):
+        html = gp.render_markdown_fragment("a <script> & \"quote\"")
+        self.assertEqual(html, "<p>a &lt;script&gt; &amp; \"quote\"</p>")
+
+    def test_blank_lines_separate_paragraphs(self):
+        html = gp.render_markdown_fragment("first\n\nsecond")
+        self.assertEqual(html, "<p>first</p>\n<p>second</p>")
+
+    def test_empty_input(self):
+        self.assertEqual(gp.render_markdown_fragment(""), "")
+
+
+class TestExtractStatusRoadmapSections(unittest.TestCase):
+    STATUS_BODY = """
+## Where it stands
+
+Project is in good shape.
+
+### What works
+
+- thing one
+
+## Next 3 actions
+
+1. Do the first thing
+2. Do the second thing
+"""
+
+    def test_extract_status_overview_stops_before_h3(self):
+        self.assertEqual(
+            gp.extract_status_overview(self.STATUS_BODY, "en"),
+            "Project is in good shape.",
+        )
+
+    def test_extract_status_next_actions(self):
+        self.assertEqual(
+            gp.extract_status_next_actions(self.STATUS_BODY, "en"),
+            "1. Do the first thing\n2. Do the second thing",
+        )
+
+    def test_extract_status_overview_missing_heading(self):
+        self.assertIsNone(gp.extract_status_overview("no headings here", "en"))
+
+    def test_extract_status_overview_french(self):
+        body = "## État actuel\n\nÇa avance bien.\n\n## 3 prochaines actions\n\n1. Faire ceci\n"
+        self.assertEqual(gp.extract_status_overview(body, "fr"), "Ça avance bien.")
+
+    ROADMAP_IN_PROGRESS = "## Done\n\nstuff\n\n## Phase 3 — in progress\n\nBuilding the thing.\n\n## After Phase 3\n\nlater\n"
+    ROADMAP_NO_PHASE = "## Current focus\n\nPick the next feature.\n\n## Unprioritised ideas\n\n- x\n"
+
+    def test_extract_roadmap_current_prefers_in_progress_phase(self):
+        self.assertEqual(
+            gp.extract_roadmap_current(self.ROADMAP_IN_PROGRESS, "en"),
+            "Building the thing.",
+        )
+
+    def test_extract_roadmap_current_falls_back_to_current_focus(self):
+        self.assertEqual(
+            gp.extract_roadmap_current(self.ROADMAP_NO_PHASE, "en"),
+            "Pick the next feature.",
+        )
+
+    def test_extract_roadmap_current_missing_both(self):
+        self.assertIsNone(gp.extract_roadmap_current("## Done\n\nstuff\n", "en"))
+
+    def test_extract_status_next_actions_includes_h3_subsections(self):
+        """Verify that ### headings inside "Next 3 actions" are NOT treated as
+        boundaries (unlike "Where it stands" which stops before them)."""
+        body = "## Next 3 actions\n\n1. First action\n\n### Details\n\nMore info here.\n\n## Later section\n\nignored"
+        result = gp.extract_status_next_actions(body, "en")
+        # Should include the ### subsection and its content
+        self.assertIn("### Details", result)
+        self.assertIn("More info here.", result)
+
+    def test_extract_roadmap_current_includes_h3_subsections(self):
+        """Verify that ### headings inside "Phase N — in progress" or "Current focus"
+        sections are NOT treated as boundaries."""
+        body = "## Phase 3 — in progress\n\nBuilding the feature.\n\n### Implementation notes\n\nUse async pattern.\n\n## After Phase 3\n\nignored"
+        result = gp.extract_roadmap_current(body, "en")
+        # Should include the ### subsection and its content
+        self.assertIn("### Implementation notes", result)
+        self.assertIn("Use async pattern.", result)
+
+
+class TestExtractJournalRecentEntries(unittest.TestCase):
+    JOURNAL = """## 2026-09-01 — First entry
+
+Did the first thing.
+
+## 2026-09-02 — Second entry
+
+Did the second thing.
+Still going.
+
+## 2026-09-03 — Third entry
+
+Did the third thing.
+"""
+
+    def test_returns_most_recent_first(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=3)
+        self.assertEqual([e[0] for e in entries], ["2026-09-03", "2026-09-02", "2026-09-01"])
+        self.assertEqual([e[1] for e in entries], ["Third entry", "Second entry", "First entry"])
+
+    def test_respects_count(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=2)
+        self.assertEqual([e[0] for e in entries], ["2026-09-03", "2026-09-02"])
+
+    def test_body_captured(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=1)
+        self.assertEqual(entries[0][2], "Did the third thing.")
+
+    def test_multiline_body(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=3)
+        second = [e for e in entries if e[0] == "2026-09-02"][0]
+        self.assertEqual(second[2], "Did the second thing.\nStill going.")
+
+    def test_empty_journal(self):
+        self.assertEqual(gp.extract_journal_recent_entries("", count=3), [])
+
+
+class TestParseSubprojects(unittest.TestCase):
+    STATUS_TEXT = """---
+project: parent
+status: active
+last_updated: 2026-09-01
+subprojects:
+  - name: "api"
+    path: "api"
+    tracked: true
+    git: true
+    status: active
+  - name: "legacy-v1"
+    path: "archive/v1"
+    tracked: true
+    git: true
+    status: archived
+  - name: "notes"
+    path: "notes"
+    tracked: false
+    git: false
+    status: active
+---
+
+# STATUS
+"""
+
+    def test_parses_all_entries(self):
+        entries = gp.parse_subprojects(self.STATUS_TEXT)
+        self.assertEqual(len(entries), 3)
+        self.assertEqual(entries[0], {
+            "name": "api", "path": "api", "tracked": True, "git": True, "status": "active",
+        })
+        self.assertEqual(entries[1]["status"], "archived")
+        self.assertEqual(entries[2]["tracked"], False)
+
+    def test_no_subprojects_key(self):
+        text = "---\nproject: p\nstatus: active\nlast_updated: 2026-01-01\n---\n"
+        self.assertEqual(gp.parse_subprojects(text), [])
+
+    def test_no_frontmatter_at_all(self):
+        self.assertEqual(gp.parse_subprojects("just some text"), [])
+
+
+class TestBuildSubpage(unittest.TestCase):
+    def _make_project_files(self, root):
+        docs = root / "docs" / "project-tracker"
+        docs.mkdir(parents=True)
+        (docs / "STATUS.md").write_text(
+            "---\nproject: demo\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+            "## Where it stands\n\nGoing well.\n\n### What works\n\n- x\n\n"
+            "## Next 3 actions\n\n1. Ship it\n",
+            encoding="utf-8",
+        )
+        (docs / "ROADMAP.md").write_text("## Current focus\n\nFinish the thing.\n", encoding="utf-8")
+        (docs / "JOURNAL.md").write_text("## 2026-09-01 — Kickoff\n\nStarted.\n", encoding="utf-8")
+        (docs / "CHANGELOG.md").write_text("## [0.1.0] — 2026-09-01\n\n### Added\n- first release\n", encoding="utf-8")
+
+    def test_build_subpage_includes_all_sections(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            self._make_project_files(root)
+            data = {"project": "demo", "repo": "https://github.com/x/demo"}
+            html = gp.build_subpage(root, data, "en")
+        self.assertIn("demo", html)
+        self.assertIn("Going well.", html)
+        self.assertIn("Ship it", html)
+        self.assertIn("Finish the thing.", html)
+        self.assertIn("Kickoff", html)
+        self.assertIn("first release", html)
+        self.assertIn("https://github.com/x/demo", html)
+        self.assertNotIn("- x", html)  # the "### What works" bullet must not leak in
+
+    def test_build_subpage_omits_missing_sections(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "bare"
+            root.mkdir()
+            (root / "docs" / "project-tracker").mkdir(parents=True)
+            (root / "docs" / "project-tracker" / "STATUS.md").write_text(
+                "---\nproject: bare\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+                "## Where it stands\n\nJust started.\n\n## Next 3 actions\n\n1. Do a thing\n",
+                encoding="utf-8",
+            )
+            html = gp.build_subpage(root, {"project": "bare"}, "en")
+        self.assertNotIn(gp._strings("en")["subpage_view_repo"], html)
+        self.assertNotIn(gp._strings("en")["subpage_current_phase"], html)
+        self.assertNotIn(gp._strings("en")["subpage_recent_activity"], html)
+
+    def test_build_subpage_french(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            docs = root / "docs" / "project-tracker"
+            docs.mkdir(parents=True)
+            (docs / "STATUS.md").write_text(
+                "---\nproject: demo\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+                "## État actuel\n\nÇa avance.\n\n## 3 prochaines actions\n\n1. Continuer\n",
+                encoding="utf-8",
+            )
+            html = gp.build_subpage(root, {"project": "demo"}, "fr")
+        self.assertIn("Ça avance.", html)
+        self.assertIn("Retour au portfolio", html)
+
+    def test_build_subpage_back_link_uses_custom_portfolio_filename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            self._make_project_files(root)
+            html = gp.build_subpage(root, {"project": "demo"}, "en", portfolio_filename="custom.html")
+        self.assertIn('href="../custom.html"', html)
+        self.assertNotIn("PORTFOLIO.html", html)
+
+
+class TestWriteSubpagesAndCleanup(unittest.TestCase):
+    def _project(self, tmp, slug, lang=None):
+        root = Path(tmp) / slug
+        docs = root / "docs" / "project-tracker"
+        docs.mkdir(parents=True)
+        (docs / "STATUS.md").write_text(
+            f"---\nproject: {slug}\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+            "## Where it stands\n\nFine.\n\n## Next 3 actions\n\n1. x\n",
+            encoding="utf-8",
+        )
+        data = {"project": slug, "_dir": str(root)}
+        if lang:
+            data["language"] = lang
+        return data
+
+    def test_write_subpages_writes_one_file_per_project(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            out_dir.mkdir()
+            target = out_dir / "PORTFOLIO.html"
+            projects = [self._project(tmp, "alpha"), self._project(tmp, "beta")]
+            gp.write_subpages(target, projects, changed_dir=None)
+            self.assertTrue((out_dir / "portfolio" / "alpha.html").is_file())
+            self.assertTrue((out_dir / "portfolio" / "beta.html").is_file())
+
+    def test_write_subpages_back_link_uses_custom_portfolio_filename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            out_dir.mkdir()
+            target = out_dir / "custom.html"
+            alpha = self._project(tmp, "alpha")
+            gp.write_subpages(target, [alpha], changed_dir=None)
+            html = (out_dir / "portfolio" / "alpha.html").read_text(encoding="utf-8")
+        self.assertIn('href="../custom.html"', html)
+
+    def test_write_subpages_targeted_only_writes_changed_project(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            out_dir.mkdir()
+            target = out_dir / "PORTFOLIO.html"
+            alpha = self._project(tmp, "alpha")
+            beta = self._project(tmp, "beta")
+            gp.write_subpages(target, [alpha, beta], changed_dir=alpha["_dir"])
+            self.assertTrue((out_dir / "portfolio" / "alpha.html").is_file())
+            self.assertFalse((out_dir / "portfolio" / "beta.html").is_file())
+
+    def test_clean_orphan_subpages_removes_unmatched_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            sub_dir = out_dir / "portfolio"
+            sub_dir.mkdir(parents=True)
+            (sub_dir / "alpha.html").write_text("x", encoding="utf-8")
+            (sub_dir / "gone.html").write_text(gp.SUBPAGE_MARKER + "\nstale", encoding="utf-8")
+            target = out_dir / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [{"project": "alpha"}])
+            self.assertTrue((sub_dir / "alpha.html").is_file())
+            self.assertFalse((sub_dir / "gone.html").is_file())
+
+    def test_clean_orphan_subpages_noop_when_dir_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [])  # must not raise
+
+    def test_clean_orphan_subpages_spares_unmarked_unrelated_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            sub_dir = out_dir / "portfolio"
+            sub_dir.mkdir(parents=True)
+            (sub_dir / "not-ours.html").write_text("<html>a user's own file</html>", encoding="utf-8")
+            target = out_dir / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [{"project": "alpha"}])
+            self.assertTrue((sub_dir / "not-ours.html").is_file())
+
+    def test_clean_orphan_subpages_removes_marked_stale_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            sub_dir = out_dir / "portfolio"
+            sub_dir.mkdir(parents=True)
+            (sub_dir / "renamed-project.html").write_text(
+                gp.SUBPAGE_MARKER + "\n<html>old sub-page</html>", encoding="utf-8"
+            )
+            target = out_dir / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [{"project": "alpha"}])
+            self.assertFalse((sub_dir / "renamed-project.html").is_file())
 
 
 if __name__ == "__main__":

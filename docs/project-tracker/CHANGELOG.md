@@ -34,6 +34,13 @@ guidance, no-behaviour-change refactors. The version lives in
   `JOURNAL.md` (plus `BACKLOG.md` for anything actionable) at its natural
   conclusion, even when no decision was reached or the idea was later
   dropped — independent of the existing "significant change" trigger.
+- **Portfolio: a detail sub-page per project.** Each project's card in
+  `PORTFOLIO.html` now links to its own `portfolio/<project>.html`,
+  rendering its `STATUS.md` state and next actions, current `ROADMAP.md`
+  phase, recent `JOURNAL.md` activity, latest `CHANGELOG.md` version, and a
+  direct GitHub link. `portfolio_regen.sh` regenerates only the changed
+  project's sub-page on a `STATUS.md` write; a manual/config-triggered run
+  regenerates all of them, with orphaned sub-pages cleaned up.
 
 ### Changed
 - **The skill stays quiet when there's nothing to report.** New

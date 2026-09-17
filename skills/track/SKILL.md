@@ -197,7 +197,7 @@ This is the only strictly structured part of any of these files — the rest is 
 
 `language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
 
-`subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` only needs to not choke on the `subprojects` key (see `## Portfolio`), it does not render it yet.
+`subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` reads the `subprojects` key to render each project's detail sub-page (see `## Portfolio`); the aggregate `PORTFOLIO.html` card grid does not use it.
 
 ## Sub-projects
 
@@ -359,13 +359,13 @@ If `reminders_list` (in the `STATUS.md` frontmatter) is linked (present, differe
 
 ## Portfolio
 
-A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). **Never run `generate_portfolio.py` yourself** — except once, with the user's approval, right after they change the portfolio folder, title or language via `/project-tracker:config` (the regeneration hook only fires on `STATUS.md` writes). If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
+A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` automatically on every `STATUS.md` write, into the folder configured by `~/.claude/project-tracker/portfolio.txt` (a single file, all scopes aggregated). Each project also gets its own detail page under `portfolio/<project>.html`, linked from its card — the hook regenerates only the one sub-page for the project whose `STATUS.md` just changed (`PORTFOLIO.html` itself is always rebuilt in full). **Never run `generate_portfolio.py` yourself** — except once, with the user's approval, right after they change the portfolio folder, title or language via `/project-tracker:config`: that run has no single "changed project", so it regenerates every sub-page too. If `portfolio.txt` does not exist yet, see the `portfolio.txt` bullet under `## Detecting a project's root`.
 
 `portfolio.txt` holds the output **folder** on its first line that is neither a `title:` nor a `language:` line (a line ending in `.html` is taken as an explicit file path instead); `~`/`$VAR` are expanded. An optional `title:` line anywhere in the file sets the portfolio heading (default, locale-dependent: "My projects" / "Mes projets"); an optional `language:` line (`en`/`fr`) overrides the portfolio's output language. All three are edited via `/project-tracker:config`, never written by this skill directly.
 
 Projects are grouped into sections by the `category` frontmatter field — uncategorized first, then categories ordered by most recent activity.
 
-The `subprojects:` frontmatter key (`## Sub-projects`) is not rendered by the portfolio yet — `generate_portfolio.py` reads past it without error or effect on the existing output. Surfacing sub-projects on the portfolio is a separate, later piece of work.
+The `subprojects:` frontmatter key (`## Sub-projects`) is rendered on a project's own detail sub-page (`portfolio/<project>.html`): each **active** sub-project is listed by name, whether it is `tracked` (plus its own latest `CHANGELOG.md` date, when available) or just `listed`; archived sub-projects are excluded in v1. The aggregate `PORTFOLIO.html` card grid itself still doesn't surface sub-project info — that remains a separate, still-open piece of work.
 
 To change the portfolio location, title or language, or any config (scopes, ignored paths, output language, a project's category), the user runs `/project-tracker:config`.
 

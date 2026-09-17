@@ -180,22 +180,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     pole, so the site is calm and restrained, not the loud impeccable
     register.
 
-- [ ] **Portfolio: a detail sub-page per project** (M, ⭐⭐) — requested
-  2026-09-01. Today `PORTFOLIO.html` is a single aggregated page; the user
-  wants to click through to a per-project sub-page for "where I'm at" instead
-  of going to GitHub. Content: render what is already written —
-  `STATUS.md` (state + next 3 actions), current `ROADMAP.md` phase, the last
-  few `JOURNAL.md` entries, the latest `CHANGELOG.md` version. A direct
-  GitHub link with the GitHub mark (inline SVG; `repo:` is already in the
-  frontmatter). Open design questions for the brainstorm: one HTML file per
-  project beside `PORTFOLIO.html` (a sub-folder?) vs. a single page with
-  client-side routing; Markdown→HTML with no dependency (`generate_portfolio.py`
-  is stdlib-only and has no MD renderer today); the `STRINGS` en/fr table must
-  cover the new labels; keep v1 minimal (render existing content, resist
-  charts/history creep). Pairs with nested tracking — a sub-page could list a
-  project's git sub-repos and their micro-tracking state. **Ships in
-  v0.12.0** alongside nested tracking (thematically linked, no migration).
-
 - [ ] **Obsidian integration (optional)** (S/M, ⭐) — surfaced 2026-09-14,
   brainstorm only. The tracking files are plain Markdown, so any scope
   root already opens as a valid Obsidian vault today with zero changes —
@@ -247,6 +231,18 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   so far.
 
 ## Completed
+
+- [x] **Portfolio: a detail sub-page per project** (2026-09-17) — each
+  card in `PORTFOLIO.html` now links to its own `portfolio/<project>.html`
+  (one HTML file per project, no client-side routing), rendering
+  `STATUS.md` state + next actions, current `ROADMAP.md` phase, recent
+  `JOURNAL.md` activity, the latest `CHANGELOG.md` version, and a direct
+  GitHub link (inline SVG mark). A dependency-free Markdown→HTML fragment
+  renderer was added to `generate_portfolio.py` for this; `STRINGS` en/fr
+  extended with the new labels. `portfolio_regen.sh` regenerates only the
+  changed project's sub-page on a targeted `STATUS.md`-write run; a
+  manual/config-triggered full run regenerates every sub-page and cleans up
+  orphans. Rides v0.12.0.
 
 - [x] **Skill: log every discussion, even ideas later abandoned** (2026-09-17)
   — new `## Continuous updates` paragraph in `SKILL.md`: a design/scoping
