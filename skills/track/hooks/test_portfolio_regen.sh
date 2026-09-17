@@ -127,6 +127,27 @@ rm -f "$OUT_DIR/PORTFOLIO.html"
 run_hook_raw "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "t1" >/dev/null
 assert_no_file "$OUT_DIR/PORTFOLIO.html" "throttle -> second edit within 10s is skipped"
 
+# Case 11 (new): sub-page written for the changed project.
+# The sub-page filename is the project's `project:` frontmatter value
+# (here "Tracked"), not the directory basename -- see generate_portfolio.py
+# _project_slug().
+rm -f "$OUT_DIR/PORTFOLIO.html" "$OUT_DIR/portfolio/Tracked.html"
+run_hook "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "s11" >/dev/null
+assert_file "$OUT_DIR/portfolio/Tracked.html" "sub-page written for the changed project"
+
+# Case 12 (new): a different tracked project's existing sub-page survives a
+# targeted run untouched. It must be a real tracked project (not an orphan
+# filename) -- clean_orphan_subpages runs on every regeneration and would
+# delete a stale file with no matching project regardless of --changed;
+# that path is already covered by test_generate_portfolio.py.
+OTHER="$SCOPE_ROOT/other-project"
+mkdir -p "$OTHER/docs/project-tracker" "$OUT_DIR/portfolio"
+printf -- '---\nproject: Other\nstatus: active\nlast_updated: 2026-01-01\n---\n' > "$OTHER/docs/project-tracker/STATUS.md"
+echo "stale but still valid" > "$OUT_DIR/portfolio/Other.html"
+run_hook "Edit" "$TRACKED/docs/project-tracker/STATUS.md" "s12" >/dev/null
+OTHER_CONTENT="$(cat "$OUT_DIR/portfolio/Other.html" 2>/dev/null || echo MISSING)"
+assert_contains "$OTHER_CONTENT" "stale but still valid" "unrelated project's sub-page left untouched by a targeted run"
+
 # Case 9: python3 missing -> exit 0, no crash
 OUT="$(printf '{"session_id": "s9", "cwd": "%s", "hook_event_name": "PostToolUse", "tool_name": "Edit", "tool_input": {"file_path": "%s"}}' "$TRACKED/docs/project-tracker" "$TRACKED/docs/project-tracker/STATUS.md" | env -i PATH=/bin HOME="$TMP_HOME" TMPDIR="$TMP_MARKERS" bash "$HOOK" 2>&1)" || true
 assert_empty "$OUT" "missing python3 -> silent"

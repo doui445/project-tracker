@@ -119,5 +119,5 @@ touch "$THROTTLE" 2>/dev/null || true
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GEN="$SKILL_DIR/scripts/generate_portfolio.py"
 [ -f "$GEN" ] || exit 0
-python3 "$GEN" >/dev/null 2>&1 || true
+python3 "$GEN" --changed "$PROJECT_ROOT" >/dev/null 2>&1 || true
 exit 0
