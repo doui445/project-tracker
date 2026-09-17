@@ -462,6 +462,37 @@ class RelativeFreshnessTests(unittest.TestCase):
         self.assertEqual(gp.relative_freshness("2026-09-01", date(2026, 8, 23), gp._strings("en")), (None, False))
 
 
+class TestExtractChangelogLatestVersion(unittest.TestCase):
+    CHANGELOG = """## [Unreleased]
+
+### Added
+- something not yet released
+
+## [0.2.0] — 2026-09-10
+
+### Added
+- feature two
+
+## [0.1.0] — 2026-08-01
+
+### Added
+- feature one
+"""
+
+    def test_skips_unreleased_returns_first_dated(self):
+        version, date_str, body = gp.extract_changelog_latest_version(self.CHANGELOG)
+        self.assertEqual(version, "0.2.0")
+        self.assertEqual(date_str, "2026-09-10")
+        self.assertIn("feature two", body)
+        self.assertNotIn("feature one", body)
+
+    def test_no_dated_version_yet(self):
+        self.assertIsNone(gp.extract_changelog_latest_version("## [Unreleased]\n\n- x\n"))
+
+    def test_empty_changelog(self):
+        self.assertIsNone(gp.extract_changelog_latest_version(""))
+
+
 class SortByRecencyTests(unittest.TestCase):
     def test_most_recent_first(self):
         projects = [

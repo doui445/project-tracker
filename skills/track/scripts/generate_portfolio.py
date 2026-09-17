@@ -631,6 +631,31 @@ def extract_journal_recent_entries(journal_body, count=3):
     return [(d, t, "\n".join(b).strip()) for d, t, b in recent]
 
 
+_CHANGELOG_VERSION_RE = re.compile(r"^\[(\d+\.\d+\.\d+)\]\s+—\s+(\d{4}-\d{2}-\d{2})$")
+
+
+def extract_changelog_latest_version(changelog_body):
+    """Returns (version, date, body) for the first dated '## [X.Y.Z] —
+    YYYY-MM-DD' heading (Keep a Changelog format, used verbatim regardless
+    of language -- see CHANGELOG.md's own convention in this repo).
+    '## [Unreleased]' never matches. None if no dated version exists yet."""
+    lines = changelog_body.splitlines()
+    for i, line in enumerate(lines):
+        m = re.match(r"^##\s+(.*)$", line.strip())
+        if not m:
+            continue
+        version_m = _CHANGELOG_VERSION_RE.match(m.group(1).strip())
+        if not version_m:
+            continue
+        end = len(lines)
+        for j in range(i + 1, len(lines)):
+            if re.match(r"^##\s", lines[j]):
+                end = j
+                break
+        return version_m.group(1), version_m.group(2), "\n".join(lines[i + 1:end]).strip()
+    return None
+
+
 def render_stats_section(projects, s):
     if not projects:
         return ""
