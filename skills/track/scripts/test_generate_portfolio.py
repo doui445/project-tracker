@@ -646,5 +646,47 @@ class MainTests(unittest.TestCase):
         self.assertIn('<html lang="fr">', html)
 
 
+class TestRenderMarkdownFragment(unittest.TestCase):
+    def test_paragraph_is_wrapped(self):
+        self.assertEqual(gp.render_markdown_fragment("hello world"), "<p>hello world</p>")
+
+    def test_heading(self):
+        self.assertEqual(gp.render_markdown_fragment("## Title"), "<h2>Title</h2>")
+
+    def test_unordered_list(self):
+        html = gp.render_markdown_fragment("- one\n- two")
+        self.assertEqual(html, "<ul><li>one</li><li>two</li></ul>")
+
+    def test_ordered_list(self):
+        html = gp.render_markdown_fragment("1. first\n2. second")
+        self.assertEqual(html, "<ol><li>first</li><li>second</li></ol>")
+
+    def test_bold_and_italic(self):
+        html = gp.render_markdown_fragment("**bold** and *italic* and _also italic_")
+        self.assertEqual(html, "<p><strong>bold</strong> and <em>italic</em> and <em>also italic</em></p>")
+
+    def test_inline_code_not_interpreted(self):
+        html = gp.render_markdown_fragment("use `a*b*c` literally")
+        self.assertEqual(html, "<p>use <code>a*b*c</code> literally</p>")
+
+    def test_link(self):
+        html = gp.render_markdown_fragment("see [the docs](https://example.com/x?a=1&b=2)")
+        self.assertEqual(
+            html,
+            '<p>see <a href="https://example.com/x?a=1&amp;b=2">the docs</a></p>',
+        )
+
+    def test_html_in_source_is_escaped(self):
+        html = gp.render_markdown_fragment("a <script> & \"quote\"")
+        self.assertEqual(html, "<p>a &lt;script&gt; &amp; \"quote\"</p>")
+
+    def test_blank_lines_separate_paragraphs(self):
+        html = gp.render_markdown_fragment("first\n\nsecond")
+        self.assertEqual(html, "<p>first</p>\n<p>second</p>")
+
+    def test_empty_input(self):
+        self.assertEqual(gp.render_markdown_fragment(""), "")
+
+
 if __name__ == "__main__":
     unittest.main()

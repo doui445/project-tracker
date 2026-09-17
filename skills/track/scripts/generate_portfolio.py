@@ -429,6 +429,114 @@ def _empty_state(s):
     </div>"""
 
 
+_INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_BOLD_RE = re.compile(r"\*\*([^*]+)\*\*")
+_ITALIC_RE = re.compile(r"(?<!\*)\*([^*]+)\*(?!\*)|_([^_]+)_")
+_ORDERED_ITEM_RE = re.compile(r"^\d+\.\s+(.*)$")
+_UNORDERED_ITEM_RE = re.compile(r"^[-*]\s+(.*)$")
+_HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
+
+
+def _render_rich(raw_chunk):
+    """Links, then bold, then italic, on a chunk guaranteed free of inline
+    code. Link text/URL and the plain text around them are escaped exactly
+    once (via _txt/_attr) before any tag is added, using numbered
+    placeholders so bold/italic never re-enter an already-built <a> tag."""
+    placeholders = []
+
+    def stash(html_piece):
+        placeholders.append(html_piece)
+        return f"\x00{len(placeholders) - 1}\x00"
+
+    def link_sub(m):
+        return stash(f'<a href="{_attr(m.group(2))}">{_txt(m.group(1))}</a>')
+
+    chunk = _LINK_RE.sub(link_sub, raw_chunk)
+    chunk = _txt(chunk)  # escape what's left of the raw text exactly once
+    chunk = _BOLD_RE.sub(lambda m: f"<strong>{m.group(1)}</strong>", chunk)
+    chunk = _ITALIC_RE.sub(lambda m: f"<em>{m.group(1) or m.group(2)}</em>", chunk)
+    for i, piece in enumerate(placeholders):
+        chunk = chunk.replace(f"\x00{i}\x00", piece)
+    return chunk
+
+
+def _render_inline(raw_text):
+    """Renders the targeted inline subset (code, links, bold, italic) of
+    one raw (not yet HTML-escaped) line. Inline code is pulled out first
+    so its content is never touched by the other patterns."""
+    segments = []
+    pos = 0
+    for m in _INLINE_CODE_RE.finditer(raw_text):
+        if m.start() > pos:
+            segments.append(("rich", raw_text[pos:m.start()]))
+        segments.append(("code", m.group(1)))
+        pos = m.end()
+    if pos < len(raw_text) or not segments:
+        segments.append(("rich", raw_text[pos:]))
+    return "".join(
+        f"<code>{_txt(chunk)}</code>" if kind == "code" else _render_rich(chunk)
+        for kind, chunk in segments
+    )
+
+
+def render_markdown_fragment(text):
+    """Minimal Markdown -> HTML for the targeted subset used by the
+    tracking files: headings, bulleted/numbered lists, bold/italic,
+    links, inline code. Not a general-purpose parser -- anything outside
+    this subset (tables, images, multi-line code blocks...) is rendered
+    as plain paragraph text rather than interpreted, since none of it
+    appears in the sections this feeds (see spec D4)."""
+    lines = text.strip("\n").splitlines()
+    html = []
+    list_tag = []  # mutable single-item box so the closures below can write it
+    list_buffer = []
+
+    def flush_list():
+        if list_buffer:
+            items = "".join(f"<li>{_render_inline(i)}</li>" for i in list_buffer)
+            html.append(f"<{list_tag[0]}>{items}</{list_tag[0]}>")
+            list_buffer.clear()
+            list_tag.clear()
+
+    paragraph = []
+
+    def flush_paragraph():
+        if paragraph:
+            html.append(f"<p>{_render_inline(' '.join(paragraph))}</p>")
+            paragraph.clear()
+
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            flush_paragraph()
+            flush_list()
+            continue
+        heading_m = _HEADING_RE.match(line)
+        if heading_m:
+            flush_paragraph()
+            flush_list()
+            level = len(heading_m.group(1))
+            html.append(f"<h{level}>{_render_inline(heading_m.group(2))}</h{level}>")
+            continue
+        ordered_m = _ORDERED_ITEM_RE.match(line)
+        unordered_m = _UNORDERED_ITEM_RE.match(line)
+        if ordered_m or unordered_m:
+            flush_paragraph()
+            tag = "ol" if ordered_m else "ul"
+            if list_tag and list_tag[0] != tag:
+                flush_list()
+            if not list_tag:
+                list_tag.append(tag)
+            list_buffer.append((ordered_m or unordered_m).group(1))
+            continue
+        flush_list()
+        paragraph.append(line)
+    flush_paragraph()
+    flush_list()
+    return "\n".join(html)
+
+
 def render_stats_section(projects, s):
     if not projects:
         return ""
