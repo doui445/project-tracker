@@ -588,14 +588,19 @@ def _extract_section(body, heading, boundary_includes_h3=False):
 
 
 def extract_status_overview(status_body, lang):
+    """Extracts the "Where it stands" section from a STATUS.md body,
+    stopping before any ### subsections (e.g., "### What works")."""
     return _extract_section(status_body, SOURCE_HEADINGS[lang]["where_it_stands"], boundary_includes_h3=True)
 
 
 def extract_status_next_actions(status_body, lang):
+    """Extracts the "Next 3 actions" section from a STATUS.md body."""
     return _extract_section(status_body, SOURCE_HEADINGS[lang]["next_actions"])
 
 
 def extract_roadmap_current(roadmap_body, lang):
+    """Extracts current work from a ROADMAP.md body. Prefers a
+    "Phase N — in progress" section; if not found, falls back to "Current focus"."""
     headings = SOURCE_HEADINGS[lang]
     section = _extract_section(roadmap_body, headings["in_progress"])
     return section if section is not None else _extract_section(roadmap_body, headings["current_focus"])

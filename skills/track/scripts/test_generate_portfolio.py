@@ -741,6 +741,15 @@ Project is in good shape.
     def test_extract_roadmap_current_missing_both(self):
         self.assertIsNone(gp.extract_roadmap_current("## Done\n\nstuff\n", "en"))
 
+    def test_extract_status_next_actions_includes_h3_subsections(self):
+        """Verify that ### headings inside "Next 3 actions" are NOT treated as
+        boundaries (unlike "Where it stands" which stops before them)."""
+        body = "## Next 3 actions\n\n1. First action\n\n### Details\n\nMore info here.\n\n## Later section\n\nignored"
+        result = gp.extract_status_next_actions(body, "en")
+        # Should include the ### subsection and its content
+        self.assertIn("### Details", result)
+        self.assertIn("More info here.", result)
+
 
 if __name__ == "__main__":
     unittest.main()
