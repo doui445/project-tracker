@@ -908,5 +908,66 @@ subprojects:
         self.assertEqual(gp.parse_subprojects("just some text"), [])
 
 
+class TestBuildSubpage(unittest.TestCase):
+    def _make_project_files(self, root):
+        docs = root / "docs" / "project-tracker"
+        docs.mkdir(parents=True)
+        (docs / "STATUS.md").write_text(
+            "---\nproject: demo\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+            "## Where it stands\n\nGoing well.\n\n### What works\n\n- x\n\n"
+            "## Next 3 actions\n\n1. Ship it\n",
+            encoding="utf-8",
+        )
+        (docs / "ROADMAP.md").write_text("## Current focus\n\nFinish the thing.\n", encoding="utf-8")
+        (docs / "JOURNAL.md").write_text("## 2026-09-01 — Kickoff\n\nStarted.\n", encoding="utf-8")
+        (docs / "CHANGELOG.md").write_text("## [0.1.0] — 2026-09-01\n\n### Added\n- first release\n", encoding="utf-8")
+
+    def test_build_subpage_includes_all_sections(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            self._make_project_files(root)
+            data = {"project": "demo", "repo": "https://github.com/x/demo"}
+            html = gp.build_subpage(root, data, "en")
+        self.assertIn("demo", html)
+        self.assertIn("Going well.", html)
+        self.assertIn("Ship it", html)
+        self.assertIn("Finish the thing.", html)
+        self.assertIn("Kickoff", html)
+        self.assertIn("first release", html)
+        self.assertIn("https://github.com/x/demo", html)
+        self.assertNotIn("- x", html)  # the "### What works" bullet must not leak in
+
+    def test_build_subpage_omits_missing_sections(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "bare"
+            root.mkdir()
+            (root / "docs" / "project-tracker").mkdir(parents=True)
+            (root / "docs" / "project-tracker" / "STATUS.md").write_text(
+                "---\nproject: bare\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+                "## Where it stands\n\nJust started.\n\n## Next 3 actions\n\n1. Do a thing\n",
+                encoding="utf-8",
+            )
+            html = gp.build_subpage(root, {"project": "bare"}, "en")
+        self.assertNotIn("subpage-repo", html)
+        self.assertNotIn(gp._strings("en")["subpage_current_phase"], html)
+        self.assertNotIn(gp._strings("en")["subpage_recent_activity"], html)
+
+    def test_build_subpage_french(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            docs = root / "docs" / "project-tracker"
+            docs.mkdir(parents=True)
+            (docs / "STATUS.md").write_text(
+                "---\nproject: demo\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+                "## État actuel\n\nÇa avance.\n\n## 3 prochaines actions\n\n1. Continuer\n",
+                encoding="utf-8",
+            )
+            html = gp.build_subpage(root, {"project": "demo"}, "fr")
+        self.assertIn("Ça avance.", html)
+        self.assertIn("Retour au portfolio", html)
+
+
 if __name__ == "__main__":
     unittest.main()

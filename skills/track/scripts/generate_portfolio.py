@@ -790,6 +790,151 @@ def render_stack_section(projects, s):
   <div class="stack-chips" role="group" aria-label="{_attr(s["stack_aria"])}">{chips}</div>
 </section>"""
 
+
+# Well-known, MIT-licensed GitHub mark (16x16 viewBox), used verbatim
+# across the web as an inline icon -- no external asset, consistent with
+# the "single self-contained file" rule.
+GITHUB_MARK_SVG = (
+    '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">'
+    '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 '
+    '0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 '
+    '1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 '
+    '0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 '
+    '2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 '
+    '3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">'
+    "</path></svg>"
+)
+
+SUBPAGE_TEMPLATE = """<!doctype html>
+<html lang="{html_lang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{page_title}</title>
+<style>
+  :root {{
+    color-scheme: light dark;
+    --bg: oklch(1.000 0.000 0);
+    --surface: oklch(0.972 0.006 293);
+    --border: oklch(0.880 0.010 293);
+    --ink: oklch(0.125 0.018 293);
+    --muted: oklch(0.480 0.012 293);
+    --accent: oklch(0.541 0.245 293);
+    --accent2: oklch(0.705 0.191 42);
+  }}
+  @media (prefers-color-scheme: dark) {{
+    :root {{
+      --bg: oklch(0.170 0.012 293);
+      --surface: oklch(0.220 0.016 293);
+      --border: oklch(0.330 0.016 293);
+      --ink: oklch(0.948 0.005 293);
+      --muted: oklch(0.580 0.008 293);
+      --accent: oklch(0.714 0.148 293);
+      --accent2: oklch(0.750 0.157 42);
+    }}
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }}
+  a {{ color: var(--accent2); }}
+  .back {{ font-size: 0.85rem; display: inline-block; margin-bottom: 1.5rem; }}
+  h1 {{ font-size: 1.5rem; margin: 0 0 1.75rem; letter-spacing: -0.01em; }}
+  section {{ margin: 0 0 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }}
+  section:first-of-type {{ border-top: none; padding-top: 0; }}
+  h2 {{ font-size: 1rem; font-weight: 700; margin: 0 0 0.6rem; }}
+  h3 {{ font-size: 0.9rem; font-weight: 700; margin: 1rem 0 0.4rem; }}
+  p, li {{ font-size: 0.9rem; }}
+  code {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface); padding: 0.1rem 0.3rem; border-radius: 4px; }}
+  .repo-link a {{ display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; text-decoration: none; }}
+  .subpage-subprojects ul {{ padding-left: 1.2rem; margin: 0; }}
+</style>
+</head>
+<body>
+<a class="back" href="../{portfolio_filename}">&#8592; {back_link}</a>
+<h1>{name}</h1>
+{sections}
+{repo_link}
+</body>
+</html>
+"""
+
+
+def build_subpage(project_dir, data, lang):
+    """Assembles one project's detail sub-page: State, Next actions,
+    Current phase, Recent activity, Latest version and Sub-projects
+    sections, each omitted when it has nothing to show. Re-reads the
+    project's own tracking files directly from project_dir rather than
+    relying on data already collected for the aggregate portfolio page."""
+    s = _strings(lang)
+    name = data.get("project", "?")
+
+    status_path = project_dir / "docs" / "project-tracker" / "STATUS.md"
+    status_text = status_path.read_text(encoding="utf-8", errors="replace") if status_path.is_file() else ""
+    status_body = FRONTMATTER_RE.sub("", status_text, count=1)
+    overview = extract_status_overview(status_body, lang)
+    next_actions = extract_status_next_actions(status_body, lang)
+
+    roadmap_path = project_dir / "docs" / "project-tracker" / "ROADMAP.md"
+    roadmap_text = roadmap_path.read_text(encoding="utf-8", errors="replace") if roadmap_path.is_file() else ""
+    roadmap_current = extract_roadmap_current(roadmap_text, lang) if roadmap_text else None
+
+    journal_path = project_dir / "docs" / "project-tracker" / "JOURNAL.md"
+    journal_text = journal_path.read_text(encoding="utf-8", errors="replace") if journal_path.is_file() else ""
+    journal_entries = extract_journal_recent_entries(journal_text, count=3) if journal_text else []
+
+    changelog_path = project_dir / "docs" / "project-tracker" / "CHANGELOG.md"
+    changelog_text = changelog_path.read_text(encoding="utf-8", errors="replace") if changelog_path.is_file() else ""
+    latest_version = extract_changelog_latest_version(changelog_text) if changelog_text else None
+
+    subprojects = parse_subprojects(status_text)
+    subprojects_html = render_subprojects_section(subprojects, project_dir, s)
+
+    sections = []
+    if overview:
+        sections.append(f'<section><h2>{_txt(s["subpage_state"])}</h2>{render_markdown_fragment(overview)}</section>')
+    if next_actions:
+        sections.append(f'<section><h2>{_txt(s["subpage_next_actions"])}</h2>{render_markdown_fragment(next_actions)}</section>')
+    if roadmap_current:
+        sections.append(f'<section><h2>{_txt(s["subpage_current_phase"])}</h2>{render_markdown_fragment(roadmap_current)}</section>')
+    if journal_entries:
+        entries_html = "".join(
+            f"<article><h3>{_txt(d)} — {_txt(t)}</h3>{render_markdown_fragment(b)}</article>"
+            for d, t, b in journal_entries
+        )
+        sections.append(f'<section><h2>{_txt(s["subpage_recent_activity"])}</h2>{entries_html}</section>')
+    if latest_version:
+        v, d, body = latest_version
+        heading = _txt(s["subpage_latest_version"].format(version=v, date=d))
+        sections.append(f"<section><h2>{heading}</h2>{render_markdown_fragment(body)}</section>")
+    if subprojects_html:
+        sections.append(subprojects_html)
+
+    repo = data.get("repo", "")
+    repo_html = ""
+    if repo.startswith("http://") or repo.startswith("https://"):
+        repo_html = (
+            f'<p class="repo-link"><a href="{_attr(repo)}">'
+            f'{GITHUB_MARK_SVG}<span>{_txt(s["subpage_view_repo"])}</span></a></p>'
+        )
+
+    return SUBPAGE_TEMPLATE.format(
+        html_lang=_attr(s["html_lang"]),
+        page_title=_txt(s["subpage_page_title"].format(name=name)),
+        portfolio_filename="PORTFOLIO.html",
+        back_link=_txt(s["subpage_back"]),
+        name=_txt(name),
+        sections="\n".join(sections),
+        repo_link=repo_html,
+    )
+
+
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="{html_lang}">
 <head>
