@@ -949,7 +949,7 @@ class TestBuildSubpage(unittest.TestCase):
                 encoding="utf-8",
             )
             html = gp.build_subpage(root, {"project": "bare"}, "en")
-        self.assertNotIn("subpage-repo", html)
+        self.assertNotIn(gp._strings("en")["subpage_view_repo"], html)
         self.assertNotIn(gp._strings("en")["subpage_current_phase"], html)
         self.assertNotIn(gp._strings("en")["subpage_recent_activity"], html)
 
