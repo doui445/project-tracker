@@ -760,5 +760,42 @@ Project is in good shape.
         self.assertIn("Use async pattern.", result)
 
 
+class TestExtractJournalRecentEntries(unittest.TestCase):
+    JOURNAL = """## 2026-09-01 — First entry
+
+Did the first thing.
+
+## 2026-09-02 — Second entry
+
+Did the second thing.
+Still going.
+
+## 2026-09-03 — Third entry
+
+Did the third thing.
+"""
+
+    def test_returns_most_recent_first(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=3)
+        self.assertEqual([e[0] for e in entries], ["2026-09-03", "2026-09-02", "2026-09-01"])
+        self.assertEqual([e[1] for e in entries], ["Third entry", "Second entry", "First entry"])
+
+    def test_respects_count(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=2)
+        self.assertEqual([e[0] for e in entries], ["2026-09-03", "2026-09-02"])
+
+    def test_body_captured(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=1)
+        self.assertEqual(entries[0][2], "Did the third thing.")
+
+    def test_multiline_body(self):
+        entries = gp.extract_journal_recent_entries(self.JOURNAL, count=3)
+        second = [e for e in entries if e[0] == "2026-09-02"][0]
+        self.assertEqual(second[2], "Did the second thing.\nStill going.")
+
+    def test_empty_journal(self):
+        self.assertEqual(gp.extract_journal_recent_entries("", count=3), [])
+
+
 if __name__ == "__main__":
     unittest.main()

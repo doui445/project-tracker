@@ -606,6 +606,31 @@ def extract_roadmap_current(roadmap_body, lang):
     return section if section is not None else _extract_section(roadmap_body, headings["current_focus"])
 
 
+_JOURNAL_ENTRY_RE = re.compile(r"^##\s+(\d{4}-\d{2}-\d{2})\s+—\s+(.*)$")
+
+
+def extract_journal_recent_entries(journal_body, count=3):
+    """Returns up to `count` most recent entries as [(date, topic, body), ...],
+    most recent first. JOURNAL.md is append-only and chronological (oldest
+    first) -- see 'journal.entry_heading' in references/i18n/{en,fr}.md for
+    the heading format, identical across languages (only the topic text
+    itself is localised)."""
+    entries = []
+    current = None
+    for line in journal_body.splitlines():
+        m = _JOURNAL_ENTRY_RE.match(line)
+        if m:
+            if current:
+                entries.append(current)
+            current = [m.group(1), m.group(2), []]
+        elif current:
+            current[2].append(line)
+    if current:
+        entries.append(current)
+    recent = list(reversed(entries[-count:]))
+    return [(d, t, "\n".join(b).strip()) for d, t, b in recent]
+
+
 def render_stats_section(projects, s):
     if not projects:
         return ""
