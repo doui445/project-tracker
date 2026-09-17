@@ -432,7 +432,15 @@ def render_card(p, s, today=None):
     slug = p.get("project", "")
     subpage_link = f'<a class="card-detail" href="portfolio/{_attr(slug)}.html">{_txt(s.get("card_view_detail", "Details"))}</a>' if slug else ""
 
+    # The sub-page link is a SIBLING of {open_tag}/{close_tag}, never nested
+    # inside it: when a repo exists, open_tag/close_tag is itself an <a>,
+    # and an <a> inside an <a> is invalid HTML5 (the browser silently
+    # closes the outer one, breaking whole-card click-to-repo and leaving
+    # the arrow affordance outside any link). The outer .card-shell div is
+    # the actual grid item; .card keeps data-stack/data-status (the JS
+    # filters select .card[data-stack]/.card[data-status] directly).
     return f"""
+    <div class="card-shell">
     {open_tag}
       <header class="card-header">
         <h2>{_txt(name)}</h2>
@@ -444,9 +452,10 @@ def render_card(p, s, today=None):
         <div><dt>{_txt(s["card_next_milestone"])}</dt><dd>{milestone}</dd></div>
         <div><dt>{_txt(s["card_updated"])}</dt><dd>{_txt(last_updated)}{freshness_html}</dd></div>
       </dl>
-      {subpage_link}
       {affordance}
-    {close_tag}"""
+    {close_tag}
+    {subpage_link}
+    </div>"""
 
 
 def _empty_state(s):
@@ -1167,6 +1176,26 @@ PAGE_TEMPLATE = """<!doctype html>
     .reset-btn:hover {{ color: var(--accent2); }}
   }}
   .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.1rem; }}
+  /* .card-shell is the actual grid item — it wraps .card (the click-to-repo
+     link/article) and .card-detail as siblings, so the sub-page link never
+     nests inside the repo <a>. Entrance animation and stagger live here
+     (they animate the grid item as a whole); .card keeps its own hover/
+     active motion for the click target itself. */
+  .card-shell {{
+    display: block;
+    animation: cardIn 280ms var(--ease) both;
+  }}
+  @keyframes cardIn {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+  }}
+  .card-shell:nth-child(2) {{ animation-delay: 30ms; }}
+  .card-shell:nth-child(3) {{ animation-delay: 60ms; }}
+  .card-shell:nth-child(4) {{ animation-delay: 90ms; }}
+  .card-shell:nth-child(5) {{ animation-delay: 120ms; }}
+  .card-shell:nth-child(6) {{ animation-delay: 150ms; }}
+  .card-shell:nth-child(7) {{ animation-delay: 180ms; }}
+  .card-shell:nth-child(n+8) {{ animation-delay: 210ms; }}
+  .card-shell[hidden] {{ display: none; }}
   .card {{
     display: block;
     position: relative;
@@ -1180,20 +1209,7 @@ PAGE_TEMPLATE = """<!doctype html>
     /* only transform is animated (GPU-only); border-color/box-shadow/
        background change instantly on the states below */
     transition: transform 180ms var(--ease);
-    /* staggered entrance — page consulted occasionally, not
-       continuously, so a brief bridge is justified rather than a raw display */
-    animation: cardIn 280ms var(--ease) both;
   }}
-  @keyframes cardIn {{
-    from {{ opacity: 0; transform: translateY(8px); }}
-  }}
-  .card:nth-child(2) {{ animation-delay: 30ms; }}
-  .card:nth-child(3) {{ animation-delay: 60ms; }}
-  .card:nth-child(4) {{ animation-delay: 90ms; }}
-  .card:nth-child(5) {{ animation-delay: 120ms; }}
-  .card:nth-child(6) {{ animation-delay: 150ms; }}
-  .card:nth-child(7) {{ animation-delay: 180ms; }}
-  .card:nth-child(n+8) {{ animation-delay: 210ms; }}
   a.card {{ cursor: pointer; }}
   a.card:active {{
     transform: translateY(-1px) scale(0.985);
@@ -1278,7 +1294,18 @@ PAGE_TEMPLATE = """<!doctype html>
   @media (hover: hover) and (pointer: fine) {{
     .chip:not([aria-pressed="true"]):hover {{ border-color: var(--accent); }}
   }}
-  .card[hidden] {{ display: none; }}
+  .card-detail {{
+    display: inline-block;
+    margin: 0.5rem 1.35rem 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+  }}
+  .card-detail:focus-visible {{ outline: 2px solid var(--accent2); outline-offset: 2px; }}
+  @media (hover: hover) and (pointer: fine) {{
+    .card-detail:hover {{ color: var(--accent2); text-decoration: underline; }}
+  }}
   .filter-empty {{
     text-align: center;
     padding: 2.5rem 1.5rem;
@@ -1303,7 +1330,8 @@ PAGE_TEMPLATE = """<!doctype html>
   .empty-body {{ font-size: 0.85rem; margin: 0; max-width: 40ch; margin-inline: auto; }}
   .generated {{ font-size: 0.75rem; color: var(--muted); margin-top: 3rem; text-align: center; }}
   @media (prefers-reduced-motion: reduce) {{
-    .card {{ transition: border-color 120ms linear; animation: none !important; }}
+    .card-shell {{ animation: none !important; }}
+    .card {{ transition: border-color 120ms linear; }}
     .card:hover, a.card:active {{ transform: none; }}
     .empty {{ animation: none !important; }}
   }}
@@ -1349,12 +1377,14 @@ PAGE_TEMPLATE = """<!doctype html>
       var statusMatch = selectedStatus.size === 0 || selectedStatus.has(status);
       var nameMatch = !searchTerm || name.toLowerCase().indexOf(searchTerm) !== -1;
       var show = techMatch && statusMatch && nameMatch;
-      card.hidden = !show;
+      // hidden toggles on .card-shell (the actual grid item) — .card sits
+      // nested inside it now, alongside the sub-page link.
+      (card.closest('.card-shell') || card).hidden = !show;
       if (show) visible++;
     }});
     document.querySelectorAll('.category-group').forEach(function (grp) {{
       var someVisible = Array.prototype.some.call(
-        grp.querySelectorAll('.card'), function (c) {{ return !c.hidden; }}
+        grp.querySelectorAll('.card-shell'), function (c) {{ return !c.hidden; }}
       );
       grp.hidden = !someVisible;
     }});

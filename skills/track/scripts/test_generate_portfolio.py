@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import unittest.mock
 from datetime import date
+from html.parser import HTMLParser
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -440,12 +441,52 @@ class RenderCardTests(unittest.TestCase):
         self.assertNotIn("freshness", html)
 
 
+class _AnchorNestingChecker(HTMLParser):
+    """Tracks open tags on a stack to detect an <a> start tag encountered
+    while another <a> is still open. A plain substring check (assertIn on
+    the href) cannot see this: HTML5 forbids nested anchors, and a real
+    browser auto-closes the outer <a> the instant it hits the nested one
+    -- which silently breaks whole-card click-to-repo and strips the
+    click target off everything after the nested link. Only parsing the
+    tag structure catches that."""
+    def __init__(self):
+        super().__init__()
+        self.stack = []
+        self.saw_nested_anchor = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a" and "a" in self.stack:
+            self.saw_nested_anchor = True
+        self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if tag in self.stack:
+            while self.stack and self.stack.pop() != tag:
+                pass
+
+
 class TestCardLinksToSubpage(unittest.TestCase):
     def test_render_card_links_to_subpage(self):
         s = gp._strings("en")
         p = {"project": "demo", "_path": "~/demo", "status": "active", "last_updated": "2026-09-01"}
         html = gp.render_card(p, s)
         self.assertIn('href="portfolio/demo.html"', html)
+
+    def test_render_card_with_repo_does_not_nest_anchors(self):
+        # Regression: when a repo is set, open_tag/close_tag make the whole
+        # card one <a href="{repo}">...</a> -- the sub-page link's own <a>
+        # must be a structural sibling of that anchor, never nested inside
+        # it (see _AnchorNestingChecker's docstring for why).
+        s = gp._strings("en")
+        p = {
+            "project": "demo", "_path": "~/demo", "status": "active",
+            "last_updated": "2026-09-01", "repo": "https://example.com/demo",
+        }
+        html = gp.render_card(p, s)
+        self.assertIn('href="portfolio/demo.html"', html)
+        checker = _AnchorNestingChecker()
+        checker.feed(html)
+        self.assertFalse(checker.saw_nested_anchor, "an <a> must never be nested inside another <a>")
 
 
 class RelativeFreshnessTests(unittest.TestCase):
