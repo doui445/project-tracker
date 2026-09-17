@@ -5,7 +5,7 @@ uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
 last_updated: 2026-09-17
-next_milestone: "v0.12.0 — portfolio detail sub-pages (nested tracking + the \"log every discussion\" rider both shipped)"
+next_milestone: "v0.12.0 — release only remaining (nested tracking, the \"log every discussion\" rider, and portfolio detail sub-pages all shipped)"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -70,6 +70,12 @@ build workstreams are done:
   independent of the "significant change" trigger, one `JOURNAL.md` entry
   per concluded topic plus a `BACKLOG.md` item for anything actionable.
   Not yet released either.
+- Portfolio detail sub-pages: each project's card links to its own
+  `portfolio/<project>.html` (state, next actions, current roadmap phase,
+  recent journal activity, latest changelog version, GitHub link). The
+  `PostToolUse` hook regenerates only the changed project's sub-page on a
+  targeted run; a full run (config changes) regenerates every sub-page and
+  cleans up orphans. Not yet released either.
 
 ### Known gaps
 
@@ -77,13 +83,13 @@ build workstreams are done:
 
 ## Next 3 actions
 
-Both v0.12.0 code items are now done (nested tracking, the "log every
-discussion" rider) — committed, tests green, dogfooding docs updated;
-still **no release**. Only the portfolio sub-page item remains before
-cutting v0.12.0 (see `DECISIONS.md`, 2026-09-03 for the release plan):
+All three v0.12.0 code items are now done (nested tracking, the "log every
+discussion" rider, portfolio detail sub-pages) — committed, tests green,
+dogfooding docs updated; still **no release** (see `DECISIONS.md`,
+2026-09-03 for the release plan):
 
 - **v0.12.0** — nested tracking (done) + "log every discussion" (done) +
-  the portfolio detail sub-pages (open). Release once the last item lands.
+  portfolio detail sub-pages (done). Only the release routine remains.
 - **v0.13.0** — the `project-tracker:design` skill (N1 `IDENTITY.md` +
   tool integration + N2 under `docs/project-tracker/design/`), reusing the
   nested-tracking re-prompt infra. N2 file model is frozen; workflow still
@@ -92,14 +98,11 @@ cutting v0.12.0 (see `DECISIONS.md`, 2026-09-03 for the release plan):
 - In parallel (no plugin bump): project-tracker's **own brand/visual identity
   (DA)** — docs + a `PORTFOLIO.html` re-skin — then the **public website**.
 
-1. **Portfolio: a detail sub-page per project** (M, ⭐⭐) — the last open
-   v0.12.0 item; needs its own spec → plan given the open design questions
-   (one HTML file per project vs. client-side routing, a dependency-free
-   Markdown→HTML path). See `BACKLOG.md` (Open).
-2. **Release v0.12.0** once the sub-page item lands — bump both manifests,
-   regenerate the installer, roll `[Unreleased]` in `CHANGELOG.md`. See
-   `CLAUDE.md` § Releasing.
-3. The **DA spec** can start independently whenever — pre-brief in
+1. **Release v0.12.0** — bump both manifests, regenerate the installer,
+   roll `[Unreleased]` in `CHANGELOG.md`. See `CLAUDE.md` § Releasing.
+2. The **DA spec** can start independently whenever — pre-brief in
    `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5
    (name kept, "reduce" visual pole, tool brand + light personal touch,
    re-skin `PORTFOLIO.html`).
+3. The **`project-tracker:design` skill (N1/N2)** spec once the DA work
+   settles enough to inform it.
