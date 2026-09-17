@@ -537,6 +537,70 @@ def render_markdown_fragment(text):
     return "\n".join(html)
 
 
+# Headings the skill already writes verbatim, per
+# skills/track/references/i18n/{en,fr}.md (the source of truth for the
+# wording -- duplicated here only to *recognise* them when reading a
+# project's own files back, never to author new prose).
+SOURCE_HEADINGS = {
+    "en": {
+        "where_it_stands": "Where it stands",
+        "next_actions": "Next 3 actions",
+        "current_focus": "Current focus",
+        "in_progress": re.compile(r"^Phase \d+ — in progress$"),
+    },
+    "fr": {
+        "where_it_stands": "État actuel",
+        "next_actions": "3 prochaines actions",
+        "current_focus": "Focus actuel",
+        "in_progress": re.compile(r"^Phase \d+ — en cours$"),
+    },
+}
+
+
+def _extract_section(body, heading, boundary_includes_h3=False):
+    """Returns the raw Markdown between a top-level (##) heading matching
+    `heading` (exact string, or a compiled pattern for a heading with a
+    variable part like a phase number) and the next boundary -- another ##
+    heading, or also the next ### heading when boundary_includes_h3 is
+    True (used for "Where it stands", whose own "### What works"
+    subsection must not be swept in). None if the heading isn't found."""
+    lines = body.splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        m = re.match(r"^##\s+(.*)$", line)
+        if not m:
+            continue
+        title = m.group(1).strip()
+        matched = title == heading if isinstance(heading, str) else bool(heading.match(title))
+        if matched:
+            start = i + 1
+            break
+    if start is None:
+        return None
+    boundary_re = re.compile(r"^#{2,3}\s") if boundary_includes_h3 else re.compile(r"^##\s")
+    end = len(lines)
+    for j in range(start, len(lines)):
+        if boundary_re.match(lines[j]):
+            end = j
+            break
+    section = "\n".join(lines[start:end]).strip()
+    return section or None
+
+
+def extract_status_overview(status_body, lang):
+    return _extract_section(status_body, SOURCE_HEADINGS[lang]["where_it_stands"], boundary_includes_h3=True)
+
+
+def extract_status_next_actions(status_body, lang):
+    return _extract_section(status_body, SOURCE_HEADINGS[lang]["next_actions"])
+
+
+def extract_roadmap_current(roadmap_body, lang):
+    headings = SOURCE_HEADINGS[lang]
+    section = _extract_section(roadmap_body, headings["in_progress"])
+    return section if section is not None else _extract_section(roadmap_body, headings["current_focus"])
+
+
 def render_stats_section(projects, s):
     if not projects:
         return ""

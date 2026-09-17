@@ -688,5 +688,59 @@ class TestRenderMarkdownFragment(unittest.TestCase):
         self.assertEqual(gp.render_markdown_fragment(""), "")
 
 
+class TestExtractStatusRoadmapSections(unittest.TestCase):
+    STATUS_BODY = """
+## Where it stands
+
+Project is in good shape.
+
+### What works
+
+- thing one
+
+## Next 3 actions
+
+1. Do the first thing
+2. Do the second thing
+"""
+
+    def test_extract_status_overview_stops_before_h3(self):
+        self.assertEqual(
+            gp.extract_status_overview(self.STATUS_BODY, "en"),
+            "Project is in good shape.",
+        )
+
+    def test_extract_status_next_actions(self):
+        self.assertEqual(
+            gp.extract_status_next_actions(self.STATUS_BODY, "en"),
+            "1. Do the first thing\n2. Do the second thing",
+        )
+
+    def test_extract_status_overview_missing_heading(self):
+        self.assertIsNone(gp.extract_status_overview("no headings here", "en"))
+
+    def test_extract_status_overview_french(self):
+        body = "## État actuel\n\nÇa avance bien.\n\n## 3 prochaines actions\n\n1. Faire ceci\n"
+        self.assertEqual(gp.extract_status_overview(body, "fr"), "Ça avance bien.")
+
+    ROADMAP_IN_PROGRESS = "## Done\n\nstuff\n\n## Phase 3 — in progress\n\nBuilding the thing.\n\n## After Phase 3\n\nlater\n"
+    ROADMAP_NO_PHASE = "## Current focus\n\nPick the next feature.\n\n## Unprioritised ideas\n\n- x\n"
+
+    def test_extract_roadmap_current_prefers_in_progress_phase(self):
+        self.assertEqual(
+            gp.extract_roadmap_current(self.ROADMAP_IN_PROGRESS, "en"),
+            "Building the thing.",
+        )
+
+    def test_extract_roadmap_current_falls_back_to_current_focus(self):
+        self.assertEqual(
+            gp.extract_roadmap_current(self.ROADMAP_NO_PHASE, "en"),
+            "Pick the next feature.",
+        )
+
+    def test_extract_roadmap_current_missing_both(self):
+        self.assertIsNone(gp.extract_roadmap_current("## Done\n\nstuff\n", "en"))
+
+
 if __name__ == "__main__":
     unittest.main()
