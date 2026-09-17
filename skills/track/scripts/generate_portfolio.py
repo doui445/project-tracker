@@ -295,6 +295,7 @@ def collect_projects(scope_root, ignore_entries, scope_roots):
             warnings.append(f"{status_path}: missing fields {missing}, skipped")
             continue
         data["_path"] = home_relative(proj_dir)
+        data["_dir"] = str(proj_dir)
         data["scope"] = str(scope_root)
         data["category"] = data.get("category", "")
         projects.append(data)

@@ -268,6 +268,12 @@ class CollectProjectsTests(unittest.TestCase):
         self.assertEqual(projects[0]["status"], "active")
         self.assertEqual(warnings, [])
 
+    def test_project_carries_its_absolute_dir(self):
+        self._write_status("ProjA", "---\nproject: ProjA\nstatus: active\nlast_updated: 2026-08-23\n---\nOk.\n")
+        projects, warnings = self._collect()
+        self.assertEqual(warnings, [])
+        self.assertEqual(projects[0]["_dir"], str(self.root / "ProjA"))
+
 
 class AggregateStackTests(unittest.TestCase):
     def test_dedupes_exact_duplicates_and_sorts_case_insensitively(self):
