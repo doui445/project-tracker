@@ -601,6 +601,43 @@ class GroupByCategoryTests(unittest.TestCase):
         self.assertIn('<h3 class="category-title">Perso</h3>', html)
 
 
+class TestSubprojectsSection(unittest.TestCase):
+    def test_latest_subproject_changelog_date_reads_first_dated_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            changelog = Path(tmp) / "CHANGELOG.md"
+            changelog.write_text("## [1.0.0] — 2026-05-01\n\n- x\n", encoding="utf-8")
+            self.assertEqual(gp.latest_subproject_changelog_date(changelog), "2026-05-01")
+
+    def test_latest_subproject_changelog_date_missing_file(self):
+        self.assertIsNone(gp.latest_subproject_changelog_date(Path("/nonexistent/CHANGELOG.md")))
+
+    def test_render_subprojects_section_only_active(self):
+        s = gp._strings("en")
+        subprojects = [
+            {"name": "api", "path": "api", "tracked": True, "git": True, "status": "active"},
+            {"name": "old", "path": "old", "tracked": True, "git": True, "status": "archived"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            project_dir = Path(tmp)
+            (project_dir / "api").mkdir()
+            (project_dir / "api" / "CHANGELOG.md").write_text("## [1.0.0] — 2026-05-01\n\n- x\n", encoding="utf-8")
+            html = gp.render_subprojects_section(subprojects, project_dir, s)
+        self.assertIn("api", html)
+        self.assertIn("2026-05-01", html)
+        self.assertNotIn("old", html)
+
+    def test_render_subprojects_section_empty_when_none_active(self):
+        s = gp._strings("en")
+        subprojects = [{"name": "old", "path": "old", "tracked": True, "git": True, "status": "archived"}]
+        self.assertEqual(gp.render_subprojects_section(subprojects, Path("/tmp"), s), "")
+
+    def test_render_subprojects_section_listed_not_tracked(self):
+        s = gp._strings("en")
+        subprojects = [{"name": "notes", "path": "notes", "tracked": False, "git": False, "status": "active"}]
+        html = gp.render_subprojects_section(subprojects, Path("/tmp"), s)
+        self.assertIn(s["subpage_subproject_listed"], html)
+
+
 class MainTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

@@ -164,6 +164,17 @@ STRINGS = {
         "reset_filters": "Reset filters",
         "filter_empty": "No project matches the filters.",
         "generated_note": "Regenerated automatically by project-tracker.",
+        "subpage_state": "State",
+        "subpage_next_actions": "Next actions",
+        "subpage_current_phase": "Current phase",
+        "subpage_recent_activity": "Recent activity",
+        "subpage_latest_version": "Latest version: {version} ({date})",
+        "subpage_subprojects_title": "Sub-projects",
+        "subpage_subproject_tracked": "tracked",
+        "subpage_subproject_listed": "listed",
+        "subpage_view_repo": "View on GitHub",
+        "subpage_back": "Back to portfolio",
+        "subpage_page_title": "{name} — Portfolio",
     },
     "fr": {
         "html_lang": "fr",
@@ -194,6 +205,17 @@ STRINGS = {
         "reset_filters": "Réinitialiser les filtres",
         "filter_empty": "Aucun projet ne correspond aux filtres.",
         "generated_note": "Régénéré automatiquement par project-tracker.",
+        "subpage_state": "État",
+        "subpage_next_actions": "Actions suivantes",
+        "subpage_current_phase": "Phase actuelle",
+        "subpage_recent_activity": "Activité récente",
+        "subpage_latest_version": "Dernière version : {version} ({date})",
+        "subpage_subprojects_title": "Sous-projets",
+        "subpage_subproject_tracked": "suivi",
+        "subpage_subproject_listed": "listé",
+        "subpage_view_repo": "Voir sur GitHub",
+        "subpage_back": "Retour au portfolio",
+        "subpage_page_title": "{name} — Portfolio",
     },
 }
 
@@ -695,6 +717,44 @@ def parse_subprojects(status_text):
     if current is not None:
         items.append(current)
     return items
+
+
+def latest_subproject_changelog_date(changelog_path):
+    """Reads a sub-project's own CHANGELOG.md and returns the date of its
+    most recent dated version heading, or None if the file is missing or
+    has no recognisable entry -- never guessed."""
+    if not changelog_path.is_file():
+        return None
+    text = changelog_path.read_text(encoding="utf-8", errors="replace")
+    found = extract_changelog_latest_version(text)
+    return found[1] if found else None
+
+
+def render_subprojects_section(subprojects, project_dir, s):
+    """Renders the Sub-projects section: active sub-projects only (spec
+    D9), name + tracked/listed + (if tracked) its own latest CHANGELOG
+    date. Returns "" (section omitted) if there is no active sub-project."""
+    active = [sp for sp in subprojects if sp.get("status") == "active"]
+    if not active:
+        return ""
+    items = []
+    for sp in active:
+        name = sp.get("name", "?")
+        if sp.get("tracked"):
+            changelog_path = project_dir / sp.get("path", "") / "CHANGELOG.md"
+            date_str = latest_subproject_changelog_date(changelog_path)
+            detail = s["subpage_subproject_tracked"]
+            if date_str:
+                detail += f" — {_txt(date_str)}"
+        else:
+            detail = s["subpage_subproject_listed"]
+        items.append(f"<li><strong>{_txt(name)}</strong> — {detail}</li>")
+    return (
+        f'<section class="subpage-subprojects">\n'
+        f'  <h2>{_txt(s["subpage_subprojects_title"])}</h2>\n'
+        f"  <ul>{''.join(items)}</ul>\n"
+        f"</section>"
+    )
 
 
 def render_stats_section(projects, s):
