@@ -935,6 +935,64 @@ def build_subpage(project_dir, data, lang):
     )
 
 
+def _project_slug(data):
+    """The project's filename slug for its sub-page -- its `project` key, unchanged."""
+    return data.get("project", "")
+
+
+def _subpage_dir(portfolio_target):
+    """The `portfolio/` directory sitting next to the generated PORTFOLIO.html."""
+    return portfolio_target.parent / "portfolio"
+
+
+def _subpage_path(portfolio_target, slug):
+    """The on-disk path for one project's sub-page, `portfolio/<slug>.html`."""
+    return _subpage_dir(portfolio_target) / f"{slug}.html"
+
+
+def _project_lang(data):
+    """A project's own effective language (spec D6): its `language:`
+    frontmatter override if set, else the machine-global language.txt,
+    else 'en' -- same resolution SKILL.md itself documents."""
+    override = (data.get("language") or "").strip()
+    return _normalise_lang(override) if override else load_language()
+
+
+def write_subpage(portfolio_target, project):
+    """Builds and writes one project's sub-page file, skipping projects
+    with no slug or no known directory."""
+    slug = _project_slug(project)
+    if not slug or not project.get("_dir"):
+        return
+    html = build_subpage(Path(project["_dir"]), project, _project_lang(project))
+    path = _subpage_path(portfolio_target, slug)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html, encoding="utf-8")
+
+
+def write_subpages(portfolio_target, projects, changed_dir=None):
+    """Writes every project's sub-page, or -- when changed_dir is given --
+    only the one project whose _dir matches it (spec D7: the hook already
+    knows which project's STATUS.md just changed)."""
+    for project in projects:
+        if changed_dir is not None and project.get("_dir") != changed_dir:
+            continue
+        write_subpage(portfolio_target, project)
+
+
+def clean_orphan_subpages(portfolio_target, projects):
+    """Deletes any portfolio/*.html with no corresponding currently
+    eligible project (spec D8) -- filename comparison only, cheap enough
+    to run on every regeneration regardless of targeted vs full mode."""
+    directory = _subpage_dir(portfolio_target)
+    if not directory.is_dir():
+        return
+    valid = {f"{_project_slug(p)}.html" for p in projects if _project_slug(p)}
+    for f in directory.glob("*.html"):
+        if f.name not in valid:
+            f.unlink()
+
+
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="{html_lang}">
 <head>

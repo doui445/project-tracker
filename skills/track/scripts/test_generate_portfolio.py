@@ -969,5 +969,59 @@ class TestBuildSubpage(unittest.TestCase):
         self.assertIn("Retour au portfolio", html)
 
 
+class TestWriteSubpagesAndCleanup(unittest.TestCase):
+    def _project(self, tmp, slug, lang=None):
+        root = Path(tmp) / slug
+        docs = root / "docs" / "project-tracker"
+        docs.mkdir(parents=True)
+        (docs / "STATUS.md").write_text(
+            f"---\nproject: {slug}\nstatus: active\nlast_updated: 2026-09-01\n---\n\n"
+            "## Where it stands\n\nFine.\n\n## Next 3 actions\n\n1. x\n",
+            encoding="utf-8",
+        )
+        data = {"project": slug, "_dir": str(root)}
+        if lang:
+            data["language"] = lang
+        return data
+
+    def test_write_subpages_writes_one_file_per_project(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            out_dir.mkdir()
+            target = out_dir / "PORTFOLIO.html"
+            projects = [self._project(tmp, "alpha"), self._project(tmp, "beta")]
+            gp.write_subpages(target, projects, changed_dir=None)
+            self.assertTrue((out_dir / "portfolio" / "alpha.html").is_file())
+            self.assertTrue((out_dir / "portfolio" / "beta.html").is_file())
+
+    def test_write_subpages_targeted_only_writes_changed_project(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            out_dir.mkdir()
+            target = out_dir / "PORTFOLIO.html"
+            alpha = self._project(tmp, "alpha")
+            beta = self._project(tmp, "beta")
+            gp.write_subpages(target, [alpha, beta], changed_dir=alpha["_dir"])
+            self.assertTrue((out_dir / "portfolio" / "alpha.html").is_file())
+            self.assertFalse((out_dir / "portfolio" / "beta.html").is_file())
+
+    def test_clean_orphan_subpages_removes_unmatched_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            sub_dir = out_dir / "portfolio"
+            sub_dir.mkdir(parents=True)
+            (sub_dir / "alpha.html").write_text("x", encoding="utf-8")
+            (sub_dir / "gone.html").write_text("x", encoding="utf-8")
+            target = out_dir / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [{"project": "alpha"}])
+            self.assertTrue((sub_dir / "alpha.html").is_file())
+            self.assertFalse((sub_dir / "gone.html").is_file())
+
+    def test_clean_orphan_subpages_noop_when_dir_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [])  # must not raise
+
+
 if __name__ == "__main__":
     unittest.main()
