@@ -197,7 +197,7 @@ This is the only strictly structured part of any of these files — the rest is 
 
 `language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
 
-`subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` only needs to not choke on the `subprojects` key (see `## Portfolio`), it does not render it yet.
+`subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` reads the `subprojects` key to render each project's detail sub-page (see `## Portfolio`); the aggregate `PORTFOLIO.html` card grid does not use it.
 
 ## Sub-projects
 
@@ -365,7 +365,7 @@ A `PostToolUse` hook (`hooks/portfolio_regen.sh`) regenerates `PORTFOLIO.html` a
 
 Projects are grouped into sections by the `category` frontmatter field — uncategorized first, then categories ordered by most recent activity.
 
-The `subprojects:` frontmatter key (`## Sub-projects`) is not rendered by the portfolio yet — `generate_portfolio.py` reads past it without error or effect on the existing output. Surfacing sub-projects on the portfolio is a separate, later piece of work.
+The `subprojects:` frontmatter key (`## Sub-projects`) is rendered on a project's own detail sub-page (`portfolio/<project>.html`): each **active** sub-project is listed by name, whether it is `tracked` (plus its own latest `CHANGELOG.md` date, when available) or just `listed`; archived sub-projects are excluded in v1. The aggregate `PORTFOLIO.html` card grid itself still doesn't surface sub-project info — that remains a separate, still-open piece of work.
 
 To change the portfolio location, title or language, or any config (scopes, ignored paths, output language, a project's category), the user runs `/project-tracker:config`.
 

@@ -792,6 +792,12 @@ class TestRenderMarkdownFragment(unittest.TestCase):
         html = gp.render_markdown_fragment("**bold** and *italic* and _also italic_")
         self.assertEqual(html, "<p><strong>bold</strong> and <em>italic</em> and <em>also italic</em></p>")
 
+    def test_intraword_underscores_not_treated_as_italic(self):
+        html = gp.render_markdown_fragment("The next_milestone field and the last_updated field")
+        self.assertNotIn("<em>", html)
+        self.assertIn("next_milestone", html)
+        self.assertIn("last_updated", html)
+
     def test_inline_code_not_interpreted(self):
         html = gp.render_markdown_fragment("use `a*b*c` literally")
         self.assertEqual(html, "<p>use <code>a*b*c</code> literally</p>")
@@ -1027,6 +1033,15 @@ class TestBuildSubpage(unittest.TestCase):
         self.assertIn("Ça avance.", html)
         self.assertIn("Retour au portfolio", html)
 
+    def test_build_subpage_back_link_uses_custom_portfolio_filename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            self._make_project_files(root)
+            html = gp.build_subpage(root, {"project": "demo"}, "en", portfolio_filename="custom.html")
+        self.assertIn('href="../custom.html"', html)
+        self.assertNotIn("PORTFOLIO.html", html)
+
 
 class TestWriteSubpagesAndCleanup(unittest.TestCase):
     def _project(self, tmp, slug, lang=None):
@@ -1053,6 +1068,16 @@ class TestWriteSubpagesAndCleanup(unittest.TestCase):
             self.assertTrue((out_dir / "portfolio" / "alpha.html").is_file())
             self.assertTrue((out_dir / "portfolio" / "beta.html").is_file())
 
+    def test_write_subpages_back_link_uses_custom_portfolio_filename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            out_dir.mkdir()
+            target = out_dir / "custom.html"
+            alpha = self._project(tmp, "alpha")
+            gp.write_subpages(target, [alpha], changed_dir=None)
+            html = (out_dir / "portfolio" / "alpha.html").read_text(encoding="utf-8")
+        self.assertIn('href="../custom.html"', html)
+
     def test_write_subpages_targeted_only_writes_changed_project(self):
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp) / "out"
@@ -1070,7 +1095,7 @@ class TestWriteSubpagesAndCleanup(unittest.TestCase):
             sub_dir = out_dir / "portfolio"
             sub_dir.mkdir(parents=True)
             (sub_dir / "alpha.html").write_text("x", encoding="utf-8")
-            (sub_dir / "gone.html").write_text("x", encoding="utf-8")
+            (sub_dir / "gone.html").write_text(gp.SUBPAGE_MARKER + "\nstale", encoding="utf-8")
             target = out_dir / "PORTFOLIO.html"
             gp.clean_orphan_subpages(target, [{"project": "alpha"}])
             self.assertTrue((sub_dir / "alpha.html").is_file())
@@ -1080,6 +1105,28 @@ class TestWriteSubpagesAndCleanup(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "PORTFOLIO.html"
             gp.clean_orphan_subpages(target, [])  # must not raise
+
+    def test_clean_orphan_subpages_spares_unmarked_unrelated_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            sub_dir = out_dir / "portfolio"
+            sub_dir.mkdir(parents=True)
+            (sub_dir / "not-ours.html").write_text("<html>a user's own file</html>", encoding="utf-8")
+            target = out_dir / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [{"project": "alpha"}])
+            self.assertTrue((sub_dir / "not-ours.html").is_file())
+
+    def test_clean_orphan_subpages_removes_marked_stale_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "out"
+            sub_dir = out_dir / "portfolio"
+            sub_dir.mkdir(parents=True)
+            (sub_dir / "renamed-project.html").write_text(
+                gp.SUBPAGE_MARKER + "\n<html>old sub-page</html>", encoding="utf-8"
+            )
+            target = out_dir / "PORTFOLIO.html"
+            gp.clean_orphan_subpages(target, [{"project": "alpha"}])
+            self.assertFalse((sub_dir / "renamed-project.html").is_file())
 
 
 if __name__ == "__main__":
