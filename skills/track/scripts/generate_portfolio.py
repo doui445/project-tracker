@@ -656,6 +656,47 @@ def extract_changelog_latest_version(changelog_body):
     return None
 
 
+_SUBPROJECT_ITEM_RE = re.compile(r"^\s*-\s+(.*)$")
+_SUBPROJECT_FIELD_RE = re.compile(r"^\s*([a-z_]+):\s*(.*)$")
+
+
+def parse_subprojects(status_text):
+    """Parses the nested `subprojects:` list from a STATUS.md's frontmatter
+    -- parse_frontmatter() deliberately skips this block (it only
+    understands flat scalar keys), so this is a separate, small parser for
+    the one nested structure the sub-page needs. Returns [] if the key is
+    absent, empty, or the file has no frontmatter at all."""
+    m = FRONTMATTER_RE.match(status_text)
+    if not m:
+        return []
+    lines = m.group(1).splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        if line.strip() == "subprojects:" and not line.startswith((" ", "\t")):
+            start = i + 1
+            break
+    if start is None:
+        return []
+    items = []
+    current = None
+    for line in lines[start:]:
+        if line and not line.startswith((" ", "\t")):
+            break  # back to a top-level key: the nested block is over
+        item_m = _SUBPROJECT_ITEM_RE.match(line)
+        if item_m:
+            if current is not None:
+                items.append(current)
+            current = {}
+            line = "  " + item_m.group(1)  # re-present as a plain field line
+        field_m = _SUBPROJECT_FIELD_RE.match(line)
+        if field_m and current is not None:
+            key, value = field_m.group(1), field_m.group(2).strip().strip('"').strip("'")
+            current[key] = (value == "true") if key in ("tracked", "git") else value
+    if current is not None:
+        items.append(current)
+    return items
+
+
 def render_stats_section(projects, s):
     if not projects:
         return ""

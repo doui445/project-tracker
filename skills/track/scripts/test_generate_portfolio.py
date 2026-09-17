@@ -828,5 +828,48 @@ Did the third thing.
         self.assertEqual(gp.extract_journal_recent_entries("", count=3), [])
 
 
+class TestParseSubprojects(unittest.TestCase):
+    STATUS_TEXT = """---
+project: parent
+status: active
+last_updated: 2026-09-01
+subprojects:
+  - name: "api"
+    path: "api"
+    tracked: true
+    git: true
+    status: active
+  - name: "legacy-v1"
+    path: "archive/v1"
+    tracked: true
+    git: true
+    status: archived
+  - name: "notes"
+    path: "notes"
+    tracked: false
+    git: false
+    status: active
+---
+
+# STATUS
+"""
+
+    def test_parses_all_entries(self):
+        entries = gp.parse_subprojects(self.STATUS_TEXT)
+        self.assertEqual(len(entries), 3)
+        self.assertEqual(entries[0], {
+            "name": "api", "path": "api", "tracked": True, "git": True, "status": "active",
+        })
+        self.assertEqual(entries[1]["status"], "archived")
+        self.assertEqual(entries[2]["tracked"], False)
+
+    def test_no_subprojects_key(self):
+        text = "---\nproject: p\nstatus: active\nlast_updated: 2026-01-01\n---\n"
+        self.assertEqual(gp.parse_subprojects(text), [])
+
+    def test_no_frontmatter_at_all(self):
+        self.assertEqual(gp.parse_subprojects("just some text"), [])
+
+
 if __name__ == "__main__":
     unittest.main()
