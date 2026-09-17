@@ -501,3 +501,43 @@ tasks, all committed and reviewed clean:
   `CHANGELOG.md`/`BACKLOG.md`/`STATUS.md` updates close out the feature.
   Not yet released — bundled into v0.12.0 alongside the still-open portfolio
   sub-page item and the "log every discussion" rider.
+
+## 2026-09-17 — Self-audit of `SKILL.md`
+
+Prompted by an external video on skill engineering (framework: name/trigger,
+outputs, tools, step-by-step process, accumulated rules, continuous
+correction). Cross-checked that framework, plus the `superpowers:writing-skills`
+size/SDO guidance, against the actual `SKILL.md` (not just the video's
+generic claims). Findings, all verified rather than assumed:
+
+- The "log every discussion" behaviour (open backlog item since 2026-09-02)
+  is confirmed still absent from `SKILL.md` — grepped, no trace.
+- `SKILL.md` is 382 lines / ~45k chars, all loaded on every trigger; `##
+  Sub-projects` (~57 lines) is the largest still-inline subsystem, a natural
+  extraction candidate (same pattern as `backlog-phases.md`).
+- No dangling references — every `references/*.md` cited in `SKILL.md`
+  exists, i18n included.
+- No centralized "lessons learned" section — corrections are woven into the
+  relevant section instead of collected in one place; open question, not a
+  clear defect.
+- Frontmatter description reads as a workflow summary (lists all nine file
+  names) rather than a pure trigger — the documented SDO anti-pattern.
+- No behavioural test coverage: hooks/portfolio/manifest are tested, but the
+  skill's own prose rules (never guess, stay quiet, ask once) have never
+  been pressure-tested with subagents per the writing-skills RED/GREEN method.
+
+Four items added to `BACKLOG.md` (Open) for later: extract `##
+Sub-projects`, lighten the frontmatter description, consider a lessons-
+learned section, pressure-test the behavioural rules. None actioned yet.
+
+## 2026-09-17 — "Log every discussion" rider shipped
+
+Implemented the backlog item surfaced 2026-09-02: new bold paragraph in
+`SKILL.md`'s `## Continuous updates`, right after the "significant change"
+trigger clarification. A substantive design/scoping discussion is now
+logged independently of that trigger — one `JOURNAL.md` entry per
+*concluded* topic (never mid-discussion), plus a `BACKLOG.md` item for
+anything actionable, written automatically with no permission asked first.
+`BACKLOG.md` item moved to Completed; `CHANGELOG.md` `[Unreleased]` entry
+added. Rides v0.12.0 alongside nested tracking and the still-open portfolio
+sub-page item.

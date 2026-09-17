@@ -29,6 +29,11 @@ guidance, no-behaviour-change refactors. The version lives in
   loads its files as extra context alongside the parent's; each active,
   `tracked: true` sub-project gets its own commit-offer / freshness check,
   independent of the parent's own `uses_git`.
+- **Substantive discussions are always logged.** A design or scoping
+  discussion is now itself a trackable event: `SKILL.md` logs it to
+  `JOURNAL.md` (plus `BACKLOG.md` for anything actionable) at its natural
+  conclusion, even when no decision was reached or the idea was later
+  dropped — independent of the existing "significant change" trigger.
 
 ### Changed
 - **The skill stays quiet when there's nothing to report.** New

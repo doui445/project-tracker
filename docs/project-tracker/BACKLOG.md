@@ -6,17 +6,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
 
 ## Open
 
-- [ ] **Skill: log every discussion, even ideas later abandoned** (S, ⭐⭐) —
-  surfaced 2026-09-02. The user wants the skill to always record a design /
-  scoping discussion in the tracking files (`JOURNAL.md`, and `BACKLOG.md`
-  for anything actionable) *at the time it happens* — even when no decision
-  is made and even if the idea is dropped later. Nothing said in a session
-  should be lost because it wasn't validated. Make this explicit in
-  `SKILL.md` (`## Continuous updates` / the journaling guidance): a
-  substantive discussion is itself a trackable project event. Small edit,
-  no i18n impact beyond wording. **Rides v0.12.0** (small rider on the
-  nested-tracking release).
-
 - [ ] **Design as a tracked dimension (new `project-tracker:design` skill)**
   (L, ⭐⭐⭐) — surfaced 2026-09-02. Give the plugin the ability to own a
   project's design / brand direction, the way it owns state and progress.
@@ -224,7 +213,48 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   Low priority, nothing else depends on it; needs a real brainstorm before
   any of it is built.
 
+- [ ] **Skill audit: extract `## Sub-projects` into its own reference file**
+  (S, ⭐) — surfaced 2026-09-17, from a self-audit of `SKILL.md` against the
+  `superpowers:writing-skills` size/SDO guidance. At ~57 lines, `## Sub-projects`
+  is the largest self-contained subsystem still inline in `SKILL.md`
+  (382 lines / ~45k chars total); move it to `references/subprojects.md`,
+  same pattern already used for `backlog-phases.md`. No behaviour change,
+  pure extraction.
+
+- [ ] **Skill audit: lighten the `SKILL.md` frontmatter description** (XS, ⭐)
+  — surfaced 2026-09-17. The description enumerates all nine tracked file
+  names, which reads as a workflow summary rather than a pure trigger
+  condition — risks an agent short-circuiting on the description instead of
+  reading the body (a documented anti-pattern in `superpowers:writing-skills`).
+  Trim to trigger conditions only.
+
+- [ ] **Skill audit: consider a centralized "lessons learned" /
+  common-mistakes section** (M, ⭐) — surfaced 2026-09-17. Behavioural
+  corrections today get woven into the relevant section rather than
+  collected in one place; there is no single spot to scan "what we've
+  learned not to do". Worth a design discussion before building — may
+  conflict with the current integrated style; not a clear-cut win, revisit
+  rather than execute blindly.
+
+- [ ] **Skill audit: pressure-test the skill's behavioural rules with
+  subagents** (L, ⭐) — surfaced 2026-09-17. `SKILL.md`'s prose rules
+  (`never guess`, staying silent when nothing to report, asking a
+  retroactive question exactly once, ...) have never been verified with the
+  RED/GREEN pressure-scenario methodology from `superpowers:writing-skills`
+  — only the deterministic code (hooks, portfolio generator, manifests) has
+  tests. Would need baseline-without-skill / with-skill subagent runs per
+  rule to actually confirm compliance rather than assume it from real usage
+  so far.
+
 ## Completed
+
+- [x] **Skill: log every discussion, even ideas later abandoned** (2026-09-17)
+  — new `## Continuous updates` paragraph in `SKILL.md`: a design/scoping
+  discussion is itself a trackable event, logged independently of the
+  "significant change" judgment, even with no decision reached or the idea
+  later dropped. One `JOURNAL.md` entry per *concluded* topic (never
+  mid-discussion), plus a `BACKLOG.md` item for anything actionable; done
+  automatically, no permission asked first. Rides v0.12.0.
 
 - [x] **Nested tracking: an umbrella project with lightly-tracked git
   sub-repos** (2026-09-16) — a tracked project can now chaperone
