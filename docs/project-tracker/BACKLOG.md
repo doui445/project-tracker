@@ -180,42 +180,51 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     pole, so the site is calm and restrained, not the loud impeccable
     register.
 
-- [ ] **Obsidian integration (optional)** (S/M, ⭐) — surfaced 2026-09-14,
-  brainstorm only. The tracking files are plain Markdown, so any scope
-  root already opens as a valid Obsidian vault today with zero changes —
-  first question for the eventual brainstorm is whether project-tracker
-  should do anything at all beyond saying so. Options raised, none decided:
-  - Just document the vault-compatibility (README /
-    `writing-tracking-files.md`) — no code, no risk.
-  - Ship an optional, gitignored `.obsidian/` config template (sensible
-    workspace/graph defaults) so opting in "just works" on a scope root —
-    strictly opt-in, never a dependency of the skill.
-  - Cross-link tracking files with `[[wikilinks]]` to use the graph/
-    backlinks — tension with the plain-Markdown / no-lock-in ethos and with
-    GitHub rendering (wikilinks don't render as links there); leaning
-    against unless a strong case emerges.
-  Low priority, nothing else depends on it; needs a real brainstorm before
-  any of it is built.
+- [ ] **Portfolio: a graph / overview views** (M, ⭐) — surfaced 2026-09-19,
+  from the Obsidian discussion. To be **discussed during the DA work** (the
+  portfolio re-skin). Open question before anything: *what relationship
+  would a graph show?* No cross-project link is recorded today — the only
+  real one is parent/sub-project (a tree), and per-project file links would
+  be a trivial star. A meaningful graph needs a new, user-filled
+  relationship (e.g. a `related:` frontmatter key — never guessed by the
+  skill). Cheaper alternatives with data that already exists: an activity
+  timeline (`JOURNAL.md` / `last_updated`), ROADMAP phase progress, a
+  "stale projects" view. Would be inline SVG from the stdlib-only generator.
 
-- [ ] **Skill audit: consider a centralized "lessons learned" /
-  common-mistakes section** (M, ⭐) — surfaced 2026-09-17. Behavioural
-  corrections today get woven into the relevant section rather than
-  collected in one place; there is no single spot to scan "what we've
-  learned not to do". Worth a design discussion before building — may
-  conflict with the current integrated style; not a clear-cut win, revisit
-  rather than execute blindly.
-
-- [ ] **Skill audit: pressure-test the skill's behavioural rules with
-  subagents** (L, ⭐) — surfaced 2026-09-17. `SKILL.md`'s prose rules
-  (`never guess`, staying silent when nothing to report, asking a
-  retroactive question exactly once, ...) have never been verified with the
-  RED/GREEN pressure-scenario methodology from `superpowers:writing-skills`
-  — only the deterministic code (hooks, portfolio generator, manifests) has
-  tests. Would need baseline-without-skill / with-skill subagent runs per
-  rule to actually confirm compliance rather than assume it from real usage
-  so far.
+- [ ] **Skill audit: pressure-test three behavioural rules with subagents**
+  (M, ⭐) — surfaced 2026-09-17, **scoped down 2026-09-19**. `SKILL.md`'s
+  prose rules have never been verified with the RED/GREEN
+  pressure-scenario methodology from `superpowers:writing-skills` — only
+  the deterministic code (hooks, portfolio generator, manifests) has tests.
+  Decided scope: **3 rules only**, the most fragile ones —
+  1. the session-start check is not deferred (the v0.12.1 bug: it was
+     postponed when the session opened on an unrelated request);
+  2. silence when everything is up to date;
+  3. a retroactive question is asked exactly once.
+  Method: per rule, a subagent gets a realistic scenario with pressure
+  (e.g. an unrelated opening request), run with and without the skill,
+  several trials each since results are non-deterministic. **On demand, no
+  permanent suite, nothing in CI**; scenarios kept in the gitignored
+  `docs/superpowers/`, not shipped. No date — take it up when a break from
+  design work is wanted; no dependency on the DA.
 
 ## Completed
+
+- [-] **Obsidian integration (optional)** (2026-09-19) — abandoned
+  entirely, not even a README line. The user has never used Obsidian; the
+  tracking files already open as a vault today with zero changes, so there
+  is nothing to build. Wikilinks rejected (do not render as links on
+  GitHub, and tie the format to one tool); a `.obsidian/` config template
+  rejected (no demand). The one useful spin-off — a graph in the portfolio
+  — is tracked separately under **Portfolio: a graph / overview views**.
+
+- [-] **Skill audit: centralized "lessons learned" / common-mistakes
+  section** (2026-09-19) — abandoned after discussion. A behavioural rule is
+  more likely to be followed when it sits in the section where it applies;
+  a central list would duplicate those rules, and the history of
+  corrections is already searchable in `DECISIONS.md` / `ERRORS.md`. The
+  v0.12.1 fix (session-start check deferred) was handled exactly that way:
+  in the hook message and the relevant `SKILL.md` section.
 
 - [x] **Skill audit: extract `## Sub-projects` into its own reference file**
   (2026-09-19) — the ~57-line subsystem moved verbatim (cross-references

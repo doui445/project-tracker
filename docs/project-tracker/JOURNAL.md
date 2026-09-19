@@ -606,3 +606,19 @@ Closed out the portfolio sub-pages work and cut the release:
   automatically. Unreleased (patch-level, no behaviour change).
 - **Released v0.12.2**: manifests bumped, installer regenerated,
   `CHANGELOG.md` `[Unreleased]` rolled into a dated entry.
+
+## 2026-09-19 — Open backlog items discussed while the DA waits
+
+- Went through the open items not blocked on the DA, one at a time.
+  Nothing built.
+- **Centralized "lessons learned" section**: abandoned. A rule sits best
+  in the section where it applies; a central list would duplicate them, and
+  the history of corrections is already in `DECISIONS.md` / `ERRORS.md`.
+- **Pressure-testing the prose rules with subagents**: kept but scoped
+  down to 3 rules (session-start check not deferred, silence when up to
+  date, retroactive question asked once); on demand, no CI, no date.
+- **Obsidian integration**: abandoned entirely (never used; already works
+  as a vault; wikilinks break GitHub rendering).
+- New idea captured: a graph / overview views in the portfolio, to be
+  discussed during the DA work — needs a decision on which relationship it
+  would show. Still open: the DA spec and the `project-tracker:design` skill.
