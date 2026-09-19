@@ -581,3 +581,16 @@ Closed out the portfolio sub-pages work and cut the release:
   left uncovered. 151/151 scripts tests green.
 - **Released v0.12.0**: `plugin.json`/`marketplace.json` bumped, installer
   regenerated, `CHANGELOG.md` `[Unreleased]` rolled into a dated entry.
+
+## 2026-09-19 — Session-start check was being deferred
+
+- A dogfood session opened on an unrelated request ("run the app"); Claude
+  finished that task, then only *mentioned* the hook's staleness check and
+  asked whether to run it. Cause: the hook wording ("propose an update if
+  needed") read as optional, and nothing said to do it alongside the
+  user's request.
+- Fixed the hook message and added an explicit "instruction, not a
+  suggestion" paragraph in `SKILL.md` (`## Detecting a project's root`).
+  Unreleased; no version bump yet.
+- **Released v0.12.1**: manifests bumped, installer regenerated,
+  `CHANGELOG.md` `[Unreleased]` rolled into a dated entry.

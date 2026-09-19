@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.12.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.12.1**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -83,8 +83,9 @@ build workstreams are done:
 
 ## Next 3 actions
 
-**v0.12.0 shipped** (nested tracking, the "log every discussion" rider,
-portfolio detail sub-pages, plus a self-audit-driven cleanup pass). See
+**v0.12.1 shipped** (session-start check now runs automatically instead of
+being deferred; builds on v0.12.0: nested tracking, the "log every
+discussion" rider, portfolio detail sub-pages, self-audit cleanup pass). See
 `DECISIONS.md`, 2026-09-03 for the release sequence plan:
 
 - **v0.13.0** — the `project-tracker:design` skill (N1 `IDENTITY.md` +

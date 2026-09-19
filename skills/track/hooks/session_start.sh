@@ -79,7 +79,7 @@ if [ -n "$STATUS_FILE" ]; then
   [ -f "$HOME/.claude/project-tracker/portfolio.txt" ] || MISSING="$MISSING portfolio.txt(global)"
   echo "[project-tracker] Session opened in a tracked project ($ROOT)."
   [ -n "$MISSING" ] && echo "Not yet configured -> invoke the project-tracker:track skill and ask about:$MISSING"
-  echo "Invoke the project-tracker:track skill: compare last_updated (frontmatter below) with the last real activity (latest git commit if uses_git=true, otherwise file modification dates) and propose an update if needed. Do not write anything without checking the current state of the files first."
+  echo "Automatic, not optional: do this now, alongside whatever the user asked for, without asking permission and without waiting for them to bring it up. Invoke the project-tracker:track skill and compare last_updated (frontmatter below) with the last real activity (latest git commit if uses_git=true, otherwise file modification dates). If the files are current, stay silent. If they are stale, make the update proposal in your first reply. Do not write anything without checking the current state of the files first."
   echo "--- STATUS.md frontmatter ---"
   printf '%s\n' "$FM" | head -c 4000
   echo

@@ -85,6 +85,8 @@ Three possible states:
 
 When you are invoked via the `SessionStart` hook reminder, it already tells you which of these three states applies (with the content of `STATUS.md` where relevant) — no need to re-detect it yourself in that case.
 
+The hook reminder is an **instruction, not a suggestion**: run the check (and any question it triggers) automatically, in the session's first reply, even when the user's opening request is about something else. Never defer it with "the hook suggests X, tell me if you want me to do it", and never wait for the user to bring it up. The user's request is handled alongside it, not instead of it. What still needs the user's say is only what this skill already makes conditional — the *content* of a proposed update, a question, a commit — not whether the check itself happens.
+
 ## Bootstrapping a new project
 
 A sequence of questions, one at a time (see `## Asking questions`), never an assumption:

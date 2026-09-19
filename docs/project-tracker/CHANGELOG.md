@@ -12,6 +12,15 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.12.1] — 2026-09-19
+
+### Fixed
+- **Session-start check no longer deferred.** The `SessionStart` hook said
+  "propose an update if needed", which Claude could read as optional and
+  postpone (asking the user first) when the session opened on an unrelated
+  request. The hook message and `SKILL.md` now state the check is automatic
+  and runs in the first reply, alongside the user's request.
+
 ## [0.12.0] — 2026-09-19
 
 ### Added
