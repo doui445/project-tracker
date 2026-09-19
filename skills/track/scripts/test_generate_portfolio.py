@@ -488,6 +488,27 @@ class TestCardLinksToSubpage(unittest.TestCase):
         checker.feed(html)
         self.assertFalse(checker.saw_nested_anchor, "an <a> must never be nested inside another <a>")
 
+    def test_render_card_detail_link_has_an_aria_label(self):
+        # N identical "Details" links on one page need a per-card
+        # accessible name, same pattern as the repo link's aria-label.
+        s = gp._strings("en")
+        p = {"project": "demo", "_path": "~/demo", "status": "active", "last_updated": "2026-09-01"}
+        html = gp.render_card(p, s)
+        self.assertIn('aria-label="View details for demo"', html)
+
+    def test_render_card_link_uses_the_sanitised_slug(self):
+        # A malformed project name must not produce a card link that
+        # points at a different file than the one actually written to
+        # disk -- both must go through _project_slug().
+        s = gp._strings("en")
+        p = {"project": "../evil", "_path": "~/demo", "status": "active", "last_updated": "2026-09-01"}
+        html = gp.render_card(p, s)
+        # The display name (title text) legitimately still shows the raw
+        # value -- only the href, which is a real filesystem path, must be
+        # sanitised.
+        self.assertIn(f'href="portfolio/{gp._project_slug(p)}.html"', html)
+        self.assertNotIn('href="portfolio/../evil.html"', html)
+
 
 class RelativeFreshnessTests(unittest.TestCase):
     def test_today_and_yesterday_have_dedicated_labels(self):
@@ -686,6 +707,23 @@ class TestSubprojectsSection(unittest.TestCase):
         html = gp.render_subprojects_section(subprojects, Path("/tmp"), s)
         self.assertIn(s["subpage_subproject_listed"], html)
 
+    def test_render_subprojects_section_tracked_with_unreadable_changelog(self):
+        # An active, tracked sub-project whose CHANGELOG.md has no
+        # recognisable dated entry: still shows "tracked", just without a
+        # date suffix -- no crash, no guessed date.
+        s = gp._strings("en")
+        subprojects = [{"name": "api", "path": "api", "tracked": True, "git": True, "status": "active"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            project_dir = Path(tmp)
+            (project_dir / "api").mkdir()
+            (project_dir / "api" / "CHANGELOG.md").write_text("## [Unreleased]\n\n- x\n", encoding="utf-8")
+            html = gp.render_subprojects_section(subprojects, project_dir, s)
+        self.assertIn("api", html)
+        # "—" is the always-present name/status separator, not just a date
+        # suffix -- assert the exact list item to confirm no date was
+        # appended after "tracked".
+        self.assertIn(f"<strong>api</strong> — {s['subpage_subproject_tracked']}</li>", html)
+
 
 class MainTests(unittest.TestCase):
     def setUp(self):
@@ -819,6 +857,27 @@ class TestRenderMarkdownFragment(unittest.TestCase):
 
     def test_empty_input(self):
         self.assertEqual(gp.render_markdown_fragment(""), "")
+
+    def test_heading_marker_without_a_space_is_not_a_heading(self):
+        # "##" alone has no space before a title, so per the same ATX rule
+        # CommonMark uses, it is not a heading -- it falls through as
+        # literal paragraph text rather than an empty <h2></h2>.
+        self.assertEqual(gp.render_markdown_fragment("##"), "<p>##</p>")
+
+    def test_list_tag_switches_mid_fragment(self):
+        # A bulleted item immediately followed by a numbered one (no blank
+        # line) must close the first list and open a second, not merge
+        # them or drop the switch.
+        html = gp.render_markdown_fragment("- one\n1. two")
+        self.assertEqual(html, "<ul><li>one</li></ul>\n<ol><li>two</li></ol>")
+
+    def test_formatting_inside_link_text_is_literal(self):
+        # The targeted subset doesn't nest inline formatting inside a link
+        # label -- **bold** inside [..](..) renders as literal text, not
+        # <strong>, since link text is escaped and stashed before the
+        # bold/italic pass ever sees it.
+        html = gp.render_markdown_fragment("[**bold**](http://x)")
+        self.assertEqual(html, '<p><a href="http://x">**bold**</a></p>')
 
 
 class TestExtractStatusRoadmapSections(unittest.TestCase):
@@ -972,6 +1031,25 @@ subprojects:
     def test_no_frontmatter_at_all(self):
         self.assertEqual(gp.parse_subprojects("just some text"), [])
 
+    def test_subprojects_key_present_but_empty(self):
+        # "subprojects:" immediately followed by another top-level key
+        # (no list items at all) must not crash and returns [].
+        text = "---\nproject: p\nstatus: active\nlast_updated: 2026-01-01\nsubprojects:\ncategory: x\n---\n"
+        self.assertEqual(gp.parse_subprojects(text), [])
+
+    def test_entry_missing_a_field_omits_it_rather_than_defaulting(self):
+        # An entry with no "git:" line simply has no "git" key in the
+        # resulting dict -- never guessed/defaulted.
+        text = (
+            "---\nproject: p\nstatus: active\nlast_updated: 2026-01-01\n"
+            "subprojects:\n  - name: \"api\"\n    path: \"api\"\n"
+            "    tracked: true\n    status: active\n---\n"
+        )
+        entries = gp.parse_subprojects(text)
+        self.assertEqual(len(entries), 1)
+        self.assertNotIn("git", entries[0])
+        self.assertEqual(entries[0]["tracked"], True)
+
 
 class TestBuildSubpage(unittest.TestCase):
     def _make_project_files(self, root):
@@ -1001,7 +1079,10 @@ class TestBuildSubpage(unittest.TestCase):
         self.assertIn("Kickoff", html)
         self.assertIn("first release", html)
         self.assertIn("https://github.com/x/demo", html)
-        self.assertNotIn("- x", html)  # the "### What works" bullet must not leak in
+        # "- x" alone can never appear (the renderer turns a bullet into
+        # <li>x</li>, never the literal Markdown dash) -- check for the
+        # heading text itself, which WOULD leak in if the h3 boundary broke.
+        self.assertNotIn("What works", html)
 
     def test_build_subpage_omits_missing_sections(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1057,6 +1138,13 @@ class TestWriteSubpagesAndCleanup(unittest.TestCase):
         if lang:
             data["language"] = lang
         return data
+
+    def test_project_slug_neutralises_path_separators(self):
+        # A malformed `project:` value must never be able to write outside
+        # portfolio/ -- path separators (and ..) are replaced, not left as
+        # literal characters that a filesystem would interpret.
+        self.assertEqual(gp._project_slug({"project": "../../etc/passwd"}), "..-..-etc-passwd")
+        self.assertNotIn("/", gp._project_slug({"project": "a/b"}))
 
     def test_write_subpages_writes_one_file_per_project(self):
         with tempfile.TemporaryDirectory() as tmp:
