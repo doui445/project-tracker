@@ -559,3 +559,25 @@ regenerates all of them. `SKILL.md` `## Portfolio` documents the new
 behaviour. Full verification sweep (all five test suites, names/French
 sweep) green. `STATUS.md`/`CHANGELOG.md`/`BACKLOG.md` updated; all three
 v0.12.0 code items are now done — only the release routine remains.
+
+## 2026-09-19 — v0.12.0 released
+
+Closed out the portfolio sub-pages work and cut the release:
+
+- Final whole-branch review (opus) on the sub-pages branch found and fixed
+  4 more Important issues beyond the per-task reviews: a back-link
+  hardcoded to `PORTFOLIO.html` (broke custom `portfolio.txt` filenames),
+  a `SKILL.md` paragraph left stale by the sub-projects work, unsafe
+  orphan cleanup (now marker-based — never deletes a file it didn't
+  generate), and intraword `_` mangling `snake_case` prose. Merged to
+  `main` (142/142 + 8 + 3 hook suites green on the merged result).
+- Went through the final review's 7 deferred Minor findings one by one
+  with the user rather than batch-deciding: fixed all 7 — a vacuous test
+  assertion, a missing defensive fallback, a missing `aria-label`, a
+  `.strip()` inconsistency, equal card height in a grid row, sub-page
+  filename sanitisation (path-traversal-safe, `render_card` now reuses
+  the same sanitiser so a card's link can never diverge from the file
+  written), and 6 new tests for edge cases already traced as safe but
+  left uncovered. 151/151 scripts tests green.
+- **Released v0.12.0**: `plugin.json`/`marketplace.json` bumped, installer
+  regenerated, `CHANGELOG.md` `[Unreleased]` rolled into a dated entry.

@@ -12,6 +12,8 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-09-19
+
 ### Added
 - **Nested tracking.** A tracked project can now chaperone **sub-projects**:
   sub-folders that each hold a genuine project of their own, detected via a

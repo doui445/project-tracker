@@ -4,8 +4,8 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-09-17
-next_milestone: "v0.12.0 — release only remaining (nested tracking, the \"log every discussion\" rider, and portfolio detail sub-pages all shipped)"
+last_updated: 2026-09-19
+next_milestone: "v0.13.0 — project-tracker:design skill (N1 IDENTITY.md + tool integration + N2), after the DA spec settles enough to inform it"
 reminders_list: "Project tracker"
 category: "Skill Claude"
 backlog_model: "adopté"
@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.11.0**. The four
+`project-tracker` is a published Claude Code plugin at **v0.12.0**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -64,18 +64,18 @@ build workstreams are done:
   the fixed flat file set for a tracked one, `SUBPROJECTS.md`, detection +
   one-time migration check, dual-context loading, per-sub-project git/
   freshness checks, anti-duplication with the parent's own files). Built per
-  `docs/superpowers/{specs,plans}/2026-09-16-nested-tracking*.md`; not yet
-  released. See `BACKLOG.md` (Completed).
+  `docs/superpowers/{specs,plans}/2026-09-16-nested-tracking*.md`. See
+  `BACKLOG.md` (Completed).
 - Substantive design/scoping discussions are logged automatically —
   independent of the "significant change" trigger, one `JOURNAL.md` entry
   per concluded topic plus a `BACKLOG.md` item for anything actionable.
-  Not yet released either.
 - Portfolio detail sub-pages: each project's card links to its own
   `portfolio/<project>.html` (state, next actions, current roadmap phase,
-  recent journal activity, latest changelog version, GitHub link). The
-  `PostToolUse` hook regenerates only the changed project's sub-page on a
-  targeted run; a full run (config changes) regenerates every sub-page and
-  cleans up orphans. Not yet released either.
+  recent journal activity, latest changelog version, GitHub link, active
+  sub-projects). The `PostToolUse` hook regenerates only the changed
+  project's sub-page on a targeted run; a full run (config changes)
+  regenerates every sub-page and cleans up orphans (marker-based, never
+  touching a file it didn't generate).
 
 ### Known gaps
 
@@ -83,13 +83,10 @@ build workstreams are done:
 
 ## Next 3 actions
 
-All three v0.12.0 code items are now done (nested tracking, the "log every
-discussion" rider, portfolio detail sub-pages) — committed, tests green,
-dogfooding docs updated; still **no release** (see `DECISIONS.md`,
-2026-09-03 for the release plan):
+**v0.12.0 shipped** (nested tracking, the "log every discussion" rider,
+portfolio detail sub-pages, plus a self-audit-driven cleanup pass). See
+`DECISIONS.md`, 2026-09-03 for the release sequence plan:
 
-- **v0.12.0** — nested tracking (done) + "log every discussion" (done) +
-  portfolio detail sub-pages (done). Only the release routine remains.
 - **v0.13.0** — the `project-tracker:design` skill (N1 `IDENTITY.md` +
   tool integration + N2 under `docs/project-tracker/design/`), reusing the
   nested-tracking re-prompt infra. N2 file model is frozen; workflow still
@@ -98,11 +95,12 @@ dogfooding docs updated; still **no release** (see `DECISIONS.md`,
 - In parallel (no plugin bump): project-tracker's **own brand/visual identity
   (DA)** — docs + a `PORTFOLIO.html` re-skin — then the **public website**.
 
-1. **Release v0.12.0** — bump both manifests, regenerate the installer,
-   roll `[Unreleased]` in `CHANGELOG.md`. See `CLAUDE.md` § Releasing.
-2. The **DA spec** can start independently whenever — pre-brief in
+1. The **DA spec** can start independently whenever — pre-brief in
    `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5
    (name kept, "reduce" visual pole, tool brand + light personal touch,
    re-skin `PORTFOLIO.html`).
-3. The **`project-tracker:design` skill (N1/N2)** spec once the DA work
+2. The **`project-tracker:design` skill (N1/N2)** spec once the DA work
    settles enough to inform it.
+3. Small, S-effort items from the self-audit, whenever there's a gap:
+   extract `## Sub-projects` into its own reference file, lighten the
+   `SKILL.md` frontmatter description. See `BACKLOG.md` (Open).
