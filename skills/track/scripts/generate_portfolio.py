@@ -153,6 +153,7 @@ STRINGS = {
         "card_updated": "Updated",
         "card_aria_open_repo": "Open the {name} repository",
         "card_view_detail": "Details",
+        "card_aria_view_detail": "View details for {name}",
         "uncategorized": "Uncategorized",
         "empty_title": "No tracked projects yet.",
         "empty_body": "Open a Claude Code session in a folder of this scope — the project-tracker skill will offer to track it.",
@@ -195,6 +196,7 @@ STRINGS = {
         "card_updated": "Mis à jour",
         "card_aria_open_repo": "Ouvrir le dépôt {name}",
         "card_view_detail": "Détails",
+        "card_aria_view_detail": "Voir le détail de {name}",
         "uncategorized": "Sans catégorie",
         "empty_title": "Aucun projet suivi pour l'instant.",
         "empty_body": "Ouvre une session Claude Code dans un dossier de ce périmètre — le skill project-tracker proposera de le suivre.",
@@ -429,8 +431,12 @@ def render_card(p, s, today=None):
         close_tag = "</article>"
         affordance = ""
 
-    slug = p.get("project", "")
-    subpage_link = f'<a class="card-detail" href="portfolio/{_attr(slug)}.html">{_txt(s.get("card_view_detail", "Details"))}</a>' if slug else ""
+    slug = _project_slug(p)
+    subpage_link = (
+        f'<a class="card-detail" href="portfolio/{_attr(slug)}.html" '
+        f'aria-label="{_attr(s.get("card_aria_view_detail", "View details for {name}").format(name=name))}">'
+        f'{_txt(s.get("card_view_detail", "Details"))}</a>'
+    ) if slug else ""
 
     # The sub-page link is a SIBLING of {open_tag}/{close_tag}, never nested
     # inside it: when a repo exists, open_tag/close_tag is itself an <a>,
@@ -626,19 +632,26 @@ def _extract_section(body, heading, boundary_includes_h3=False):
 
 def extract_status_overview(status_body, lang):
     """Extracts the "Where it stands" section from a STATUS.md body,
-    stopping before any ### subsections (e.g., "### What works")."""
-    return _extract_section(status_body, SOURCE_HEADINGS[lang]["where_it_stands"], boundary_includes_h3=True)
+    stopping before any ### subsections (e.g., "### What works"). Falls
+    back to the English headings for an unrecognised language, same
+    defensive posture as _strings()."""
+    headings = SOURCE_HEADINGS.get(lang, SOURCE_HEADINGS["en"])
+    return _extract_section(status_body, headings["where_it_stands"], boundary_includes_h3=True)
 
 
 def extract_status_next_actions(status_body, lang):
-    """Extracts the "Next 3 actions" section from a STATUS.md body."""
-    return _extract_section(status_body, SOURCE_HEADINGS[lang]["next_actions"])
+    """Extracts the "Next 3 actions" section from a STATUS.md body. Falls
+    back to the English headings for an unrecognised language."""
+    headings = SOURCE_HEADINGS.get(lang, SOURCE_HEADINGS["en"])
+    return _extract_section(status_body, headings["next_actions"])
 
 
 def extract_roadmap_current(roadmap_body, lang):
     """Extracts current work from a ROADMAP.md body. Prefers a
-    "Phase N — in progress" section; if not found, falls back to "Current focus"."""
-    headings = SOURCE_HEADINGS[lang]
+    "Phase N — in progress" section; if not found, falls back to "Current
+    focus". Falls back to the English headings for an unrecognised
+    language."""
+    headings = SOURCE_HEADINGS.get(lang, SOURCE_HEADINGS["en"])
     section = _extract_section(roadmap_body, headings["in_progress"])
     return section if section is not None else _extract_section(roadmap_body, headings["current_focus"])
 
@@ -686,7 +699,7 @@ def extract_changelog_latest_version(changelog_body):
             continue
         end = len(lines)
         for j in range(i + 1, len(lines)):
-            if re.match(r"^##\s", lines[j]):
+            if re.match(r"^##\s", lines[j].strip()):
                 end = j
                 break
         return version_m.group(1), version_m.group(2), "\n".join(lines[i + 1:end]).strip()
@@ -953,9 +966,16 @@ def build_subpage(project_dir, data, lang, portfolio_filename="PORTFOLIO.html"):
     )
 
 
+_UNSAFE_SLUG_CHARS_RE = re.compile(r"[^A-Za-z0-9._-]")
+
+
 def _project_slug(data):
-    """The project's filename slug for its sub-page -- its `project` key, unchanged."""
-    return data.get("project", "")
+    """The project's filename slug for its sub-page -- its `project` key,
+    with any character unsafe in a filename (path separators included)
+    replaced by "-", so a malformed value can never write outside
+    portfolio/. Never guessed -- just neutralised, not silently dropped."""
+    raw = data.get("project", "")
+    return _UNSAFE_SLUG_CHARS_RE.sub("-", raw)
 
 
 def _subpage_dir(portfolio_target):
@@ -1194,9 +1214,13 @@ PAGE_TEMPLATE = """<!doctype html>
      link/article) and .card-detail as siblings, so the sub-page link never
      nests inside the repo <a>. Entrance animation and stagger live here
      (they animate the grid item as a whole); .card keeps its own hover/
-     active motion for the click target itself. */
+     active motion for the click target itself. flex column + .card's
+     flex:1 (below) restores the pre-.card-shell behaviour of every card
+     in a row matching the tallest one's height — .card-detail stays
+     content-sized, only .card stretches. */
   .card-shell {{
-    display: block;
+    display: flex;
+    flex-direction: column;
     animation: cardIn 280ms var(--ease) both;
   }}
   @keyframes cardIn {{
@@ -1212,6 +1236,7 @@ PAGE_TEMPLATE = """<!doctype html>
   .card-shell[hidden] {{ display: none; }}
   .card {{
     display: block;
+    flex: 1;
     position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
