@@ -594,3 +594,15 @@ Closed out the portfolio sub-pages work and cut the release:
   Unreleased; no version bump yet.
 - **Released v0.12.1**: manifests bumped, installer regenerated,
   `CHANGELOG.md` `[Unreleased]` rolled into a dated entry.
+
+## 2026-09-19 — Self-audit cleanups on SKILL.md
+
+- Extracted `## Sub-projects` into `references/subprojects.md` and trimmed
+  the frontmatter `description` to trigger conditions (the two small
+  self-audit items). `SKILL.md` keeps a stub with the in-session attach
+  trigger so the behaviour still fires without loading the reference.
+  Cross-references inside the moved text now say "in `SKILL.md`". The
+  installer globs `references/*.md`, so it picked the new file up
+  automatically. Unreleased (patch-level, no behaviour change).
+- **Released v0.12.2**: manifests bumped, installer regenerated,
+  `CHANGELOG.md` `[Unreleased]` rolled into a dated entry.

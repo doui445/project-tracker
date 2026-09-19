@@ -1,6 +1,6 @@
 ---
 name: track
-description: Bootstraps and keeps up to date a standard set of markdown tracking files (README, ROADMAP, STATUS, JOURNAL, CHANGELOG, CLAUDE, DECISIONS, ERRORS, BACKLOG) for projects under the scopes defined in ~/.claude/project-tracker/scopes.txt, manages GitHub repo creation, and regenerates PORTFOLIO.html. Use it at the start of a session in a project under those scopes, after a significant change, or explicitly on request.
+description: Use at the start of a session in a project under the scopes listed in ~/.claude/project-tracker/scopes.txt, after a significant change to such a project, or when the user explicitly asks to track a project, update its tracking files, or manage its GitHub repo or portfolio.
 ---
 
 # project-tracker
@@ -68,7 +68,7 @@ Three possible states:
   - If `backlog_model` is `"adopté"` (or was just auto-recognized above) and the frontmatter has no `phase_model` key at all (see `## Retroactive frontmatter questions`): check whether files matching `PHASE_N_SPEC.md` already exist in the project — if so, auto-recognize `phase_model: "leger"` without asking (same logic as above). Otherwise, do **not** ask a question here: `phase_model` stays absent until a phase is actually proposed (see `references/backlog-phases.md`, "How phases work").
   - If its frontmatter has **no** `category` key at all (see `## Retroactive frontmatter questions`): ask for a category the same way as bootstrap step 6 (*"A category, to group this with your other projects on the portfolio page"*, offering the ones already in use + "a new one" + "no category", recommending an existing one only on a clear match). Write the label to `category` (or `"non"`). Once written, never asked again.
   - If `docs/project-tracker/GLOSSARY.md` does **not** exist and the frontmatter has no `glossary` key (see `## Retroactive frontmatter questions`): glance at the code and `README.md`; if the project carries a clear domain vocabulary of its own (coined terms, business jargon, common words used with a specific local meaning — not standard industry terms), propose starting `docs/project-tracker/GLOSSARY.md` with the terms you spotted. If accepted, create it (leave `glossary` absent — the file's existence is the signal). If declined, write `glossary: "non"`. Once `GLOSSARY.md` exists **or** `glossary` is `"non"`, this proactive check never runs again — but the in-session triggers (`## Continuous updates`) still add terms, creating the file if needed.
-  - If its frontmatter has **no** `nested_model` key at all (see `## Retroactive frontmatter questions`): run the one-time migration check (see `## Sub-projects`, `### Detecting and attaching a sub-project`) — scan for sub-folders with their own `.git`, not already in `~/.claude/project-tracker/trackignore.txt` and not already in `subprojects:`, skipping the same dependency and build directories `generate_portfolio.py` prunes (never descend into `node_modules`, nor into any folder whose name starts with a dot). Once the check has been presented and answered (whatever the outcome — zero candidates found, some adopted, all declined), write `nested_model: "non"`. Never re-run automatically once written.
+  - If its frontmatter has **no** `nested_model` key at all (see `## Retroactive frontmatter questions`): run the one-time migration check (see `references/subprojects.md`, `### Detecting and attaching a sub-project`) — scan for sub-folders with their own `.git`, not already in `~/.claude/project-tracker/trackignore.txt` and not already in `subprojects:`, skipping the same dependency and build directories `generate_portfolio.py` prunes (never descend into `node_modules`, nor into any folder whose name starts with a dot). Once the check has been presented and answered (whatever the outcome — zero candidates found, some adopted, all declined), write `nested_model: "non"`. Never re-run automatically once written.
   - If `~/.claude/project-tracker/portfolio.txt` does not exist: ask where to save the portfolio page (*"`PORTFOLIO.html` is a single page listing all your tracked projects — where should it live?"*) — offer `~/Documents` **(recommended — tidy and permanent)**, `~/Desktop` (always in view), another folder, or "don't make one". Write the chosen folder path to `portfolio.txt`; for "don't make one" write a comments-only `portfolio.txt` (the hook stays silent). Machine-global, never asked again.
   - If `~/.claude/project-tracker/language.txt` does not exist: ask which language the tracking files and portfolio should be written in — **English** / **French**, recommending whichever the project's `README` is in (or, failing that, the language the user is writing to you in). Write the code (`en` / `fr`) to `language.txt`. Machine-global, never asked again.
   - Otherwise: resolve the effective language and glance at `STATUS.md`. If it is visibly in the other language, offer the full retranslation (see `references/writing-tracking-files.md`, `## Retranslating on a language change`).
@@ -199,65 +199,13 @@ This is the only strictly structured part of any of these files — the rest is 
 
 `language` is an optional per-project override for the tracking files' language (not the portfolio, not reminders); absent means follow `~/.claude/project-tracker/language.txt`.
 
-`subprojects` and `nested_model` are documented in full in `## Sub-projects` and `## Detecting a project's root` — `generate_portfolio.py` reads the `subprojects` key to render each project's detail sub-page (see `## Portfolio`); the aggregate `PORTFOLIO.html` card grid does not use it.
+`subprojects` and `nested_model` are documented in full in `## Sub-projects` (and `references/subprojects.md`) and `## Detecting a project's root` — `generate_portfolio.py` reads the `subprojects` key to render each project's detail sub-page (see `## Portfolio`); the aggregate `PORTFOLIO.html` card grid does not use it.
 
 ## Sub-projects
 
-A tracked project can chaperone one or more **sub-projects**: sub-folders that each hold a genuine project of their own (an app, a module, a version) — never just any sub-folder used to store something. This is purely an organisational concept of this skill, not a git relationship: a sub-project with its own git repo is a fully independent repo (no submodule, no subtree, no git-level link to the parent), and the parent itself does not need to be a git repo at all — a parent's `uses_git` and a sub-project's own git presence are entirely independent settings.
+A tracked project can chaperone one or more **sub-projects**: sub-folders that each hold a genuine project of their own (an app, a module, a version) — never just any sub-folder used to store something. They are recorded in the parent's `subprojects:` frontmatter list (`### STATUS.md frontmatter`). This is purely an organisational concept of this skill, not a git relationship, and a sub-project cannot itself have sub-projects.
 
-A sub-project cannot itself have sub-projects (no multi-level nesting).
-
-Renaming or moving a sub-project's folder is not auto-detected — if the user mentions it, update its `path` in `subprojects:` by hand; there is no automatic re-scan for this.
-
-### States
-
-Recorded per sub-project in the parent's `subprojects:` frontmatter list (`### STATUS.md frontmatter`):
-- `tracked: false` — known and listed by the parent (name + path), no files of its own.
-- `tracked: true` — gets the fixed file set below.
-- `status: active` / `archived`, independent of `tracked`. Archiving is never automatic or inferred from a name pattern — always ask explicitly, typically when a replacement appears (e.g. a v2 supersedes a v1): *"`<old>` looks superseded by `<new>` — mark `<old>` as archived?"* An `archived` sub-project is excluded from every check in `## Continuous updates`.
-
-### File set for a tracked sub-project
-
-Fixed, never variable, all at the **root of the sub-project's own folder** — no `docs/` sub-folder at this scale:
-- `README.md`, `CHANGELOG.md` — always.
-- `ARCHITECTURE.md` — optional, the same one-time question as bootstrap step 7 (`## Bootstrapping a new project`).
-- `DECISIONS.md`, `ERRORS.md` — always.
-
-Never the full nine files — a sub-project that needs its own phases/backlog/roadmap has outgrown this model and should become an independent tracked project instead, with a pointer kept from the parent's `SUBPROJECTS.md`.
-
-Committed by default, same rule as every tracking file in this model (`## The standard files`) — the same narrow sensitive-content exception applies, never the default.
-
-No frontmatter of its own: every machine-readable fact (`tracked`/`git`/`status`) lives only in the parent's `subprojects:` list. The sub-project's own `CHANGELOG.md` uses the same dated Keep a Changelog format as every other `CHANGELOG.md` here (`## [X.Y.Z] — YYYY-MM-DD`) — its latest entry date is the freshness reference used in `## Continuous updates`, no extra field needed.
-
-If the sub-project already has some of these files before being attached, reuse them rather than starting fresh — same logic as `## Retrofitting an existing project`.
-
-### GLOSSARY.md stays single
-
-A term specific to a sub-project still goes in the parent's own `docs/project-tracker/GLOSSARY.md` — there is no per-sub-project glossary.
-
-### SUBPROJECTS.md
-
-`docs/project-tracker/SUBPROJECTS.md`, on the **parent** — created on first need, like `GLOSSARY.md`: not asked at bootstrap, created (with a short note that it was) the moment the first sub-project is attached. One prose section per sub-project: why it exists, a current one-line status, a pointer to its own files. This is where sub-project *detail* lives — `STATUS.md`, `JOURNAL.md` and `ROADMAP.md` on the parent never duplicate it (see `## Continuous updates`).
-
-### Detecting and attaching a sub-project
-
-A signal (typically a nested `.git`) triggers a **proposal**, never a silent decision. Dependency and build directories are never candidates and are never descended into — skip `node_modules` and any folder whose name starts with a dot (`.venv`, `.git` itself, …), the same pruning `generate_portfolio.py` already applies when it walks a scope. Reuse the exact 3-way choice from bootstrap step 1 (`## Bootstrapping a new project`), per candidate:
-
-- **Yes, attach it** *(recommended when the folder clearly holds its own project — its own git history, its own README)* → ask whether to track it in detail (`### File set for a tracked sub-project`) or just list it (`tracked: false`); write the entry to `subprojects:`; create/update `SUBPROJECTS.md`.
-- **No, don't ask again** → add the folder's path to `~/.claude/project-tracker/trackignore.txt` — this also suppresses it from any future sub-project scan, not just from top-level tracking (`trackignore.txt`'s scope is shared between the two purposes).
-- **Not now** → ask again next session; nothing is written.
-
-When several candidates surface at once (typically during the one-time migration check below), present them **together in one grouped question** — never one question per candidate: *"I found these folders with their own git repo — attach as sub-projects? `<name>` (`<path>`), `<name>` (`<path>`)..."*, then apply the same 3-way choice per item inside that one exchange.
-
-Without a nested-`.git` signal, attaching a sub-project only happens on the user's **explicit** request, and only for a genuine project (`## Sub-projects`'s opening paragraph) — never to file away an arbitrary folder.
-
-**Ongoing detection — in-session triggers.** This detection is opportunistic, never a scan: a candidate surfaces in the course of normal work, and you propose it then. When either happens, make the proposal above:
-- you are working inside a sub-folder of the project and see that it has its own `.git`;
-- the user mentions, creates, or points you at a new sub-project of theirs.
-
-It is never a scheduled re-walk of the project's tree at session start — that recurring cost, paid by every tracked project that will never have a sub-project, is exactly what the one-time flag below exists to avoid.
-
-**One-time migration check.** Governed by the `nested_model` frontmatter key (`## Detecting a project's root`): scans the project's sub-folders for candidates not yet in `subprojects:` nor in `trackignore.txt`, presents them as one grouped question if any are found, and writes `nested_model: "non"` once resolved — regardless of the outcome. If no candidate is ever found, the question never comes up and the key is still written once the (empty) check has run, so the scan itself doesn't repeat every session. This is a one-time catch-up for projects tracked before this feature existed; it is separate from the always-on detection above, which keeps noticing brand-new sub-folders in any session afterwards.
+The full rules — the states (`tracked`, `git`, `status`), the fixed file set of a tracked sub-project, `SUBPROJECTS.md`, detection and attaching, the one-time `nested_model` migration check — are in `references/subprojects.md`. **Read it before** attaching a sub-project, creating or updating a sub-project's files, or running that migration check. In-session trigger, no scan involved: if, in the course of normal work, you see that a sub-folder has its own `.git`, or the user mentions or creates a new sub-project of theirs, make the attach proposal described there.
 
 ## Output language
 

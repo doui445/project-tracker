@@ -17,7 +17,7 @@ language: en
 
 ## Where it stands
 
-`project-tracker` is a published Claude Code plugin at **v0.12.1**. The four
+`project-tracker` is a published Claude Code plugin at **v0.12.2**. The four
 build workstreams are done:
 
 1. **C1 — standalone public repo** (`github.com/doui445/project-tracker`).
@@ -83,8 +83,9 @@ build workstreams are done:
 
 ## Next 3 actions
 
-**v0.12.1 shipped** (session-start check now runs automatically instead of
-being deferred; builds on v0.12.0: nested tracking, the "log every
+**v0.12.2 shipped** (`SKILL.md` slimmed: `## Sub-projects` extracted to a
+reference file, description trimmed; v0.12.1 made the session-start check
+automatic; builds on v0.12.0: nested tracking, the "log every
 discussion" rider, portfolio detail sub-pages, self-audit cleanup pass). See
 `DECISIONS.md`, 2026-09-03 for the release sequence plan:
 
@@ -102,6 +103,6 @@ discussion" rider, portfolio detail sub-pages, self-audit cleanup pass). See
    re-skin `PORTFOLIO.html`).
 2. The **`project-tracker:design` skill (N1/N2)** spec once the DA work
    settles enough to inform it.
-3. Small, S-effort items from the self-audit, whenever there's a gap:
-   extract `## Sub-projects` into its own reference file, lighten the
-   `SKILL.md` frontmatter description. See `BACKLOG.md` (Open).
+3. Self-audit small items are done (shipped in v0.12.2: `## Sub-projects` extracted
+   to `references/subprojects.md`, frontmatter description trimmed). Only the
+   larger "lessons learned" audit item remains, see `BACKLOG.md` (Open).

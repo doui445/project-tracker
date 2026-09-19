@@ -197,21 +197,6 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   Low priority, nothing else depends on it; needs a real brainstorm before
   any of it is built.
 
-- [ ] **Skill audit: extract `## Sub-projects` into its own reference file**
-  (S, ⭐) — surfaced 2026-09-17, from a self-audit of `SKILL.md` against the
-  `superpowers:writing-skills` size/SDO guidance. At ~57 lines, `## Sub-projects`
-  is the largest self-contained subsystem still inline in `SKILL.md`
-  (382 lines / ~45k chars total); move it to `references/subprojects.md`,
-  same pattern already used for `backlog-phases.md`. No behaviour change,
-  pure extraction.
-
-- [ ] **Skill audit: lighten the `SKILL.md` frontmatter description** (XS, ⭐)
-  — surfaced 2026-09-17. The description enumerates all nine tracked file
-  names, which reads as a workflow summary rather than a pure trigger
-  condition — risks an agent short-circuiting on the description instead of
-  reading the body (a documented anti-pattern in `superpowers:writing-skills`).
-  Trim to trigger conditions only.
-
 - [ ] **Skill audit: consider a centralized "lessons learned" /
   common-mistakes section** (M, ⭐) — surfaced 2026-09-17. Behavioural
   corrections today get woven into the relevant section rather than
@@ -231,6 +216,16 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   so far.
 
 ## Completed
+
+- [x] **Skill audit: extract `## Sub-projects` into its own reference file**
+  (2026-09-19) — the ~57-line subsystem moved verbatim (cross-references
+  retargeted) to `references/subprojects.md`; `SKILL.md` keeps a short stub
+  with the in-session attach trigger and a "read it before…" pointer
+  (386 → 335 lines). No behaviour change.
+
+- [x] **Skill audit: lighten the `SKILL.md` frontmatter description**
+  (2026-09-19) — reduced to trigger conditions only (no enumeration of the
+  nine file names, no workflow summary).
 
 - [x] **Portfolio: a detail sub-page per project** (2026-09-17) — each
   card in `PORTFOLIO.html` now links to its own `portfolio/<project>.html`

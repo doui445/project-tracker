@@ -12,6 +12,16 @@ guidance, no-behaviour-change refactors. The version lives in
 
 ## [Unreleased]
 
+## [0.12.2] — 2026-09-19
+
+### Changed
+- **`SKILL.md` slimmed down (no behaviour change).** The `## Sub-projects`
+  subsystem moved to `references/subprojects.md` (same pattern as
+  `backlog-phases.md`), leaving a short pointer and the in-session attach
+  trigger in `SKILL.md` (386 → 335 lines). The frontmatter `description`
+  now states trigger conditions only instead of listing the nine tracked
+  files.
+
 ## [0.12.1] — 2026-09-19
 
 ### Fixed

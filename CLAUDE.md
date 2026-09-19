@@ -15,7 +15,7 @@ creation, and regenerates a unified `PORTFOLIO.html`. Behaviour spec:
 - `skills/track/SKILL.md` — the full behaviour specification (source
   of truth for how the skill acts).
 - `skills/track/references/` — `backlog-phases.md`,
-  `reminders-sync.md`, `writing-tracking-files.md`, and `i18n/{en,fr}.md`
+  `reminders-sync.md`, `subprojects.md`, `writing-tracking-files.md`, and `i18n/{en,fr}.md`
   (the output-language catalogue).
 - `skills/track/hooks/` — `session_start.sh`, `reminders_sync_trigger.sh`,
   `portfolio_regen.sh` (+ their `test_*.sh`). **Self-relative** — never
