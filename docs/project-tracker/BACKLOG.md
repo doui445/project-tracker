@@ -102,6 +102,13 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
     fills passively (no re-prompt); the N2 opt-in can be lazy.
   - **Ships as v0.13.0**, reusing that infra. Its own spec → plan cycle.
 
+  **Added 2026-09-21:** the design/branding research corpus exists to teach
+  this skill to work on **any tracked project**, so it must carry a
+  **personal-brand profile** (account packaging: bio, description, handle,
+  pinned content, a hub demo; an ICP close to the founder; numeric goals;
+  content cadence), not only the tool/app/library cases. Open question:
+  does `kind:` need a fifth value (`person`), or does `brand` cover it?
+
   **Still to define in the spec**: the N2 workflow itself (research →
   strategy → 2 named art directions → logo → … → presentation with an
   adjective rubric + targeted questions — sketched in

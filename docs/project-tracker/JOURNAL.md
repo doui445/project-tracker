@@ -622,3 +622,28 @@ Closed out the portfolio sub-pages work and cut the release:
 - New idea captured: a graph / overview views in the portfolio, to be
   discussed during the DA work — needs a decision on which relationship it
   would show. Still open: the DA spec and the `project-tracker:design` skill.
+
+## 2026-09-21 — Design/branding research corpus: purpose clarified, 24th video added
+
+- Nothing built. Session opened on "what next?"; the tracking files were
+  current. Wrote `nested_model: "non"` into `STATUS.md` (one-time check, no
+  sub-repos found). Reminders synced: two shipped items ticked (portfolio
+  detail sub-pages, v0.12.0), one created for the `project-tracker:design`
+  spec.
+- Re-read the research synthesis (`docs/superpowers/research/`, gitignored)
+  and added a 24th video, a personal-branding audit of a coach's YouTube +
+  Instagram account (from a pasted transcript). Little that is new for the
+  project's own brand (it mostly confirms the corpus: foundation before
+  aesthetics, two type families, one clear metric); one new tension noted
+  (palette taken from the real environment vs. a colour rare in the sector),
+  to settle in the DA's `DESIGN.md`.
+- **Purpose clarified by the user:** the corpus exists to teach the future
+  `project-tracker:design` skill to do design and branding for **any
+  tracked project**; project-tracker's own DA is only the first test case.
+  Rules are therefore kept by generality, not by fit to this project — a
+  "personal brand" profile (account packaging, ICP close to the founder,
+  numeric goals, content cadence) is now recorded instead of discarded.
+- Still open: whether `kind:` needs a fifth value (`person`) for personal
+  brands, or `brand` covers it; the DA spec (strategy first: foundations,
+  then strategy, then visuals); the skill's workflow, tool-integration
+  categories and skills catalogue.

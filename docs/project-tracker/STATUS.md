@@ -11,6 +11,7 @@ category: "Skill Claude"
 backlog_model: "adopté"
 phase_model: "superpowers"
 language: en
+nested_model: "non"
 ---
 
 # STATUS — project-tracker
