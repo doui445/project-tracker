@@ -148,6 +148,27 @@ abandoned. Effort S/M/L, value ⭐–⭐⭐⭐.
   Prerequisite for the **Public website** item below. Pre-brief:
   `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5.
 
+  **Added 2026-09-22, updated same day — BLOCKING, DA work paused:** a DA
+  brainstorming session (FOUNDATIONS/STRATEGY fully worked through; DESIGN.md
+  colour + typography explored with provisional picks; logo not started —
+  see `docs/superpowers/specs/2026-09-22-brand-visual-identity-design.md`,
+  marked paused, nothing acted) surfaced a bigger open question than the DA
+  itself: **should the plugin be renamed** from a functional single-purpose
+  name (`project-tracker`) to a **persona/umbrella name** (candidate:
+  **"Steward"**) under which several skills would live
+  (`steward:track`, `steward:design`, future ones) — because the real WHY
+  settled in that session is broader than tracking ("make working with AI
+  frictionless and reliable in general"), and `project-tracker:design`
+  (the v0.13.0 skill above) already reads oddly for exactly that reason.
+  Real costs on the table: renaming a published plugin (GitHub repo,
+  marketplace listing, `plugin.json`, `install-project-tracker.sh`, any
+  installed users' `/project-tracker:*` muscle memory), and checking
+  `steward` isn't already taken. **Decided 2026-09-22: pause the DA work
+  entirely and resolve the naming question first, in a fresh session**
+  (logo work especially would be wasted if the name changes) — before
+  resuming DESIGN.md and before v0.13.0 ships the design skill under
+  whatever name is settled on.
+
 - [ ] **Public website** (L, ⭐⭐) — surfaced 2026-09-02, **depends on the
   brand / visual identity item above.** A marketing + docs site for the
   plugin. Firm constraints from the user: visually striking, at least as

@@ -647,3 +647,53 @@ Closed out the portfolio sub-pages work and cut the release:
   brands, or `brand` covers it; the DA spec (strategy first: foundations,
   then strategy, then visuals); the skill's workflow, tool-integration
   categories and skills catalogue.
+
+## 2026-09-22 — DA brainstorming session: FOUNDATIONS/STRATEGY settled, DESIGN.md started, paused on a naming question
+
+- Committed the pending tracking-file updates from the previous session,
+  then started the brand/visual identity (DA) brainstorm via
+  `superpowers:brainstorming` (architectural path). Spec draft:
+  `docs/superpowers/specs/2026-09-22-brand-visual-identity-design.md`
+  (now marked **paused**, nothing acted — see below).
+- **FOUNDATIONS worked through with the user, in depth**: the real WHY
+  turned out broader than "track projects" — fluidify, simplify and
+  humanize working with AI in general (the Mac/iPhone analogy: count on
+  it, no friction, think only about the goal). Personality anchored on
+  **Jarvis** (discreet but a real personality, serious with a touch of
+  humor, warm, reassuring, minimal on the surface/rich underneath,
+  proactive, doesn't hesitate to correct or disagree). Core emotion:
+  serenity, with trust as its base.
+- **STRATEGY worked through**: no numeric objective (accessible to
+  anyone → users → community, in that order, by consequence, not by
+  design); persona defined by need, not by tool already used ("anyone
+  with projects who wants to count on AI reliably, without re-explaining
+  or re-checking everything" — deliberately not "already uses Claude
+  Code", so as not to exclude people the tool could bring to Claude Code);
+  starting state = worry + distrust; positioning landed on "project-tracker
+  is what lets the AI remember in your place, so you can use it reliably,
+  without effort," after several rounds of wording.
+- **DESIGN.md started**: explored a warm "Feutré" (paper/wood) direction,
+  rejected in favor of refining the existing `PORTFOLIO.html` look instead
+  of replacing it; several accent-colour families tried (terracotta,
+  blue/teal — both rejected, one as trend-fatigued, one as too corporate);
+  used the `ui-ux-pro-max` skill's colour database to break out of that
+  loop, converged on a near-black/white palette with a single ochre/gold
+  accent (`#A16207` light / `#E0A526` dark), both light and dark modes
+  planned. Typography: decided against system-default fonts (a deliberate
+  choice fits "rich underneath" better); same skill's font-pairing search
+  led to Karla (text) + Space Mono (technical bits), replacing the
+  system-font stack used today.
+- **Paused before the logo**: asking for an opinion on the name (still
+  `project-tracker`, decided 2026-09-03) led to reconsidering it — not
+  reopening "explicit vs abstract" (already re-confirmed once), but a
+  structural question: should the plugin become a persona/umbrella
+  (candidate name: "Steward") hosting several skills
+  (`steward:track`, `steward:design`, future ones not about tracking at
+  all), since the real WHY settled above is broader than tracking and
+  `project-tracker:design` (the planned v0.13.0 skill) already reads
+  oddly for exactly that reason. Real costs flagged (renaming a published
+  plugin, repo, marketplace listing, install script, existing users'
+  muscle memory); not decided. **Nothing in this session is acted** — the
+  colour/typography picks are provisional, to revalidate once the naming
+  question is resolved, not assumed. See `BACKLOG.md` (DA item, marked
+  blocking) for the full framing; resume in a fresh session, naming first.

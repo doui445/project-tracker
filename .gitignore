@@ -7,3 +7,6 @@ __pycache__/
 # under docs/project-tracker/ are committed. This is the superpowers
 # skill's default path — `phase_model: superpowers` writes here.
 /docs/superpowers/
+
+# Brainstorming visual-companion mockups (session-local, not a deliverable).
+/.superpowers/

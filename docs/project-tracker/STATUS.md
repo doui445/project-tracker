@@ -4,7 +4,7 @@ status: active
 uses_git: true
 repo: https://github.com/doui445/project-tracker
 stack: [Bash, Python, Markdown]
-last_updated: 2026-09-19
+last_updated: 2026-09-22
 next_milestone: "v0.13.0 — project-tracker:design skill (N1 IDENTITY.md + tool integration + N2), after the DA spec settles enough to inform it"
 reminders_list: "Project tracker"
 category: "Skill Claude"
@@ -87,23 +87,27 @@ build workstreams are done:
 **v0.12.2 shipped** (`SKILL.md` slimmed: `## Sub-projects` extracted to a
 reference file, description trimmed; v0.12.1 made the session-start check
 automatic; builds on v0.12.0: nested tracking, the "log every
-discussion" rider, portfolio detail sub-pages, self-audit cleanup pass). See
-`DECISIONS.md`, 2026-09-03 for the release sequence plan:
+discussion" rider, portfolio detail sub-pages, self-audit cleanup pass).
+The DA brainstorm (2026-09-22) surfaced a structural question bigger than
+the DA itself — see below, now the actual next step.
 
-- **v0.13.0** — the `project-tracker:design` skill (N1 `IDENTITY.md` +
-  tool integration + N2 under `docs/project-tracker/design/`), reusing the
-  nested-tracking re-prompt infra. N2 file model is frozen; workflow still
-  to spec.
-- **v1.0.0** — later, a deliberate small release that only declares stability.
-- In parallel (no plugin bump): project-tracker's **own brand/visual identity
-  (DA)** — docs + a `PORTFOLIO.html` re-skin — then the **public website**.
-
-1. The **DA spec** can start independently whenever — pre-brief in
-   `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5
-   (name kept, "reduce" visual pole, tool brand + light personal touch,
-   re-skin `PORTFOLIO.html`).
-2. The **`project-tracker:design` skill (N1/N2)** spec once the DA work
-   settles enough to inform it.
-3. Self-audit small items are done (shipped in v0.12.2: `## Sub-projects` extracted
-   to `references/subprojects.md`, frontmatter description trimmed). Only the
-   larger "lessons learned" audit item remains, see `BACKLOG.md` (Open).
+1. **Resolve the plugin naming question, in a fresh session, before
+   anything else DA-related.** A DA brainstorm went through FOUNDATIONS +
+   STRATEGY and started DESIGN.md (colour, typography — both provisional),
+   then paused before the logo: should the plugin stay `project-tracker`
+   (a single-purpose, explicit name) or become a persona/umbrella name
+   (candidate: **"Steward"**) hosting several skills (`steward:track`,
+   `steward:design`, future ones unrelated to tracking), since the WHY
+   settled in that session is broader than tracking and
+   `project-tracker:design` already reads oddly? Real costs (renaming a
+   published plugin/repo/marketplace listing) not to be decided lightly.
+   See `BACKLOG.md` (DA item, marked blocking) and
+   `docs/superpowers/specs/2026-09-22-brand-visual-identity-design.md`
+   (marked paused, nothing acted).
+2. **Once the name is settled**: resume the DA spec (revalidate or redo
+   colour/typography under the chosen name, then the logo), per
+   `docs/superpowers/research/2026-09-02-design-branding-SYNTHESE.md` § 5.
+3. **The `project-tracker:design` skill (N1/N2)** spec, once the DA
+   settles — see `DECISIONS.md`, 2026-09-03 for the release sequence plan
+   (`v0.13.0` = the design skill, `v1.0.0` later, DA + site in parallel, no
+   plugin bump). N2 file model is frozen; workflow still to spec.
